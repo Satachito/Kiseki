@@ -2,17 +2,244 @@
 <html lang=zxx>
 <title>The Vector Editor</title>
 
-<style>
-canvas {
-;	image-rendering		: pixelated
-;	position			: absolute
-}
-#D_CANVAS {
-;	background-color	: #cccf
-}
-</style>
+<link rel=stylesheet href=index.css>
 
-<canvas id=D_CANVAS width=0 height=0></canvas>
-<canvas id=CANVAS width=1600 height=1300></canvas>
+<header>
+	<input type=image id=NavB		src=res/Hamburger.svg>
+	<input type=image id=SelectB	src=res/Select.png	class=selected >
+	<input type=image id=RectB		src=res/Rect.png	>
+	<input type=image id=OvalB		src=res/Oval.png	>
+	<input type=image id=LineB		src=res/Line.png	>
+	<input type=image id=CurveB		src=res/Curve.png	>
+	<input type=image id=EraserB	src=res/Eraser.png	>
+	<input type=image id=PenB		src=res/Pen.png		>
+	<input type=image id=DivideB	src=res/Divide.png	>
+	<input type=image id=ChangeB	src=res/Change.png	>
+	<input type=image id=AlignLB	src=res/AlignL.png	>
+	<input type=image id=AlignRB	src=res/AlignR.png	>
+	<input type=image id=AlignTB	src=res/AlignT.png	>
+	<input type=image id=AlignBB	src=res/AlignB.png	>
+	<input type=image id=HandB		src=res/Hand.png	>
+	<input type=image id=UniteB		src=res/Unite.png	>
+	<input type=image id=GatherB	src=res/Gather.png	>
 
-<script src=ve.js type=module></script>
+	<span class=right>
+		<span class="cursive">VecEdit</span>
+		<input type=image id=AsideB		src=res/Hamburger.svg>
+	</span>
+</header>
+
+<nav id=NAV class=open>
+
+	<div class=headline id=DisplayParametersT>Display parameters</div>
+	<div>
+		<div class=lr>
+			<label><input type=checkbox id=SkipFillC				>	Skip fill		</label>
+			<div></div>
+		</div>
+
+		<div class=lr>
+			<label><input type=checkbox id=ForceStrokeC				>	Force stroke	</label>
+			<jp-color-picker id=ForceStrokeColor	value='blue'	></jp-color-picker>
+		</div>
+
+		<div class=lr>
+			<label><input type=checkbox id=ControlC		checked		>	Show control	</label>
+			<jp-color-picker id=ControlColor		value='green'	></jp-color-picker>
+		</div>
+
+		<div class=lr>
+			<label>														Selection color	</label>
+			<jp-color-picker id=SelectionColor		value='purple'	></jp-color-picker>
+		</div>
+
+		<div class=lr>
+			<label>														Tool color		</label>
+			<jp-color-picker id=ToolColor			value='red'		></jp-color-picker>
+		</div>
+
+	</div>
+
+	<div class=headline id=ViewportT>Viewport</div>
+	<div>
+		<div class=lr><span>Left margin	</span>	<input type=text id=MarginX	value=100	></div>
+		<div class=lr><span>Top margin	</span>	<input type=text id=MarginY	value=100	></div>
+	</div>
+
+	<div class=headline id=CanvasSizeT>Canvas size</div>
+	<div>
+		<div class=lr><span>Width		</span>	<input type=text id=Width	value=4800	></div>
+		<div class=lr><span>Height		</span>	<input type=text id=Height	value=3200	></div>
+	</div>
+
+	<div class=headline>Gathering parameters(For debugging)</div>
+	<div>
+		<div class=lr>
+			<span>Fill rule</span>
+			<select id=GatheringFillRule>
+				<option value=nonzero	>nonzero	</option>
+				<option value=evenodd	>evenodd	</option>
+			</select>
+		</div>
+		<div class=lr><span>Scale	</span><input type=text id=ScaleValue	value=8	></div>
+	</div>
+
+	<div class=headline>Layers</div>
+	<div id=LayerContainer>
+	</div>
+</nav>
+
+<main id=MAIN>
+	<canvas id=C_DEBUG		width=0		height=0	></canvas>
+	<canvas id=C_PREVIEW	width=1600	height=1300	></canvas>
+	<canvas id=C_MAIN		width=1600	height=1300	tabindex=0></canvas>
+</main>
+
+<aside id=ASIDE class=open>
+	<div class=headline>Template</div>
+	<div>
+		<div class=lr>
+			<label><input		id=TempFillC			type=checkbox			> fill				</label>
+			<jp-color-picker	id=TempFillStyle		value=black	></jp-color-picker>
+		</div>
+		<div class=lr>
+			<label><input		id=TempFillRuleC		type=checkbox			> fill-rule			</label>
+			<select				id=TempFillRuleValue>
+				<option value=nonzero	>nonzero	</option>
+				<option value=evenodd	>evenodd	</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=TempStrokeC			type=checkbox	checked	> stroke			</label>
+			<jp-color-picker	id=TempStrokeStyle		value=black	></jp-color-picker>
+		</div>
+		<div class=lr>
+			<label><input		id=TempOpacityC			type=checkbox			> opacity			</label>
+			<input				id=TempOpacityValue		type=text		value=1	>
+		</div>
+		<div class=lr>
+			<label><input		id=TempStrokeWidthC		type=checkbox			> stroke-width		</label>
+			<input				id=TempStrokeWidthValue	type=text		value=1	>
+		</div>
+		<div class=lr>
+			<label><input		id=TempLineCapC			type=checkbox			> stroke-linecap	</label>
+			<select				id=TempLineCapValue>
+				<option value=butt					>butt	</option>
+				<option value=round					>round	</option>
+				<option value=square				>square	</option>
+				<option value=inherit selected		>inherit</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=TempLineJoinC		type=checkbox			> stroke-linejoin	</label>
+			<select				id=TempLineJoinValue>
+				<option value=miter					>miter	</option>
+				<option value=round					>round	</option>
+				<option value=bevel					>bevel	</option>
+				<option value=inherit selected		>inherit</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=TempMiterLimitC		type=checkbox			> stroke-miterlimit	</label>
+			<input				id=TempMiterLimitValue	type=text		value=1	>
+		</div>
+		<div class=lr>
+			<label><input		id=TempDashOffsetC		type=checkbox			> stroke-dashoffset	</label>
+			<input				id=TempDashOffsetValue	type=text		value=0	>
+		</div>
+		<div class=lr>
+			<label><input		id=TempDashArrayC		type=checkbox			> stroke-dasharray	</label>
+			<input				id=TempDashArrayValue	type=text				>
+		</div>
+	</div>
+
+	<div class=headline>Properties</div>
+	<div>
+		<div class=lr>
+			<label><input		id=PropFillC			type=checkbox			> fill				</label>
+			<jp-color-picker	id=PropFillStyle		value=black	></jp-color-picker>
+		</div>
+		<div class=lr>
+			<label><input		id=PropFillRuleC		type=checkbox			> fill-rule			</label>
+			<select				id=PropFillRuleValue>
+				<option value=nonzero	>nonzero	</option>
+				<option value=evenodd	>evenodd	</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=PropStrokeC			type=checkbox	checked	> stroke			</label>
+			<jp-color-picker	id=PropStrokeStyle		value=black	></jp-color-picker>
+		</div>
+		<div class=lr>
+			<label><input		id=PropOpacityC			type=checkbox			> opacity			</label>
+			<input				id=PropOpacityValue		type=text		value=1	>
+		</div>
+		<div class=lr>
+			<label><input		id=PropStrokeWidthC		type=checkbox			> stroke-width		</label>
+			<input				id=PropStrokeWidthValue	type=text		value=1	>
+		</div>
+		<div class=lr>
+			<label><input		id=PropLineCapC			type=checkbox			> stroke-linecap	</label>
+			<select				id=PropLineCapValue>
+				<option value=butt					>butt	</option>
+				<option value=round					>round	</option>
+				<option value=square				>square	</option>
+				<option value=inherit selected		>inherit</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=PropLineJoinC		type=checkbox			> stroke-linejoin	</label>
+			<select				id=PropLineJoinValue>
+				<option value=miter					>miter	</option>
+				<option value=round					>round	</option>
+				<option value=bevel					>bevel	</option>
+				<option value=inherit selected		>inherit</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=PropMiterLimitC		type=checkbox			> stroke-miterlimit	</label>
+			<input				id=PropMiterLimitValue	type=text		value=1	>
+		</div>
+		<div class=lr>
+			<label><input		id=PropDashOffsetC		type=checkbox			> stroke-dashoffset	</label>
+			<input				id=PropDashOffsetValue	type=text		value=0	>
+		</div>
+		<div class=lr>
+			<label><input		id=PropDashArrayC		type=checkbox			> stroke-dasharray	</label>
+			<input				id=PropDashArrayValue	type=text				>
+		</div>
+	</div>
+
+	<jp-tree-view id=Props></jp-tree-view>
+</aside>
+
+<footer>
+	<span id=COORDINATE></span>
+	<span class="cursive right">©2021- SliP LLC, Tokyo. Written by Satoru Ogura.</span>
+</footer>
+
+<dialog id=RotateDialog>
+	<div class=dialogBlocker>
+		<label>Degree:</label><input id=RotateDialogDegree><br>
+		<br>
+		<br>
+		<input id=RotateDialogOK		type=button value='OK'		class=default>
+		<input id=RotateDialogCancel	type=button value='Cancel'>
+	</div>
+</dialog>
+
+<dialog id=ResizeDialog>
+	<div class=dialogBlocker>
+		<label>X:</label><input id=ResizeDialogX><br>
+		<label>Y:</label><input id=ResizeDialogY><br>
+		<br>
+		<br>
+		<input id=ResizeDialogOK		type=button value='OK'		class=default>
+		<input id=ResizeDialogCancel	type=button value='Cancel'>
+	</div>
+</dialog>
+
+<script type=module src=jp-color-picker/_.js></script>
+<script type=module src=node_modules/@satachito/jp-tree-view/jp-tree-view.js></script>
+<script type=module src=ve.js></script>
+

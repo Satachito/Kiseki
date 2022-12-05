@@ -1,26 +1,17 @@
 const
-Loop = ( N, $ ) => {
-	for ( let _ = 0; _ < N; _++ ) $()
-}
-const
-Iterate = ( N, $ ) => {
-	for ( let _ = 0; _ < N; _++ ) $( _ )
-}
-
-const
-Permutations = ( N, $ ) => {
-	for ( let p = 0; p < N - 1; p++ ) for ( let q = p + 1; q < N; q++ ) $( p, q )
-}
-const
-ArrayPermutations = ( _, $ ) => {
-	const L = _.length
-	for ( let p = 0; p < L - 1; p++ ) for ( let q = p + 1; q < L; q++ ) $( _[ p ], _[ q ] )
+Toast = ( severity, ..._ ) => {
+	switch ( severity ) {
+	case 'red'		: console.error( ..._ )	; break
+	case 'yellow'	: console.warn( ..._ )	; break
+	case 'green'	: console.info( ..._ )	; break
+	default			: console.log( ..._ )	; break
+	}
 }
 
-const
-Product = ( P, Q, $ ) => {
-	for ( let p = 0; p < P; p++ ) for ( let q = 0; q < Q; q++ ) $( p, q )
-}
+import {
+	ArrayPermutations
+,	Product
+} from './JP/JS/JP.js'
 
 import {
 	CF
@@ -62,10 +53,7 @@ import {
 ////////
 
 const
-cMain = CANVAS.getContext( '2d' )
-
-const
-cDebug = D_CANVAS.getContext( '2d' )
+cMain		= C_MAIN	.getContext( '2d' )
 
 let
 glyph = []
@@ -99,7 +87,7 @@ BitRGBAs = _ => {	//	All C in _ Must be closed
 	$.fill( 0 )
 	
 //	!!!! TRICS !!!!	ATTACHING GRIDS TO SEGMENT IN INNER LOOP
-	const OFFSET = [ X - 2, Y - 2 ]
+	const OFFSET = [ - X + 2, - Y + 2 ]
 	_.forEach( 
 		C => {
 			const
@@ -109,12 +97,12 @@ BitRGBAs = _ => {	//	All C in _ Must be closed
 			while ( iC-- ) {
 				const S = C[ iC ]
 				//v	PULLING A TRICK
-				S.grids = Grids( cp, S ).map( _ => Sub( _, OFFSET ) )
+				S.grids = Grids( cp, S ).map( _ => Add( _, OFFSET ) )
 				//^
-				const _ = Sub( Round( S[ 0 ] ), OFFSET )
+				const _ = Add( Round( S[ 0 ] ), OFFSET )
 				S.grids.length
 				?	grids.push( ...S.grids, _ )
-				:	EQ( Sub( Round( cp ), OFFSET ), _ ) || grids.push( _ )
+				:	EQ( Add( Round( cp ), OFFSET ), _ ) || grids.push( _ )
 				cp = S[ 0 ]
 			}
 //console.log( grids )
@@ -125,6 +113,8 @@ BitRGBAs = _ => {	//	All C in _ Must be closed
 						pY < cY
 						?	$[ pY * W + ( pX < cX ? pX : cX ) ]++
 						:	$[ cY * W + ( pX < cX ? cX : pX ) ]--
+					//	?	$[ pY * W + ( pX < cX ? cX : pX ) ]++
+					//	:	$[ cY * W + ( pX < cX ? pX : cX ) ]--
 					)
 				,	[ pX, pY ] = [ cX, cY ]
 				)
@@ -167,7 +157,7 @@ BitRGBAs = _ => {	//	All C in _ Must be closed
 //}
 
 	const
-	joints = _.map( C => C.map( S => Sub( S[ 0 ], OFFSET ) ) ).flat()
+	joints = _.map( C => C.map( S => Add( S[ 0 ], OFFSET ) ) ).flat()
 	const
 	inters = []
 	ArrayPermutations(
@@ -187,6 +177,7 @@ if ( true ) {
 			,	POIs.push( [ x + 1, y     ] )
 			,	POIs.push( [ x    , y + 1 ] )
 			,	POIs.push( [ x + 1, y + 1 ] )
+			,	$[ y * W + x ] |= 0x81
 			)
 	)
 
@@ -197,20 +188,14 @@ if ( true ) {
 		let	isSet = 0
 		const
 		Set = ( x, y ) => ( $[ y * W + x ] |= 0x81, isSet++, console.log( 'Set:', x, y ) )
-		const
-		Connect = ( x, y ) => (
-			//	Diagonal first
-		 	!Get( x - 1, y - 1 ) && Get( x - 2, y - 2 ) && Set( x - 1, y - 1 )
-		,	!Get( x    , y     ) && Get( x + 1, y + 1 ) && Set( x    , y     )
-		,	!Get( x    , y - 1 ) && Get( x + 1, y - 2 ) && Set( x    , y - 1 )
-		,	!Get( x - 1, y     ) && Get( x - 2, y + 1 ) && Set( x - 1, y     )
-			//
-		,	!Get( x - 1, y ) && !Get( x - 1, y - 1 ) && ( Get( x - 2, y ) && Set( x - 1, y ), Get( x - 2, y - 1 ) && Set( x - 1, y - 1 ) )
-		,	!Get( x    , y ) && !Get( x    , y - 1 ) && ( Get( x + 1, y ) && Set( x    , y ), Get( x + 1, y - 1 ) && Set( x    , y - 1 ) )
-		,	!Get( x, y - 1 ) && !Get( x - 1, y - 1 ) && ( Get( x, y - 2 ) && Set( x, y - 1 ), Get( x - 1, y - 2 ) && Set( x - 1, y - 1 ) )
-		,	!Get( x, y     ) && !Get( x - 1, y     ) && ( Get( x, y + 1 ) && Set( x, y     ), Get( x - 1, y + 1 ) && Set( x - 1, y     ) )
+		POIs.forEach(
+			( [ x, y ] ) => (
+				!Get( x - 1, y ) && !Get( x - 1, y - 1 ) && ( Get( x - 2, y ) && Set( x - 1, y ), Get( x - 2, y - 1 ) && Set( x - 1, y - 1 ) )
+			,	!Get( x    , y ) && !Get( x    , y - 1 ) && ( Get( x + 1, y ) && Set( x    , y ), Get( x + 1, y - 1 ) && Set( x    , y - 1 ) )
+			,	!Get( x, y - 1 ) && !Get( x - 1, y - 1 ) && ( Get( x, y - 2 ) && Set( x, y - 1 ), Get( x - 1, y - 2 ) && Set( x - 1, y - 1 ) )
+			,	!Get( x, y     ) && !Get( x - 1, y     ) && ( Get( x, y + 1 ) && Set( x, y     ), Get( x - 1, y + 1 ) && Set( x - 1, y     ) )
+			)
 		)
-		POIs.forEach( ( [ x, y ] ) => Connect( x, y ) )
 		if ( !isSet ) break
 	}
 }
@@ -241,64 +226,178 @@ if ( true ) {
 }
 
 const
-Stroke = _ => {
+Draw = _ => {
 	const bbox = BBox( _.flat().flat() )
 	const X = Math.floor( bbox[ 0 ] )
 	const Y = Math.floor( bbox[ 1 ] )
-	const W = Math.ceil( bbox[ 2 ] ) - X + 1
-	const H = Math.ceil( bbox[ 3 ] ) - Y + 1
+	const W = Math.ceil( bbox[ 2 ] ) - X + 7
+	const H = Math.ceil( bbox[ 3 ] ) - Y + 7
 	
 	const
 	$ = cMain.createImageData( W, H )
 	const
 	data = $.data
 	const
-	Black = ( [ x, y ] ) => data[ ( y * W + x ) * 4 + 3 ] = 0xff
+	Plot = ( [ x, y ] ) => data[ ( ( y - Y + 3 ) * W + x - X + 3 ) * 4 + 3 ] = 0xff
 
-	const OFFSET = [ X, Y ]
 	_.forEach( 
 		C => {
 			let	cp = C[ 0 ][ 0 ]
-			Black( Sub( Round( cp ), OFFSET ) )
+			Plot( Round( cp ) )
 			let iC = C.length
 			while ( iC-- ) {
 				const S = C[ iC ]
-				Grids( cp, S ).forEach( _ => Black( Sub( _, OFFSET ) ) )
-				Black( Sub( Round( S[ 0 ] ), OFFSET ) )
+				Grids( cp, S ).forEach( _ => Plot( _ ) )
+				Plot( Round( S[ 0 ] ) )
 				cp = S[ 0 ]
 			}
 		}
 	)
-	cMain.putImageData( $, X, Y )
+	const
+	Circle = ( [ x, y ], rgb ) => {
+		let _ = ( ( y - Y ) * W + x - X ) * 4 + rgb
+		data[ _ +  8 ] = 0xff
+		data[ _ + 12 ] = 0xff
+		data[ _ + 16 ] = 0xff
+		_ += W * 4
+		data[ _ +  4 ] = 0xff
+		data[ _ + 20 ] = 0xff
+		_ += W * 4
+		data[ _ +  0 ] = 0xff
+		data[ _ + 24 ] = 0xff
+		_ += W * 4
+		data[ _ +  0 ] = 0xff
+		data[ _ + 24 ] = 0xff
+		_ += W * 4
+		data[ _ +  0 ] = 0xff
+		data[ _ + 24 ] = 0xff
+		_ += W * 4
+		data[ _ +  4 ] = 0xff
+		data[ _ + 20 ] = 0xff
+		_ += W * 4
+		data[ _ +  8 ] = 0xff
+		data[ _ + 12 ] = 0xff
+		data[ _ + 16 ] = 0xff
+	}
+	const
+	EndP = _ => (
+		Circle( _, 0 )
+	,	Circle( _, 3 )
+	)
+	const
+	ControlP = _ => (
+		Circle( _, 1 )
+	,	Circle( _, 3 )
+	)
+
+	_.forEach(
+		C => C.forEach(
+			S => (
+				EndP( Round( S[ 0 ] ) )
+			,	S.length > 1 && ControlP( Round( S[ 1 ] ) )
+			,	S.length > 2 && ControlP( Round( S[ 2 ] ) )
+			)
+		)
+	)
+	cMain.putImageData( $, X - 3, Y - 3 )
 }
 
+//C_MAIN.addEventListener( 'mousemove', mm => console.log( mm.offsetX, mm.offsetY ) )
+
 const
-Fill = _ => {
+ShowClipboard = () => navigator.clipboard.read().then(
+	items => items.forEach(
+		item => (
+			console.log( item, 'item.types.length', item.types.length )
+		,	item.types.forEach(
+				type => item.getType( type ).then(
+					async _ => console.log( type, _, type.startsWith( 'text' ) ? await _.text() : '' )
+				)
+			)
+		)
+	)
+)
+
+const
+Redo	= () => console.log( 'Redo'		)
+const
+Undo	= () => console.log( 'Undo'		)
+const
+Cut		= () => console.log( 'Cut'		)
+const
+Copy	= () => console.log( 'Copy'		)
+const
+Paste	= () => console.log( 'Paste'	)
+
+C_MAIN.oncut	= _ => console.log( 'C_MAIN cut'	)
+C_MAIN.oncopy	= _ => console.log( 'C_MAIN copy'	)
+C_MAIN.onpaste	= _ => console.log( 'C_MAIN paste'	)
+
+C_MAIN.onkeydown = kd => {
+	if ( kd.metaKey ) {
+		kd.preventDefault()
+		switch ( kd.code ) {
+		case 'KeyZ':
+			kd.shiftKey ? Redo() : Undo()
+			break
+		case 'KeyX':
+			Cut()		
+			break
+		case 'KeyC':
+			Copy()		
+			break
+		case 'KeyV':
+			Paste()	
+			break
+		}
+	} else {
+		switch ( kd.key ) {
+		case '=': ShowClipboard()
+			break
+		case '+': navigator.clipboard.writeText( 'DUMMY TEXT' ).then( () => Toast( 'green', 'copied' ), er => Toast( 'red', er ) )
+			break
+		}
+	}
+}
+C_MAIN.focus()
+
+
+
+const
+cPreview	= C_PREVIEW	.getContext( '2d' )
+
+const
+Preview = _ => {
 	const
 	[ bitRGBAs, X, Y, W, H ] = BitRGBAs( _ )
 	const
-	$ = cMain.createImageData( W, H )
+	$ = cPreview.createImageData( W, H )
 	const
 	data = $.data
 	const
 	nPerV = W * 4
 	const
-	Black = ( x, y ) => data[ ( y * W + x ) * 4 + 3 ] = 0xff
+	Plot = ( x, y ) => data[ ( y * W + x ) * 4 + 3 ] = 0xff
 
-	Product( H, W, ( y, x ) => bitRGBAs[ y * W + x ] & 0x0f && Black( x, y ) )
-	cMain.putImageData( $, X, Y )
+	Product( H, W, ( y, x ) => bitRGBAs[ y * W + x ] & 0x0f && Plot( x, y ) )
+	cPreview.putImageData( $, X, Y )
 }
+
+C_MAIN.onmousedown = async md => {
+//	C_MAIN.onmousemove = mm => console.log( mm.offsetX, mm.offsetY )
+}
+
+
+
+
+
+
 
 const
-Draw = () => {
-	if ( STROKE_CB.
-}
-
-CANVAS.onmousedown = md => {
-}
+cDebug = C_DEBUG.getContext( '2d' )
 
 const
-DebugFill = ( _, N ) => {
+DrawDebug = ( _, N ) => {
 
 	const
 	[ bitRGBAs, X, Y, W, H ] = BitRGBAs( _ )
@@ -344,7 +443,7 @@ DebugFill = ( _, N ) => {
 	)
 	D_CANVAS.width = $.width
 	D_CANVAS.height = $.height
-	cDebug.putImageData( $, 0, 0 )
+	cDebug.putImageData( $, X, Y )
 }
 
 const
@@ -388,15 +487,18 @@ ClosePath = () => {
 	delete _.moveTo
 }
 
+const
+sample = `<?xml version='1.0'?><!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN''http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg xmlns="http://www.w3.org/2000/svg" style='fill-opacity:1; color-rendering:auto; color-interpolation:auto; text-rendering:auto; stroke:black; stroke-linecap:square; stroke-miterlimit:10; shape-rendering:auto; stroke-opacity:1; fill:black; stroke-dasharray:none; font-weight:normal; stroke-width:1; font-family:Arial; font-style:normal; stroke-linejoin:miter; font-size:12px; stroke-dashoffset:0; image-rendering:auto;' width='1120' height='760' xmlns='http://www.w3.org/2000/svg'><!--Generated--><defs id='genericDefs'/><g style='stroke-linecap:round; stroke-width:4; fill:none'><line x1='200.0' y1='680.0' x2='200.0' y2='80.0'/><line x1='200.0' y1='680.0' x2='880.0' y2='680.0'/><line x1='200.0' y1='80.0' x2='190.0' y2='100.0'/><line x1='200.0' y1='80.0' x2='210.0' y2='100.0'/><line x1='880.0' y1='680.0' x2='860.0' y2='670.0'/><line x1='880.0' y1='680.0' x2='860.0' y2='690.0'/></g><g style='stroke-linecap:round; stroke-width:4; fill:none'><line x1='200.0' y1='180.0' x2='800.0' y2='680.0'/><line x1='200.0' y1='180.0' x2='500.0' y2='680.0'/><path d='M 250.0 480.0 Q350.0 680.0, 580.0 130.0'/><path d='M 380.0 180.0 Q480.0 410.0, 680.0 200.0'/></g><g style='stroke-width:0;' fill = 'black' font-size = '20' font-family='Arial' alignment-baseline='hanging'></g></svg>`
+
 onload = async () => {
-	switch ( 4 ) {
+	switch ( 6 ) {
 	case 0:
 		MoveTo( [ 24, 24 ] )
 		LineTo( [ 26, 24 ] )
 		LineTo( [ 26, 26 ] )
 		LineTo( [ 24, 26 ] )
 		ClosePath()
-		DebugFill( glyph, 4 )
+		DrawDebug( glyph, 4 )
 		break
 	case 1:
 		MoveTo( [ 50, 50 ] )
@@ -404,13 +506,13 @@ onload = async () => {
 		QuadTo( [ 200, 100 ], [ 150, 150 ] )
 		CubeTo( [ 50, 150 ], [ 50, 150 ], [ 50, 100 ] )
 		ClosePath()
-		Fill( glyph )
-		DebugFill( glyph, 2 )
+		Preview( glyph )
+		DrawDebug( glyph, 2 )
 		break
 	case 2:
 		glyph = ( await fetch( '_.ved' ).then( _ => _.json() ) )[ 0 ][ 0 ][ 3 ].map( _ => _[ 1 ] )
 	//	glyph = [ ( await fetch( '_.ved' ).then( _ => _.json() ) )[ 0 ][ 0 ][ 3 ][ 3 ][ 1 ] ]
-		DebugFill( glyph, 8 )
+		DrawDebug( glyph, 8 )
 		break
 	case 3:
 		MoveTo( [ 100, 0 ] )
@@ -418,7 +520,7 @@ onload = async () => {
 		LineTo( [ 100, 3 ] )
 		LineTo( [ 103, 3 ] )
 		ClosePath()
-		DebugFill( glyph, 8 )
+		DrawDebug( glyph, 8 )
 		break
 	case 4:
 		MoveTo( [ 100, 0 ] )
@@ -429,7 +531,7 @@ onload = async () => {
 		LineTo( [ 100, 0 ] )
 		LineTo( [ 103, 0 ] )
 		ClosePath()
-		DebugFill( glyph, 8 )
+		DrawDebug( glyph, 8 )
 		break
 	case 5:
 		MoveTo( [ 100, 100 ] )
@@ -437,8 +539,35 @@ onload = async () => {
 		CubeTo( [ 300, 100 ], [ 300, 200 ], [ 200, 200 ] )
 		QuadTo( [ 100, 200 ], [ 100, 100 ] )
 		ClosePath()
-		Fill( glyph )
-	//	Stroke( glyph )
+		Preview( glyph )
+		Draw( glyph )
+		break
+	case 6:
+		MoveTo( [ 200, 100 ] )
+		QuadTo( [ 300, 100 ], [ 300, 200 ] )
+		QuadTo( [ 300, 300 ], [ 200, 300 ] )
+		QuadTo( [ 100, 300 ], [ 100, 200 ] )
+		QuadTo( [ 100, 100 ], [ 200, 100 ] )
+		ClosePath()
+//		Preview( glyph )
+		Draw( glyph )
+		break
+	case 7:
+		MoveTo( [ 1, 0 ] )
+		LineTo( [ 2, 1 ] )
+		LineTo( [ 1, 2 ] )
+		LineTo( [ 0, 1 ] )
+		ClosePath()
+
+		MoveTo( [ 4, 3 ] )
+		LineTo( [ 3, 4 ] )
+		LineTo( [ 4, 5 ] )
+		LineTo( [ 5, 4 ] )
+		ClosePath()
+
+	//	Preview( glyph )
+	//	DrawDebug( glyph, 8 )
+		Draw( glyph )
 		break
 	}
 }

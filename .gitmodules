@@ -1,3 +1,9 @@
 [submodule "JP"]
 	path = JP
 	url = https://github.com/Satachito/JP.git
+[submodule "jp-color-picker"]
+	path = jp-color-picker
+	url = https://github.com/Satachito/jp-color-picker.git
+[submodule "jp-tree-view"]
+	path = jp-tree-view
+	url = https://github.com/Satachito/jp-tree-view.git

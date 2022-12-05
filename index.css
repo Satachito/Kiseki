@@ -1,0 +1,137 @@
+.cursive {
+;	font-family				: cursive
+}
+.fantasy {
+;	font-family				: fantasy
+}
+.right {
+;	float					: right
+}
+.RectB	{ cursor: crosshair }
+.OvalB	{ cursor: crosshair }
+.HandB	{ cursor: move }
+.PenB	{ cursor: url( 'res/grippingArrow.cur' ), auto }
+
+
+* {
+;	margin					: 0
+;	padding					: 0
+;	font-family				: monospace
+;	transition				: all 0.3s
+}
+
+body {
+;	height					: 100vh
+;	display					: grid
+;	grid-template-columns	: auto 1fr auto
+;	grid-template-rows		: auto 1fr auto
+}
+
+header, footer {
+;	grid-column				: 1 / 4
+;	padding					: 0 5px
+}
+
+header {
+;	border-bottom			: 1px solid black
+}
+header input[ type=image ] {
+;	border					: 2px solid grey
+}
+header input[ type=image ].selected {
+;	border					: 2px solid red
+}
+header * {
+;	vertical-align			: middle
+}
+
+footer {
+;	border-top				: 1px solid black
+}
+
+nav {
+;	width					: 0
+;	border-right			: 1px solid black
+;	overflow				: scroll
+}
+nav.open {
+;	width					: 280px
+}
+nav > * {
+;	padding					: 1px 5px
+}
+
+aside {
+;	width					: 0
+;	border-left				: 1px solid black
+;	overflow				: scroll
+}
+aside.open {
+;	width					: 260px
+}
+aside > * {
+;	padding					: 1px 5px
+}
+
+main {
+;	overflow				: scroll
+;	position				: relative
+;	background-color		: #eee
+}
+
+canvas {
+;	position				: absolute
+}
+#CANVAS {
+;	background-color		: #eee
+}
+
+
+
+.lr {
+;	display					: flex
+;	justify-content			: space-between
+;	align-items				: center
+;	height					: 28px
+}
+input[ type=checkbox ] {
+;	vertical-align			: bottom
+}
+
+/*
+.tool {
+;	margin					: 1px
+;	border					: 1px solid black
+}
+*/
+
+.headline {
+;	width					: 100%
+;	font-size				: 16px
+;	background				: grey
+;	color					: white
+}
+
+input[ type=text ] {
+;	width					: 80px
+}
+
+jp-color-picker {
+;	float					: right
+;	vertical-align			: middle
+}
+
+
+dialog {
+;	border					: 1px solid black
+;	margin					: auto
+}
+.dialogBlocker {
+;	background		: lightblue
+;	padding			: 8px
+}
+.default {
+;	background		: blue
+;	color			: white
+}
+
