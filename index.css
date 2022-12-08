@@ -12,15 +12,12 @@
 .HandB	{ cursor: move }
 .PenB	{ cursor: url( 'res/grippingArrow.cur' ), auto }
 
-
 * {
-;	margin					: 0
-;	padding					: 0
 ;	font-family				: monospace
-;	transition				: all 0.3s
 }
 
 body {
+;	margin					: 0
 ;	height					: 100vh
 ;	display					: grid
 ;	grid-template-columns	: auto 1fr auto
@@ -32,49 +29,29 @@ header, footer {
 ;	padding					: 0 5px
 }
 
-header {
-;	border-bottom			: 1px solid black
-}
+header	{ border-bottom		: 1px solid black }
+footer	{ border-top		: 1px solid black }
+nav		{ border-right		: 1px solid black }
+aside	{ border-left		: 1px solid black }
+
+nav		{ overflow			: scroll }
+aside	{ overflow			: scroll }
+main	{ overflow			: scroll }
+
+nav		> * { padding		: 1px 5px }
+aside	> * { padding		: 1px 5px }
+
 header input[ type=image ] {
 ;	border					: 2px solid grey
 }
 header input[ type=image ].selected {
 ;	border					: 2px solid red
 }
-header * {
+header > * {
 ;	vertical-align			: middle
 }
 
-footer {
-;	border-top				: 1px solid black
-}
-
-nav {
-;	width					: 0
-;	border-right			: 1px solid black
-;	overflow				: scroll
-}
-nav.open {
-;	width					: 280px
-}
-nav > * {
-;	padding					: 1px 5px
-}
-
-aside {
-;	width					: 0
-;	border-left				: 1px solid black
-;	overflow				: scroll
-}
-aside.open {
-;	width					: 260px
-}
-aside > * {
-;	padding					: 1px 5px
-}
-
 main {
-;	overflow				: scroll
 ;	position				: relative
 ;	background-color		: #eee
 }
@@ -82,20 +59,12 @@ main {
 canvas {
 ;	position				: absolute
 }
-#CANVAS {
-;	background-color		: #eee
-}
-
-
 
 .lr {
 ;	display					: flex
 ;	justify-content			: space-between
 ;	align-items				: center
 ;	height					: 28px
-}
-input[ type=checkbox ] {
-;	vertical-align			: bottom
 }
 
 /*
@@ -117,8 +86,17 @@ input[ type=text ] {
 }
 
 jp-color-picker {
-;	float					: right
-;	vertical-align			: middle
+;	padding-left			: 8px
+;	display					: flex
+;	align-items				: center
+}
+jp-color-picker > * {
+;	border					: none
+}
+jp-color-picker > input[ type=list ] {
+;	position				: relative
+;	top						: 3px
+;	font-size				: 8px
 }
 
 
@@ -127,11 +105,11 @@ dialog {
 ;	margin					: auto
 }
 .dialogBlocker {
-;	background		: lightblue
-;	padding			: 8px
+;	background				: lightblue
+;	padding					: 8px
 }
 .default {
-;	background		: blue
-;	color			: white
+;	background				: blue
+;	color					: white
 }
 
