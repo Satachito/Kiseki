@@ -89,14 +89,17 @@ jp-color-picker {
 ;	padding-left			: 8px
 ;	display					: flex
 ;	align-items				: center
+;	border					: 1px solid #0004
+;	margin-left				: 8px
 }
-jp-color-picker > * {
+jp-color-picker * {
 ;	border					: none
 }
 jp-color-picker > input[ type=list ] {
 ;	position				: relative
 ;	top						: 3px
 ;	font-size				: 8px
+;	border					: none
 }
 
 
