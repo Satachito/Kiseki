@@ -1,20 +1,26 @@
-.cursive {
-;	font-family				: cursive
-}
-.fantasy {
-;	font-family				: fantasy
-}
-.right {
-;	float					: right
-}
-.RectB	{ cursor: crosshair }
-.OvalB	{ cursor: crosshair }
-.HandB	{ cursor: move }
-.PenB	{ cursor: url( 'res/grippingArrow.cur' ), auto }
+*			{ font-family	: monospace }
 
-* {
-;	font-family				: monospace
-}
+.cursive	{ font-family	: cursive	}
+.fantasy	{ font-family	: fantasy	}
+.right		{ float			: right		}
+.RectB		{ cursor		: crosshair	}
+.OvalB		{ cursor		: crosshair	}
+.HandB		{ cursor		: move		}
+.PenB		{ cursor		: url( 'res/grippingArrow.cur' ), auto	}
+
+.w80		{ width			: 80px		}
+
+header		{ border-bottom	: 1px solid black }
+footer		{ border-top	: 1px solid black }
+nav			{ border-right	: 1px solid black }
+aside		{ border-left	: 1px solid black }
+
+nav			{ overflow		: scroll }
+aside		{ overflow		: scroll }
+main		{ overflow		: scroll }
+
+nav		> *	{ padding		: 1px 5px }
+aside	> *	{ padding		: 1px 5px }
 
 body {
 ;	margin					: 0
@@ -29,25 +35,13 @@ header, footer {
 ;	padding					: 0 5px
 }
 
-header	{ border-bottom		: 1px solid black }
-footer	{ border-top		: 1px solid black }
-nav		{ border-right		: 1px solid black }
-aside	{ border-left		: 1px solid black }
-
-nav		{ overflow			: scroll }
-aside	{ overflow			: scroll }
-main	{ overflow			: scroll }
-
-nav		> * { padding		: 1px 5px }
-aside	> * { padding		: 1px 5px }
-
 header input[ type=image ] {
 ;	border					: 2px solid grey
 }
 header input[ type=image ].selected {
 ;	border					: 2px solid red
 }
-header > * {
+header	> *	{
 ;	vertical-align			: middle
 }
 
@@ -58,6 +52,10 @@ main {
 
 canvas {
 ;	position				: absolute
+}
+
+#C_PREVIEW {
+;	opacity					: 0.5
 }
 
 .lr {
@@ -75,30 +73,17 @@ canvas {
 */
 
 .headline {
-;	width					: 100%
 ;	font-size				: 16px
 ;	background				: grey
 ;	color					: white
 }
 
-input[ type=text ] {
-;	width					: 80px
-}
-
 jp-color-picker {
-;	padding-left			: 8px
+;	margin-left				: 8px
 ;	display					: flex
 ;	align-items				: center
-;	border					: 1px solid #0004
-;	margin-left				: 8px
 }
-jp-color-picker * {
-;	border					: none
-}
-jp-color-picker > input[ type=list ] {
-;	position				: relative
-;	top						: 3px
-;	font-size				: 8px
+jp-color-picker > input[ type=color ] {
 ;	border					: none
 }
 

@@ -32,67 +32,61 @@
 <nav id=NAV class=open>
 
 	<div class=headline id=DisplayParametersT>Display parameters</div>
-	<div>
-		<div class=lr>
-			<label><input type=checkbox id=SkipFillC				>	Skip fill		</label>
-			<div></div>
-		</div>
+	<br>
+	<label>Preview</label><br>
+	<input type=range id=PreviewR max=1 step=0.1 value=1><br>
+	<label>Skelton</label><br>
+	<input type=range id=SkeltonR max=1 step=0.1 value=1><br>
+	<br>
 
-		<div class=lr>
-			<label><input type=checkbox id=ForceStrokeC				>	Force stroke	</label>
-			<jp-color-picker id=ForceStrokeColor	value='blue'	></jp-color-picker>
-		</div>
+	<label>Clockwise contour color</label>
+	<jp-color-picker id=ClockwiseC	value='black'	class=redraw></jp-color-picker>
 
-		<div class=lr>
-			<label><input type=checkbox id=ControlC		checked		>	Show control	</label>
-			<jp-color-picker id=ControlColor		value='green'	></jp-color-picker>
-		</div>
+	<label>Counter clockwise contour color</label>
+	<jp-color-picker id=CounterCWC	value='black'	class=redraw></jp-color-picker>
 
-		<div class=lr>
-			<label>														Selection color	</label>
-			<jp-color-picker id=SelectionColor		value='purple'	></jp-color-picker>
-		</div>
+	<label>Line color</label>
+	<jp-color-picker id=LineC		value='black'	class=redraw></jp-color-picker>
 
-		<div class=lr>
-			<label>														Tool color		</label>
-			<jp-color-picker id=ToolColor			value='red'		></jp-color-picker>
-		</div>
+	<label>Joint color		</label>
+	<jp-color-picker id=JointC		value='black'	class=redraw></jp-color-picker>
 
-	</div>
+	<label>2D control color	</label>
+	<jp-color-picker id=Control2DC	value='green'	class=redraw></jp-color-picker>
+
+	<label>3D control color	</label>
+	<jp-color-picker id=Control3DC	value='purple'	class=redraw></jp-color-picker>
+
+	<label>Selection color	</label>
+	<jp-color-picker id=SelectionC	value='red'		class=redraw></jp-color-picker>
+
+	<label>Tool color		</label>
+	<jp-color-picker id=ToolC		value='blue'	class=redraw></jp-color-picker>
 
 	<div class=headline id=ViewportT>Viewport</div>
-	<div>
-		<div class=lr><span>Left margin	</span>	<input type=text id=MarginX	value=100	></div>
-		<div class=lr><span>Top margin	</span>	<input type=text id=MarginY	value=100	></div>
-	</div>
+	<div class=lr><span>Horizontal margin	</span><input type=text id=MarginH	class=w80></div>
+	<div class=lr><span>Vertical margin		</span><input type=text id=MarginV	class=w80></div>
+	<div class=lr><span>Width				</span><input type=text id=Width	class=w80></div>
+	<div class=lr><span>Height				</span><input type=text id=Height	class=w80></div>
 
-	<div class=headline id=CanvasSizeT>Canvas size</div>
-	<div>
-		<div class=lr><span>Width		</span>	<input type=text id=Width	value=4800	></div>
-		<div class=lr><span>Height		</span>	<input type=text id=Height	value=3200	></div>
+	<div class=headline>Gathering parameters</div>
+	<div class=lr>
+		<span>Fill rule</span>
+		<select id=GatheringFillRule>
+			<option value=nonzero	>nonzero	</option>
+			<option value=evenodd	>evenodd	</option>
+		</select>
 	</div>
-
-	<div class=headline>Gathering parameters(For debugging)</div>
-	<div>
-		<div class=lr>
-			<span>Fill rule</span>
-			<select id=GatheringFillRule>
-				<option value=nonzero	>nonzero	</option>
-				<option value=evenodd	>evenodd	</option>
-			</select>
-		</div>
-		<div class=lr><span>Scale	</span><input type=text id=ScaleValue	value=8	></div>
-	</div>
+	<div class=lr><span>Scale	</span><input type=text id=ScaleValue	value=8 class=w80		></div>
 
 	<div class=headline>Layers</div>
-	<div id=LayerContainer>
-	</div>
+	<div id=LayerContainer></div>
 </nav>
 
 <main id=MAIN>
-	<canvas id=C_DEBUG		width=0		height=0	></canvas>
-	<canvas id=C_PREVIEW	width=1600	height=1300	></canvas>
-	<canvas id=C_MAIN		width=1600	height=1300	tabindex=0></canvas>
+	<canvas id=C_DEBUG	></canvas>
+	<canvas id=C_PREV	></canvas>
+	<canvas id=C_MAIN	tabindex=0></canvas>
 </main>
 
 <aside id=ASIDE class=open>
@@ -115,11 +109,11 @@
 		</div>
 		<div class=lr>
 			<label><input		id=TempOpacityC			type=checkbox			> opacity			</label>
-			<input				id=TempOpacityValue		type=text		value=1	>
+			<input				id=TempOpacityValue		type=text		value=1 class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=TempStrokeWidthC		type=checkbox			> stroke-width		</label>
-			<input				id=TempStrokeWidthValue	type=text		value=1	>
+			<input				id=TempStrokeWidthValue	type=text		value=1 class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=TempLineCapC			type=checkbox			> stroke-linecap	</label>
@@ -141,15 +135,15 @@
 		</div>
 		<div class=lr>
 			<label><input		id=TempMiterLimitC		type=checkbox			> stroke-miterlimit	</label>
-			<input				id=TempMiterLimitValue	type=text		value=1	>
+			<input				id=TempMiterLimitValue	type=text		value=1 class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=TempDashOffsetC		type=checkbox			> stroke-dashoffset	</label>
-			<input				id=TempDashOffsetValue	type=text		value=0	>
+			<input				id=TempDashOffsetValue	type=text		value=0 class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=TempDashArrayC		type=checkbox			> stroke-dasharray	</label>
-			<input				id=TempDashArrayValue	type=text				>
+			<input				id=TempDashArrayValue	type=text			 	class=w80>
 		</div>
 	</div>
 
@@ -172,11 +166,11 @@
 		</div>
 		<div class=lr>
 			<label><input		id=PropOpacityC			type=checkbox			> opacity			</label>
-			<input				id=PropOpacityValue		type=text		value=1	>
+			<input				id=PropOpacityValue		type=text		value=1	class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=PropStrokeWidthC		type=checkbox			> stroke-width		</label>
-			<input				id=PropStrokeWidthValue	type=text		value=1	>
+			<input				id=PropStrokeWidthValue	type=text		value=1	class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=PropLineCapC			type=checkbox			> stroke-linecap	</label>
@@ -198,15 +192,15 @@
 		</div>
 		<div class=lr>
 			<label><input		id=PropMiterLimitC		type=checkbox			> stroke-miterlimit	</label>
-			<input				id=PropMiterLimitValue	type=text		value=1	>
+			<input				id=PropMiterLimitValue	type=text		value=1	class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=PropDashOffsetC		type=checkbox			> stroke-dashoffset	</label>
-			<input				id=PropDashOffsetValue	type=text		value=0	>
+			<input				id=PropDashOffsetValue	type=text		value=0	class=w80>
 		</div>
 		<div class=lr>
 			<label><input		id=PropDashArrayC		type=checkbox			> stroke-dasharray	</label>
-			<input				id=PropDashArrayValue	type=text				>
+			<input				id=PropDashArrayValue	type=text				class=w80>
 		</div>
 	</div>
 
