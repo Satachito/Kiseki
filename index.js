@@ -1,10 +1,26 @@
+/*	reserved ABBREVIATION
+	X, Y, Z, x, y, z
+	W, H, D
+	MT	: moveTo
+	LC	: Line or Curve
+	E	: Element
+	G	: Glyph
+	F	: Figure( [ MT, LC ] )	MT ? Line : Curve
+	S	: Section
+	P	: Point
+
+	T	: Tag
+	D	: Descendants
+	A	: Attribute
+*/
+
 const
 Toast = ( severity, ..._ ) => {
 	switch ( severity ) {
-	case 'red'		: console.error( ..._ )	; break
-	case 'yellow'	: console.warn( ..._ )	; break
-	case 'green'	: console.info( ..._ )	; break
-	default			: console.log( ..._ )	; break
+	case 'red'		: console.error	( severity, ..._ ); alert( ..._ ); break
+	case 'yellow'	: console.warn	( severity, ..._ ); alert( ..._ ); break
+	case 'green'	: console.info	( severity, ..._ ); alert( ..._ ); break
+	default			: console.log	( severity, ..._ ); alert( ..._ ); break
 	}
 }
 
@@ -74,30 +90,25 @@ const
 redos	= []
 
 const
-Job		= ( Undo, Redo ) => {
-	const $ = { Undo, Redo }
-	undos.push( $ )
+Push	= ( array, $ ) => ( array.push( $ ), $ )
+	
+const
+Job		= ( Undo, Redo ) => (
 	redos.length = 0
-	return $
-}
+,	Push( undos, { Undo, Redo } )
+)
 
 const
-Undo	= () => {
-	if ( !undos.length ) return
-	const _ = undos.pop()
-	redos.push( _ )
-	_.Undo()
-	Draw()
-}
+Undo	= () => undos.length && (
+	Push( redos, undos.pop() ).Undo()
+,	Draw()
+)
 
 const
-Redo	= () => {
-	if ( !redos.length ) return
-	const _ = redos.pop()
-	undos.push( _ )
-	_.Redo()
-	Draw()
-}
+Redo	= () => redos.length && (
+	Push( undos, redos.pop() ).Redo()
+,	Draw()
+)
 
 const
 ShowClipboard = () => navigator.clipboard.read().then(
@@ -132,13 +143,13 @@ C_MAIN.onkeydown = kd => {
 			kd.shiftKey ? Redo() : Undo()
 			break
 		case 'KeyX':
-			Cut()		
+			Cut()
 			break
 		case 'KeyC':
-			Copy()		
+			Copy()
 			break
 		case 'KeyV':
-			Paste()	
+			Paste()
 			break
 		}
 	} else {
@@ -162,16 +173,6 @@ Grids = ( cp, S ) => {
 	}
 }
 
-/*	reserved ABBREVIATION
-	X, Y, Z, x, y, z
-	W, H, D
-	G: Glyph
-	F: Figure ( contours and lines )
-		Line [ moveTo, path ]
-		Contour [ null, path ]
-	S: Section
-	P: Point
-*/
 const
 BitRGBAs = _ => {	//	Contours
 	const bbox = BBox( ..._.flat().flat() )
@@ -181,10 +182,10 @@ BitRGBAs = _ => {	//	Contours
 	const H = Math.ceil( bbox[ 1 ][ 1 ] ) - Y + 4
 	const $ = new Int8Array( W * H )
 	$.fill( 0 )
-	
+
 //	!!!! TRICKS !!!!	ATTACHING GRIDS TO SEGMENT IN INNER LOOP
 	const OFFSET = [ - X + 2, - Y + 2 ]
-	_.forEach( 
+	_.forEach(
 		C => {
 			const
 			grids = []
@@ -218,7 +219,7 @@ BitRGBAs = _ => {	//	Contours
 		}
 	)
 
-	//					xxxxrgba	
+	//					xxxxrgba
 	//	transparent	:	bbbbbbb0
 	//	black		:	bbbb0001
 	//	red			:	bbbb1001
@@ -247,7 +248,7 @@ BitRGBAs = _ => {	//	Contours
 	Get = ( x, y ) => $[ y * W + x ]
 
 //for ( let y = 0; y < H; y++ ) {
-//	let _ = y.toString( 16 ) + ':' 
+//	let _ = y.toString( 16 ) + ':'
 //	for ( let x = 0; x < W; x++ ) _ += Get( x, y ) ? x.toString( 16 ) : '_'
 //	console.log( _ )
 //}
@@ -340,37 +341,17 @@ SetMode = _ => (
 ,	mode = _
 ,	mode.classList.add( 'selected' )
 ,	C_MAIN.classList.add( mode.id )
-,	mode === SelectB || ( sels = [] )
-,	Draw()
+,	mode === SelectB || ( sels = [], DrawMain() )
 )
 
 ;[ SelectB, RectB, OvalB, LineB, CurveB, EraserB, PenB, DivideB, ChangeB, HandB ].forEach( _ => _.onclick = () => SetMode( _ ) )
 
 
 let
-svg				= [
-	'svg'
-,	[]
-,	{}
-,	null
-]
+svg = [ 'svg', [], {}, null ]
 
 const
-SVGJob = ( oldSVG, newSelection = selection ) => {
-//^
-	AttachAnscestorSVG( oldSVG[ 0 ] )
-	const oldSelection = selection.map( P => FindPoint( P, oldSVG[ 0 ] ) )
-	selection = newSelection
-	AttachAnscestorSVG()
-	const newSVG = svg
-	Job(
-		() => [ svg, selection ] = [ oldSVG, oldSelection ]
-	,	() => [ svg, selection ] = [ newSVG, newSelection ]
-	)
-	Draw()
-}
-const
-TagGroup		= _ => {
+TagGroup = _ => {
 	switch ( _ ) {
 	case 'path'		:
 	case 'rect'		:
@@ -384,16 +365,40 @@ TagGroup		= _ => {
 }
 
 const
-PointsForAll	= ( $, L = [ svg ] ) => {
-	const E = L[ 0 ]
-	TagGroup( E[ 0 ] ) === 'path' && E[ 3 ].forEach(
-		( F, iF ) => (
-			F[ 0 ] && $( [ F[ 0 ], -1, null, -1, F, iF, ...L ] )
-		,	F[ 1 ].forEach( ( S, iS ) => S.forEach( ( P, iP ) => $( [ P, iP, S, iS, F, iF, ...L ] ) ) )
+SVGForAll = ( CB, _ = svg ) => (
+	TagGroup( _[ 0 ] ) === 'path' && _[ 3 ].forEach(
+		( F, iF ) => {
+			const
+			[ MT, LC ] = F
+			MT && (
+				MT.F	= F			// Trick for double click
+			,	MT.iF	= iF
+			,	MT.E	= _			// Trick for triple click
+			,	CB( MT )
+			)
+			LC.forEach(
+				( S, iS ) => S.forEach(
+					( P, iP ) => (
+						P.iP	= iP
+					,	P.S		= S
+					,	P.iS	= iS
+					,	P.F		= F		// Trick for double click
+					,	P.iF	= iF
+					,	P.E		= _		// Trick for triple click
+					,	CB( P )
+					)
+				)
+			)
+		}
+	)
+,	_[ 1 ].forEach(
+		( E, iE ) => (
+			E.E = _
+		,	E.iE = iE
+		,	SVGForAll( CB, E )
 		)
 	)
-,	E[ 1 ].forEach( _ => PointsForAll( $, [ _, ...L  ] ) )
-}
+)
 
 let
 sels			= []
@@ -408,7 +413,11 @@ let
 height			= 1000
 
 const
-Invert			= ( [ x, y ] ) => [ x - marginH, y - marginV ]
+InvertX			= _ => _ - marginH
+const
+InvertY			= _ => _ - marginV
+const
+Invert			= ( [ x, y ] ) => [ InvertX( x ), InvertY( y ) ]
 
 const
 ProjectX		= _ => _ + marginH
@@ -420,20 +429,14 @@ Project			= ( [ x, y ] ) => [ ProjectX( x ), ProjectY( y ) ]
 const
 cMain			= C_MAIN.getContext( '2d' )
 
+let
+drawMainCount	= 0
 const
 DrawMain		= mdmv => {
 
 	const
 	start = performance.now()
 
-	const
-	Skelton = _ => _[ 1 ].reduce(
-		( $, _ ) => $.concat( Skelton( _ ) )
-	,	TagGroup( _[ 0 ] ) === 'path' ? _[ 3 ] : []
-	)
-	const
-	G = Skelton( svg )
-	
 	const
 	W = C_MAIN.width
 	const
@@ -495,33 +498,42 @@ DrawMain		= mdmv => {
 		Eye( _, 0 )
 	,	Eye( _, 3 )
 	)
-	G.forEach( 
-		( [ moveTo, lc ] ) => {
-			let cp = moveTo ?? lc[ 0 ][ 0 ]
-			moveTo && StrokeEndP( Round( moveTo ) )
-			let iS = lc.length
-			while ( iS-- ) {
-				const S = lc[ iS ]
-				Grids( cp, S ).forEach( _ => Plot( _ ) )
-				StrokeEndP( Round( S[ 0 ] ) )
-				S.length > 1 && StrokeControlP( Round( S[ 1 ] ) )
-				S.length > 2 && StrokeControlP( Round( S[ 2 ] ) )
-				cp = S[ 0 ]
-			}
-		}
+
+	const
+	DrawPoint = _ => (
+		TagGroup( _[ 0 ] ) === 'path' && (
+			_[ 3 ].forEach(
+				( [ MT, LC ] ) => {
+					let cp = MT ?? LC[ 0 ][ 0 ]
+					MT && StrokeEndP( Round( MT ) )
+					let iS = LC.length
+					while ( iS-- ) {
+						const S = LC[ iS ]
+						Grids( cp, S ).forEach( _ => Plot( _ ) )
+						StrokeEndP( Round( S[ 0 ] ) )
+						S.length > 1 && StrokeControlP( Round( S[ 1 ] ) )
+						S.length > 2 && StrokeControlP( Round( S[ 2 ] ) )
+						cp = S[ 0 ]
+					}
+				}
+			)
+		)
+	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
 	)
+	DrawPoint( svg )
+
 	sels.forEach(
-		( [ P, iP, S ] ) => {
-			iP > 0
-			?	S.length === 2
+		P => {
+			P.iP
+			?	P.S.length === 2
 				?	EyeControlP( Round( P ) )
 				:	EyeControlP( Round( P ) )
-			:	EyeEndP( Round( P ) )	//	-1 for moveTo
+			:	EyeEndP( Round( P ) )	// 0 or void 0, EndPoint or Joint
 		}
 	)
 	const
 	HLine = ( y, x, w ) => {
-		let 
+		let
 		_ = ( ( y + marginV ) * W + x + marginH ) * 4
 		for ( let h = 0; h < w; h++ ) {
 			data[ _ ] = 0xff
@@ -531,7 +543,7 @@ DrawMain		= mdmv => {
 	}
 	const
 	VLine = ( x, y, h ) => {
-		let 
+		let
 		_ = ( ( y + marginV ) * W + x + marginH ) * 4
 		for ( let v = 0; v < h; v++ ) {
 			data[ _ ] = 0xff
@@ -548,7 +560,7 @@ DrawMain		= mdmv => {
 	)
 
 	if ( sels.length > 1 ) {
-		const bbox = BBox( ...sels.map( _ => _[ 0 ] ) )
+		const bbox = BBox( ...sels )
 		const x = Math.floor( bbox[ 0 ][ 0 ] )
 		const y = Math.floor( bbox[ 1 ][ 0 ] )
 		const X = Math.ceil( bbox[ 0 ][ 1 ] )
@@ -598,7 +610,8 @@ DrawMain		= mdmv => {
 
 	const
 	elappsed = performance.now() - start
-	elappsed > 10 && console.log( elappsed )
+	elappsed > 5 && console.log( drawMainCount, ':', elappsed )
+	drawMainCount++
 }
 
 const
@@ -639,11 +652,11 @@ DrawPreview	= ( [ tag, children, attr, data ] = svg, _ = {} ) => {
 				}
 			}
 			data.forEach(
-				( [ moveTo, lc ] ) => {
-					path.moveTo( ...( moveTo ?? lc[ 0 ][ 0 ] ) )
-					let iS = lc.length
-					while ( iS-- ) AddSegment( lc[ iS ] )
-					moveTo || path.closePath()
+				( [ MT, LC ] ) => {
+					path.moveTo( ...( MT ?? LC[ 0 ][ 0 ] ) )
+					let iS = LC.length
+					while ( iS-- ) AddSegment( LC[ iS ] )
+					MT || path.closePath()
 				}
 			)
 			Assign( 'globalAlpha'		, 'opacity'				)
@@ -691,39 +704,204 @@ Draw = () => (
 )
 
 const
-Change = ( [ P, iP, S, iS, [ moveTo, lc ], iF ] ) => {
+FindE = ( _, svg ) => {
 
-	const oldSVG = CopyJSONable( svg )
+	const
+	ancestors = []
+	{	let E = _.E
+		while ( E.E ) (
+			ancestors.push( E.iE )
+		,	E = E.E
+		)
+	}
 
-	switch ( iP ) {
-	case -1:
-		Toast( 'red', "Can't change here." )
+	let
+	$ = svg
+	while ( ancestors.length ) $ = $[ 1 ][ ancestors.pop() ]
+	return $
+}
+
+const
+FindF = ( _, svg ) => FindE( _, svg )[ 3 ][ _.iF ]
+
+const
+FindS = ( _, svg ) => FindF( _, svg )[ 1 ][ _.iS ]
+
+const
+SVGJob = newSVG => {
+	const
+	oldSVG = svg
+	const
+	oldSels = sels
+	Job(
+		() => ( sels = oldSels, svg = oldSVG )
+	,	() => ( sels = [], svg = newSVG )
+	).Redo()
+	Draw()
+}
+
+const
+Template = () => {
+	const _ = {}
+	TempFillC		.checked && ( _[ 'fill'				] = TempFillStyle		.value )
+	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
+	TempStrokeC		.checked && ( _[ 'stroke'			] = TempStrokeStyle		.value )
+	TempOpacityC	.checked && ( _[ 'opacity'			] = TempOpacityValue	.value )
+	TempStrokeWidthC.checked && ( _[ 'stroke-width'		] = TempStrokeWidthValue.value )
+	TempLineCapC	.checked && ( _[ 'stroke-linecap'	] = TempLineCapValue	.value )
+	TempLineJoinC	.checked && ( _[ 'stroke-linejoin'	] = TempLineJoinValue	.value )
+	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
+	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
+	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
+	return _
+}
+
+const
+NewFigureJob = ( tag, figure ) => {
+	const E = [
+		tag
+	,	[]
+	,	Template()
+	,	[ figure ]
+	]
+	Job(
+		() => svg[ 1 ].pop()
+	,	() => svg[ 1 ].push( E )
+	).Redo()
+	Draw()
+}
+
+const
+Change = _ => {
+
+	if ( _.iP === void 0 ) {
+		Toast( 'red', "Can't change line end." )
 		return
-	case 0:
-		if ( moveTo && iS === 0 ) {
-			Toast( 'red', "Can't change here." )
-			return
-		} else {
-			const
-			nextS = lc[ ( iS === 0 ? lc.length : iS ) - 1 ]
-			if ( S.length + nextS.length > 3 ) {
-				Toast( 'red', "Can't change here." )
+	}
+
+	{	const
+		[ MT, LC ] = _.F
+
+		if ( _.iP === 0 ) {
+			if ( MT && _.iS === 0 ) {
+				Toast( 'yellow', "Can't change line end." )
 				return
 			}
-			lc.splice( iS, 1 )
-			nextS.push( ...S )
+			if ( _.S.length + LC[ ( _.iS ? _.iS : LC.length ) - 1 ].length > 3 ) {
+				Toast( 'green', "Can't change here." )
+				return
+			}
 		}
-		break
-	default:
-		lc.splice(
-			iS, 1
-		,	S.slice( 0, iP )
-		,	S.slice( iP )
-		)
-		break
 	}
-//	SVGJob( oldSVG )
-Draw()
+
+	const
+	newSVG = CloneJSONable( svg )
+
+	const
+	[ MT, LC ] = FindF( _, newSVG )
+	const
+	S = LC[ _.iS ]
+
+	_.iP
+	?	LC.splice(
+			_.iS, 1
+		,	S.slice( 0, _.iP )
+		,	S.slice( _.iP )
+		)
+	:	(	LC.splice( _.iS, 1 )
+		,	LC[ ( _.iS ? _.iS : LC.length ) - 1 ].push( ...S )
+		)
+	
+	SVGJob( newSVG )
+}
+
+const
+NormalizeElement = ( [ T, D, A, G ] ) => {
+	if ( TagGroup( T ) === 'path' ) {
+		let
+		_G = G.length
+		while ( _G-- ) {
+			const
+			[ MT, CL ] = G[ _G ]
+			let
+			_F = CL.length
+			while ( _F-- ) {
+				let S = CL[ _F ]
+				S.length === 0 && CL.splice( _F, 1 )
+			}
+			if ( !MT && CL.length === 1 && CL[ 0 ].length === 1 ) CL.splice( 0, 1 )
+			CL.length === 0 && G.splice( _G, 1 )
+		}
+	}
+	let	_ = D.length
+	while ( _-- ) {
+		const E = D[ _ ]
+		NormalizeElement( E )
+		!E[ 3 ].length && !E[ 1 ].length && D.splice( _, 1 )
+	}
+}
+
+const
+Delete = _ => {
+	
+	if ( !_.length ) return
+
+	const newSVG = CloneJSONable( svg )
+	_.filter( P => P.iP === 2		).forEach( P => FindS( P, newSVG ).splice( 2, 1 ) )
+	_.filter( P => P.iP === 1		).forEach( P => FindS( P, newSVG ).splice( 1, 1 ) )
+	_.filter( P => P.iP === 0		).forEach(
+		P => {
+			const
+			[ MT, CL ] = FindF( P, newSVG )
+			//	Line end
+			if ( ( MT && P.iS === 0 ) || CL.length === 1 ) {
+				CL[ 0 ].length = 0
+				return
+			}
+			const
+			currS = CL[ P.iS ]
+			const
+			nextS = CL[ ( P.iS ? P.iS : CL.length ) - 1 ]
+			if ( currS.length > 1 ) {
+				switch ( nextS.length ) {
+				case 1:
+					nextS.push( ...currS.slice( 1 ) )
+					break
+				case 2:
+					nextS.push( currS.at( -1 ) )
+					break
+				case 3:
+					nextS[ 2 ] = currS.at( -1 )
+					break
+				}
+			}
+			currS.length = 0
+		}
+	)
+	_.filter( P => P.iP === void 0	).forEach(
+		P => {
+			const
+			F = FindF( P, newSVG )
+		//	F[ 0 ] = null	Figure which contains no segment will be removed. So no need to care about F[ 0 ]
+			const
+			CL = F[ 1 ]
+			let
+			index = CL.length
+			while ( index-- ) {
+				const
+				S = CL[ index ]
+				if ( S.length ) {
+					F[ 0 ] = S.pop()
+					break
+				}
+			}
+		}
+	)
+	
+	NormalizeElement( newSVG )
+
+	SVGJob( newSVG )
+
 }
 
 const
@@ -757,9 +935,9 @@ C_MAIN.onmousedown = md => {
 	const
 	Hits = () => {
 		let $ = []
-		PointsForAll(
+		SVGForAll(
 			_ => {
-				const D = Dist2( Project( _[ 0 ] ), mdXY )
+				const D = Dist2( Project( _ ), mdXY )
 				D < nearSize2 && (
 					_.D = D
 				,	$.push( _ )
@@ -795,15 +973,15 @@ C_MAIN.onmousedown = md => {
 
 			const
 			defaultHMover = ( mv, x ) => {
-				const biasX = mv.offsetX - md.offsetX
-				return mv.shiftKey && Math.abs( biasX ) < Math.abs( mv.offsetY - md.offsetY )
+				const biasX = mv.offsetX - mdXY[ 0 ]
+				return mv.shiftKey && Math.abs( biasX ) < Math.abs( mv.offsetY - mdXY[ 1 ] )
 				?	x
 				:	x + biasX
 			}
 			const
 			defaultVMover = ( mv, y ) => {
-				const biasY = mv.offsetY - md.offsetY
-				return mv.shiftKey && Math.abs( biasY ) < Math.abs( mv.offsetX - md.offsetX )
+				const biasY = mv.offsetY - mdXY[ 1 ]
+				return mv.shiftKey && Math.abs( biasY ) < Math.abs( mv.offsetX - mdXY[ 0 ] )
 				?	y
 				:	y + biasY
 			}
@@ -811,61 +989,55 @@ C_MAIN.onmousedown = md => {
 			const
 			hits = Hits()
 			if ( hits.length ) {
-				const
-				hitPs = hits.map( _ => _[ 0 ] )
-				{	const
-					selPs = sels.map( _ => _[ 0 ] )
-					sels = md.shiftKey
-					?	[	...sels.filter( _ => !hitPs.includes( _[ 0 ] ) )
-						,	...hits.filter( _ => !selPs.includes( _[ 0 ] ) )
-						]
-					:	md.altKey ? hits.slice( 0, 1 ) : hits
-				}
-				
+				sels = md.shiftKey
+				?	[	...sels.filter( _ => !hits.includes( _ ) )
+					,	...hits.filter( _ => !sels.includes( _ ) )
+					]
+				:	md.altKey ? [ hits[ 0 ] ] : hits
+
 				switch ( md.detail ) {
 				case 1:
 					break
 				case 2:
 					{	const
-						figures = []
-						sels.forEach( $ => figures.every( _ => _[ 0 ] !== $[ 4 ] ) && figures.push( $.slice( 4 ) ) )
-						sels = []
-						figures.forEach(
-							_ => {
-								const [ moveTo, lc ] = _[ 0 ]
-								moveTo && sels.push( [ moveTo, -1, null, -1, ..._ ] )
-								lc.forEach( ( S, iS ) => S.forEach( ( P, iP ) => sels.push( [ P, iP, S, iS, ..._ ] ) ) )
-							}
-						)
+						Fs = Array.from( new Set( sels.map( _ => _.F ) ) )
+						sels = Fs.map( _ => _[ 1 ] ).flat().flat().concat( Fs.map( _ => _[ 0 ] ).filter( _ => _ ) )
 					}
 					break
 				case 3:
+					{	const
+						Fs = Array.from( new Set( sels.map( _ => _.E[ 3 ] ) ) ).flat()
+						sels = Fs.map( _ => _[ 1 ] ).flat().flat().concat( Fs.map( _ => _[ 0 ] ).filter( _ => _ ) )
+					}
+					break
+				case 4:
 					sels = []
-					PointsForAll( _ => sels.push( _ ) )
+					SVGForAll( _ => sels.push( _ ) )
 					break
 				default:
 					break
 				}
+console.log( 'sels.length', sels.length )
 				DrawMain()
 
 				//	Selection clicked
-				sels.map( _ => _[ 0 ] ).some( _ => hitPs.includes( _ ) ) && (
+				sels.some( _ => hits.includes( _ ) ) && (
 					hMover = defaultHMover
 				,	vMover = defaultVMover
 				)
 			} else if ( sels.length > 1 ) {
-				const [ [ minX, maxX ], [ minY, maxY ] ] = BBox( ...sels.map( _ => _[ 0 ] ) )
-				const Index = ( $, _1, _2, size ) => {
-					if ( $ < _1 - size ) return null
+				const [ [ minX, maxX ], [ minY, maxY ] ] = BBox( ...sels )
+				const Index = ( $, _1, _2 ) => {
+					if ( $ < _1 - gripSize ) return null
 					if ( $ < _1 ) return -1
 					if ( $ <= _2 ) return 0
-					if ( $ <= _2 + size ) return 1
+					if ( $ <= _2 + gripSize ) return 1
 					return null
 				}
-				let hIndex = Index( md.offsetX, ProjectX( minX ), ProjectX( maxX ), gripSize )
+				let hIndex = Index( mdXY[ 0 ], ProjectX( minX ), ProjectX( maxX ) )
 				hIndex !== null && minX === maxX && ( hIndex = 0 )
 
-				let vIndex = Index( md.offsetY, ProjectY( minY ), ProjectY( maxY ), gripSize )
+				let vIndex = Index( mdXY[ 1 ], ProjectY( minY ), ProjectY( maxY ) )
 				vIndex !== null && minY === maxY && ( vIndex = 0 )
 
 				switch ( hIndex ) {
@@ -877,13 +1049,13 @@ C_MAIN.onmousedown = md => {
 				case  1:
 					hMover = ( mv, x ) => minX
 					+	( x - minX )
-					*	( maxX + mv.offsetX - md.offsetX - minX )
+					*	( maxX + mv.offsetX - mdXY[ 0 ] - minX )
 					/	( maxX - minX )
 					break
 				case -1:
 					hMover = ( mv, x ) => maxX
 					+	( x - maxX )
-					*	( minX + mv.offsetX - md.offsetX - maxX )
+					*	( minX + mv.offsetX - mdXY[ 0 ] - maxX )
 					/	( minX - maxX )
 					break
 				}
@@ -896,24 +1068,31 @@ C_MAIN.onmousedown = md => {
 				case  1:
 					vMover = ( mv, y ) => minY
 					+	( y - minY )
-					*	( maxY + mv.offsetY - md.offsetY - minY )
+					*	( maxY + mv.offsetY - mdXY[ 1 ] - minY )
 					/	( maxY - minY )
 					break
 				case -1:
 					vMover = ( mv, y ) => maxY
 					+	( y - maxY )
-					*	( minY + mv.offsetY - md.offsetY - maxY )
+					*	( minY + mv.offsetY - mdXY[ 1 ] - maxY )
 					/	( minY - maxY )
 					break
 				}
 			}
 
 			if ( hMover && vMover ) {
-				const $ = [ ...sels.map( _ => _[ 0 ] ) ]
-				const oldXYs = $.map( $ => [ ...$ ] )
+
+				const
+				oldXYs = sels.map( _ => [ ..._ ] )
+
 				C_MAIN.onmousemove = mv => {
-					$.forEach(
-						( $, _ ) => [ $[ 0 ], $[ 1 ] ] = [ hMover( mv, oldXYs[ _ ][ 0 ] ), vMover( mv, oldXYs[ _ ][ 1 ] ) ]
+					sels.forEach(
+						( $, _ ) => {
+							const
+							[ x, y ] = oldXYs[ _ ]
+							$[ 0 ] = hMover( mv, x )
+							$[ 1 ] = vMover( mv, y )
+						}
 					)
 					DrawMain()
 				}
@@ -921,12 +1100,15 @@ C_MAIN.onmousedown = md => {
 					C_MAIN.onmousemove = null
 					C_MAIN.onmouseup = null
 					C_MAIN.onmouseleave = null
-					if ( mu.offsetX - md.offsetX || mu.offsetY - md.offsetY ) {
-						const newXYs = $.map( $ => [ ...$ ] )
+					if ( mu.offsetX - mdXY[ 0 ] || mu.offsetY - mdXY[ 1 ] ) {
+						const
+						newXYs = sels.map( _ => [ ..._ ] )
+						const
+						savedSels = [ ...sels ]
 						Job(
-							() => $.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = [ ...oldXYs[ _ ] ] )
-						,	() => $.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = [ ...newXYs[ _ ] ] )
-						).Redo()
+							() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
+						,	() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] ) )
+						)
 						Draw()
 					}
 				}
@@ -942,16 +1124,146 @@ C_MAIN.onmousedown = md => {
 					C_MAIN.onmouseleave = null
 					const
 					bbox = BBox( mdXY, MouseXY( mu ) )
-					const draft = []
-					PointsForAll( _ => BBoxContains( bbox, Project( _[ 0 ] ) ) && draft.push( _ ) )
-					sels = XOR( draft, sels )
+					const tmps = []
+					SVGForAll( _ => BBoxContains( bbox, Project( _ ) ) && tmps.push( _ ) )
+					sels = [
+						...sels.filter( _ => !tmps.includes( _ ) )
+					,	...tmps.filter( _ => !sels.includes( _ ) )
+					]
 					DrawMain()
 				}
 			}
 		}
 		break
+	case EraserB:
+		Delete( Hits() )
+		break
+	case RectB:
+		C_MAIN.onmousemove = mv => {
+			DrawMain()
+			cMain.strokeStyle = ToolC.value
+			cMain.strokeRect( ...MouseRectWH( mv ) )
+		}
+		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
+			C_MAIN.onmousemove = null
+			C_MAIN.onmouseup = null
+			C_MAIN.onmouseleave = null
+			const muXY = MouseXY( mu )
+			if ( EQ( muXY, mdXY ) ) return
+
+			const [ x, y, X, Y ] = [ ...Invert( mdXY ), ...Invert( muXY ) ]
+			NewFigureJob(
+				'rect'
+			,	[	null
+				,	[	[ [ x, y ] ]
+					,	[ [ X, y ] ]
+					,	[ [ X, Y ] ]
+					,	[ [ x, Y ] ]
+					]
+				]
+			)
+		}
+		break
+	case OvalB:
+		C_MAIN.onmousemove = mv => {
+			DrawMain()
+			const [ x, y, w, h ] = MouseRectWH( mv )
+			cMain.beginPath()
+			cMain.ellipse(
+				x + w / 2
+			,	y + h / 2
+			,	Math.abs( w / 2 )
+			,	Math.abs( h / 2 )
+			,	0, 0, 2 * Math.PI
+			)
+			cMain.strokeStyle = ToolC.value
+			cMain.stroke()
+		}
+		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
+			C_MAIN.onmousemove = null
+			C_MAIN.onmouseup = null
+			C_MAIN.onmouseleave = null
+			const muXY = MouseXY( mu )
+			if ( EQ( muXY, mdXY ) ) return
+
+			const [ x, y, X, Y ] = [ ...Invert( mdXY ), ...Invert( muXY ) ]
+			const midX = ( x + X ) / 2
+			const midY = ( y + Y ) / 2
+			const halfW_CF = ( X - x ) / 2 * CF
+			const halfH_CF = ( Y - y ) / 2 * CF
+			NewFigureJob(
+				'ellipse'
+			,	[	null
+				,	[	[ [ x, midY ], [ x, midY + halfH_CF ], [ midX - halfW_CF, Y ] ]
+					,	[ [ midX, Y ], [ midX + halfW_CF, Y ], [ X, midY + halfH_CF ] ]
+					,	[ [ X, midY ], [ X, midY - halfH_CF ], [ midX + halfW_CF, y ] ]
+					,	[ [ midX, y ], [ midX - halfW_CF, y ], [ x, midY - halfH_CF ] ]
+					]	
+				]
+			)
+		}
+		break
+	case LineB:
+		C_MAIN.onmousemove = mv => {
+			DrawMain()
+			cMain.beginPath()
+			cMain.moveTo( ...mdXY )
+			cMain.lineTo( mv.offsetX, mv.offsetY )
+			cMain.strokeStyle = ToolC.value
+			cMain.stroke()
+		}
+		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
+			C_MAIN.onmousemove = null
+			C_MAIN.onmouseup = null
+			C_MAIN.onmouseleave = null
+			const muXY = MouseXY( mu )
+			if ( EQ( muXY, mdXY ) ) return
+
+			NewFigureJob(
+				'line'
+			,	[	Invert( mdXY )
+				,	[ [ Invert( muXY ) ] ]
+				]
+			)
+		}
+		break
+	case CurveB:
+		{	const
+			curveDrafts = [ mdXY ]
+			C_MAIN.onmousemove = mv => {
+				const _ = [ mv.offsetX, mv.offsetY ]
+				const L = curveDrafts.at( -1 )
+				Near( _, L ) || (
+					curveDrafts.push( _ )
+				,	cMain.beginPath()
+				,	cMain.moveTo( ...L )
+				,	cMain.lineTo( ..._ )
+				,	cMain.strokeStyle = ToolC.value
+				,	cMain.stroke()
+				)
+			}
+			C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
+				C_MAIN.onmousemove = null
+				C_MAIN.onmouseup = null
+				C_MAIN.onmouseleave = null
+				DrawMain()
+				const muXY = MouseXY( mu )
+				if ( EQ( muXY, mdXY ) ) return
+				if ( curveDrafts.length < 4 ) return
+				
+				const [ p, q ] = FitCubeBezier( curveDrafts )
+				NewFigureJob(
+					'path'
+				,	[	Invert( mdXY )
+					,	[ [ Invert( muXY ), Invert( q ), Invert( p ) ] ]
+					]
+				)
+			}
+		}
+		break
 	}
 }
+
 /*
 {
 	const
@@ -1130,7 +1442,7 @@ C_MAIN.onmousedown = md => {
 		{	const hit = FindHit( glyph )
 
 			if ( hit ) {
-				
+
 				const [ d2, S, pix, joint ]	= hit
 				const [ closed, path ]		= S.figure
 
@@ -1175,36 +1487,6 @@ C_MAIN.onmousedown = md => {
 			}
 		}
 		break
-	case EraserB:
-		_Delete( ClickedPoints() )
-		break
-	case RectB:
-		C_MAIN.onmousemove = mv => {
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			cMain.strokeStyle = ToolColor.value
-			cMain.strokeRect( ...MouseRectWH( mv ) )
-		}
-		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
-//console.log( 'up/leave', mu )
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			C_MAIN.onmousemove = null
-			C_MAIN.onmouseup = null
-			C_MAIN.onmouseleave = null
-			if ( mu.offsetX - md.offsetX || mu.offsetY - md.offsetY ) {
-				const [ x, y, X, Y ] = [ ...Invert( mdXY ), ...Invert( [ mu.offsetX, mu.offsetY ] ) ]
-				NewFigureJob(
-					'rect'
-				,	[	true
-					,	[	[ [ x, y ] ]
-						,	[ [ X, y ] ]
-						,	[ [ X, Y ] ]
-						,	[ [ x, Y ] ]
-						]
-					]
-				)
-			}
-		}
-		break
 	case OvalB:
 		C_MAIN.onmousemove = mv => {
 			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
@@ -1239,7 +1521,7 @@ C_MAIN.onmousedown = md => {
 						,	[ [ X, midY ], [ X, midY - halfH_CF ], [ midX + halfW_CF, y ] ]
 						,	[ [ midX, Y ], [ midX + halfW_CF, Y ], [ X, midY + halfH_CF ] ]
 						,	[ [ x, midY ], [ x, midY + halfH_CF ], [ midX - halfW_CF, Y ] ]
-						]	
+						]
 					]
 				)
 			}
@@ -1514,7 +1796,16 @@ onload = async () => {
 			_.push( [ 400, 300 ] )
 			const $ = []
 			_.push( $ )
-			$.push( [ [ 300, 400 ] ] )
+			$.push( [ [ 600, 500 ], [ 700, 400 ], [ 600, 300 ] ] )
+			$.push( [ [ 500, 400 ], [ 400, 500 ], [ 300, 400 ] ] )
+		}
+		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [] ] ] )
+		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
+			_.push( null )
+			const $ = []
+			_.push( $ )
+			$.push( [ [ 100, 500 ], [ 100, 633 ], [ 300, 633 ] ] )
+			$.push( [ [ 300, 500 ], [ 300, 366 ], [ 100, 366 ] ] )
 		}
 		Draw()
 		break
@@ -1537,3 +1828,4 @@ onload = async () => {
 	}
 }
 
+DebugB.onclick = () => ( Delete( sels ), C_MAIN.focus() )
