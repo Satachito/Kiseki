@@ -81,6 +81,22 @@ Dist2 = ( p, q ) => {
 	return Dot( _, _ )
 }
 
+const
+Angles = ( start, Ps, end ) => {
+	const $ = []
+	let	next = Vec( Ps.at( -1 ), end )
+	let	_ = Ps.length - 1
+	while ( _-- ) {
+		const
+		prev = Vec( Ps[ _ ], Ps[ _ + 1 ] )
+		$.push( Angle( prev, next ) )
+		next = prev
+	}
+	const
+	prev = Vec( start, Ps[ 0 ] )
+	$.push( Angle( prev, next ) )
+	return $
+}
 ////////
 
 const
@@ -610,7 +626,7 @@ DrawMain		= mdmv => {
 
 	const
 	elappsed = performance.now() - start
-	elappsed > 5 && console.log( drawMainCount, ':', elappsed )
+//	elappsed > 5 && console.log( drawMainCount, ':', elappsed )
 	drawMainCount++
 }
 
@@ -765,8 +781,8 @@ NewFigureJob = ( tag, figure ) => {
 	,	[ figure ]
 	]
 	Job(
-		() => svg[ 1 ].pop()
-	,	() => svg[ 1 ].push( E )
+		() => ( sels = [], svg[ 1 ].pop() )
+	,	() => ( sels = [], svg[ 1 ].push( E ) )
 	).Redo()
 	Draw()
 }
@@ -1229,33 +1245,108 @@ console.log( 'sels.length', sels.length )
 		break
 	case CurveB:
 		{	const
-			curveDrafts = [ mdXY ]
+			mouse = []
+			let
+			prev = mdXY
 			C_MAIN.onmousemove = mv => {
-				const _ = [ mv.offsetX, mv.offsetY ]
-				const L = curveDrafts.at( -1 )
-				Near( _, L ) || (
-					curveDrafts.push( _ )
-				,	cMain.beginPath()
-				,	cMain.moveTo( ...L )
-				,	cMain.lineTo( ..._ )
-				,	cMain.strokeStyle = ToolC.value
-				,	cMain.stroke()
-				)
+				const mvXY = [ mv.offsetX, mv.offsetY ]
+				if ( EQ( prev, mvXY ) ) return
+				mouse.push( mvXY )
+				cMain.beginPath()
+				cMain.moveTo( ...prev )
+				cMain.lineTo( ...mvXY )
+				cMain.strokeStyle = ToolC.value
+				cMain.stroke()
+				prev = mvXY
 			}
 			C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
+if ( mu.movementX || mu.movementY ) debugger
 				C_MAIN.onmousemove = null
 				C_MAIN.onmouseup = null
 				C_MAIN.onmouseleave = null
 				DrawMain()
 				const muXY = MouseXY( mu )
 				if ( EQ( muXY, mdXY ) ) return
-				if ( curveDrafts.length < 4 ) return
-				
-				const [ p, q ] = FitCubeBezier( curveDrafts )
+
+//	Eliminate near to end points
+				const
+				$ = mouse.filter( _ => Dist2( _, mdXY ) > 18 && Dist2( _, muXY ) > 18 )
+
+				if ( !$.length ) return
+//	Eliminate 90deg and same orientations
+				while ( true ) {
+					const
+					toDelete = []
+					const
+					NinetyOrSameOri = ( p, q ) => (
+						(	p[ 0 ] === 0 && Math.abs( p[ 1 ] ) === 1
+						&&	Math.abs( q[ 0 ] ) === 1 && q[ 1 ] === 0
+						)
+					||	(	Math.abs( p[ 0 ] ) === 1 && p[ 1 ] === 0
+						&&	q[ 0 ] === 0 && Math.abs( q[ 1 ] ) === 1
+						)
+					||	p[ 0 ] * q[ 1 ] === q[ 0 ] * p[ 1 ]
+					)
+					let	next = Vec( $.at( -1 ), muXY )
+					let	_ = $.length - 1
+					while ( _-- ) {
+						const
+						prev = Vec( $[ _ ], $[ _ + 1 ] )
+						NinetyOrSameOri( prev, next ) && toDelete.push( _ + 1 )
+						next = prev
+					}
+					const
+					prev = Vec( mdXY, $[ 0 ] )
+					NinetyOrSameOri( prev, next ) && toDelete.push( 0 )
+					if ( !toDelete.length ) break
+					toDelete.forEach( _ => $.splice( _, 1 ))
+					if ( !$.length ) break
+				}
+
+				const
+				Vectorize = ( start, Ps, end ) => {
+
+					if ( Ps.length < 3 ) return [ [ end ] ]
+
+					const
+					$ = [ ...Ps ]
+
+					const
+					angles = Angles( start, $, end )
+					const posi = angles.reduce( ( $, _ ) => _ > 0 ? $ + _ : $, 0 )
+					const nega = angles.reduce( ( $, _ ) => _ < 0 ? $ - _ : $, 0 )
+console.log( posi * 180 / Math.PI, nega * 180 / Math.PI, ( posi - nega ) * 180 / Math.PI )
+					if ( posi >= Math.PI || nega >= Math.PI ) {
+						const
+						Find = () => {
+							const
+							vecSE = Vec( start, end )
+							const
+							_ = $.map( ( $, _ ) => [ PerpendicularLength2V( Vec( start, $ ), vecSE ), _ ] )
+							const
+							v = _.sort( 
+								Math.abs( posi - nega ) < Math.PI / 4
+								?	( p, q ) => p[ 0 ] - q[ 0 ]
+								:	( p, q ) => q[ 0 ] - p[ 0 ]
+							)[ 0 ][ 1 ]
+							return v === 0 || v === $.length - 1
+							?	Math.floor( $.length / 2 )
+							:	v
+						}
+						const found = Find()
+console.log( found, $.length )
+						//	NEEDS 3 OR MORE POINTS
+						const prev = Vectorize( start, $.slice( 0, found - 1 ), $[ found ] )
+						const next = Vectorize( $[ found ], $.slice( found + 1 ), end )
+						return next.concat( prev )
+					}
+					return [ [ end, ...FitCubeBezier( [ start, ...$, end ] ).reverse() ] ]
+				}
+
 				NewFigureJob(
 					'path'
 				,	[	Invert( mdXY )
-					,	[ [ Invert( muXY ), Invert( q ), Invert( p ) ] ]
+					,	Vectorize( mdXY, $, muXY ).map( S => S.map( P => Invert( P ) ) )
 					]
 				)
 			}
@@ -1487,160 +1578,6 @@ console.log( 'sels.length', sels.length )
 			}
 		}
 		break
-	case OvalB:
-		C_MAIN.onmousemove = mv => {
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			cMain.strokeStyle = ToolColor.value
-			const [ x, y, w, h ] = MouseRectWH( mv )
-			cMain.beginPath()
-			cMain.ellipse(
-				x + w / 2
-			,	y + h / 2
-			,	Math.abs( w / 2 )
-			,	Math.abs( h / 2 )
-			,	0, 0, 2 * Math.PI
-			)
-			cMain.stroke()
-		}
-		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
-//console.log( 'up/leave', mu )
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			C_MAIN.onmousemove = null
-			C_MAIN.onmouseup = null
-			C_MAIN.onmouseleave = null
-			if ( mu.offsetX - md.offsetX || mu.offsetY - md.offsetY ) {
-				const [ x, y, X, Y ] = [ ...Invert( mdXY ), ...Invert( [ mu.offsetX, mu.offsetY ] ) ]
-				const midX = ( x + X ) / 2
-				const midY = ( y + Y ) / 2
-				const halfW_CF = ( X - x ) / 2 * CF
-				const halfH_CF = ( Y - y ) / 2 * CF
-				NewFigureJob(
-					'ellipse'
-				,	[	true
-					,	[	[ [ midX, y ], [ midX - halfW_CF, y ], [ x, midY - halfH_CF ] ]
-						,	[ [ X, midY ], [ X, midY - halfH_CF ], [ midX + halfW_CF, y ] ]
-						,	[ [ midX, Y ], [ midX + halfW_CF, Y ], [ X, midY + halfH_CF ] ]
-						,	[ [ x, midY ], [ x, midY + halfH_CF ], [ midX - halfW_CF, Y ] ]
-						]
-					]
-				)
-			}
-		}
-		break
-	case LineB:
-		C_MAIN.onmousemove = mv => {
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			cMain.beginPath()
-			cMain.moveTo( md.offsetX, md.offsetY )
-			cMain.lineTo( mv.offsetX, mv.offsetY )
-			cMain.strokeStyle = ToolColor.value
-			cMain.stroke()
-		}
-		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
-//console.log( 'up/leave', mu )
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			C_MAIN.onmousemove = null
-			C_MAIN.onmouseup = null
-			C_MAIN.onmouseleave = null
-			if ( mu.offsetX - md.offsetX || mu.offsetY - md.offsetY ) {
-				const [ x, y, X, Y ] = [ ...Invert( mdXY ), ...Invert( [ mu.offsetX, mu.offsetY ] ) ]
-				NewFigureJob(
-					'line'
-				,	[	false
-					,	[	[ [ x, y ] ]
-						,	[ [ X, Y ] ]
-						]
-					]
-				)
-			}
-		}
-		break
-	case CurveB:
-		cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-		const
-		curveDrafts = [ [ md.offsetX, md.offsetY ] ]
-		C_MAIN.onmousemove = mv => {
-			const _ = [ mv.offsetX, mv.offsetY ]
-			const L = Last( curveDrafts )
-			Near( _, L ) || (
-				curveDrafts.push( _ )
-			,	cMain.beginPath()
-			,	cMain.moveTo( ...L )
-			,	cMain.lineTo( ..._ )
-			,	cMain.strokeStyle = ToolColor.value
-			,	cMain.stroke()
-			)
-		}
-		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
-//console.log( 'up/leave', mu )
-			const _ = [ mu.offsetX, mu.offsetY ]
-			const L = Last( curveDrafts )
-			Near( _, L ) && curveDrafts.pop()
-			curveDrafts.push( _ )
-
-			cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-			C_MAIN.onmousemove = null
-			C_MAIN.onmouseup = null
-			C_MAIN.onmouseleave = null
-
-			const
-			Vectorize = points => {
-				const angles = new Array( points.length )
-				angles[ 0 ] = 0
-				const L = angles.length - 1
-				angles[ L ] = 0
-				{	const inRange = Array.from( { length: points.length - 2 }, ( __, _ ) => _ + 1 )
-					inRange.forEach( _ => angles[ _ ] = Angle( Vec( points[ _ - 1 ], points[ _ ] ), Vec( points[ _ ], points[ _ + 1 ] ) ) )
-					inRange.filter(
-						_ => angles[ _ ] === 0
-						||	Dist2( points[ _ ], points[ 0 ] ) <= 32
-						||	Dist2( points[ _ ], points[ L ] ) <= 32
-					).reverse().forEach( _ => angles.splice( _, 1 ), points.splice( _, 1 ) )
-				}
-
-
-				if ( points.length >= 4 ) {
-
-					const inRange = Array.from( { length: points.length - 4 }, ( __, _ ) => _ + 2 )
-					const Sign = _ => _ < 0 ? -1 : 1
-					let	found = 0
-					for ( let _ = 2; _ < angles.length - 1; _++ ) {
-						const signPrev = Sign( angles[ _ - 1 ] )
-						const signNext = Sign( angles[ _ ] )
-						if ( signPrev === Sign( angles[ _ - 2 ] ) && signNext === Sign( angles[ _ + 1 ] ) && signPrev != signNext ) {
-							found = _
-							break
-						}
-					}
-					if ( found ) {
-						const pointNew = Mid( points[ found - 1 ], points[ found ] )
-//cMain.fillStyle = 'red'
-//cMain.fillRect( ...Sub( pointNew, [ 2, 2 ] ), 4, 4 )
-						return Vectorize( points.slice( 0, found ).concat( [ pointNew ] ) ).concat( Vectorize( [ pointNew ].concat( points.slice( found ) ) ) )
-					}
-
-					const posi = angles.reduce( ( $, _ ) => _ > 0 ? $ + _ : $, 0 )
-					const nega = angles.reduce( ( $, _ ) => _ < 0 ? $ + _ : $, 0 )
-					if ( Math.abs( posi + nega ) >= Math.PI ) {
-						const pos = Math.floor( angles.length / 2 )
-//console.log( angles.length, PI * 180, ( posi + nega ) / Math.PI * 180 )
-						return Vectorize( points.slice( 0, pos ) ).concat( Vectorize( points.slice( pos ) ) )
-					}
-
-					const [ p, q ] = FitBezier( points )
-					return [ [ Last( points ), q, p ] ]
-				}
-				return [ [ Last( points ) ] ]
-			}
-
-			curveDrafts.length > 3 && NewFigureJob(
-				'path'
-			,	[	false
-				,	[ [ Invert( curveDrafts[ 0 ] ) ] ].concat( Vectorize( curveDrafts ).map( S => S.map( P => Invert( P ) ) ) )
-				]
-			)
-		}
-		break
 	}
 }
 */
@@ -1828,4 +1765,4 @@ onload = async () => {
 	}
 }
 
-DebugB.onclick = () => ( Delete( sels ), C_MAIN.focus() )
+DebugB.onclick = () => Delete( sels ), C_MAIN.focus()
