@@ -29,10 +29,16 @@ import {
 ,	ArrayPermutations
 ,	Product
 ,	CloneJSONable
+,	If
 } from './JP/JS/JP.js'
 
 const
-On = ( $, _ ) => $ && _( $ )
+CircluatingSlice = ( _, b, e ) => b > e
+?	[ ..._.slice( b ), ..._.slice( 0, e ) ]
+:	_.slice( b, e )
+
+const
+CircluatingShift = ( _, $ ) => [ ..._.slice( $ ), ..._.slice( 0, $ ) ]
 
 import {
 	CF
@@ -169,7 +175,11 @@ C_MAIN.onkeydown = kd => {
 			break
 		}
 	} else {
+console.log( kd )
 		switch ( kd.key ) {
+		case 'Escape':
+			SetMode( SelectB )
+			break
 		case '=': ShowClipboard()
 			break
 		case '+': navigator.clipboard.writeText( 'DUMMY TEXT' ).then( () => Toast( 'green', 'copied' ), er => Toast( 'red', er ) )
@@ -357,10 +367,11 @@ SetMode = _ => (
 ,	mode = _
 ,	mode.classList.add( 'selected' )
 ,	C_MAIN.classList.add( mode.id )
+,	C_MAIN.focus()
 ,	mode === SelectB || ( sels = [], DrawMain() )
 )
 
-;[ SelectB, RectB, OvalB, LineB, CurveB, EraserB, PenB, DivideB, ChangeB, HandB ].forEach( _ => _.onclick = () => SetMode( _ ) )
+;[ SelectB, RectB, OvalB, LineB, CurveB, EraserB, PenB, ScissorsB, ChangeB, HandB ].forEach( _ => _.onclick = () => SetMode( _ ) )
 
 
 let
@@ -381,7 +392,7 @@ TagGroup = _ => {
 }
 
 const
-SVGForAll = ( CB, _ = svg ) => (
+PathForAll = ( CB, _ = svg ) => (
 	TagGroup( _[ 0 ] ) === 'path' && _[ 3 ].forEach(
 		( F, iF ) => {
 			const
@@ -411,7 +422,7 @@ SVGForAll = ( CB, _ = svg ) => (
 		( E, iE ) => (
 			E.E = _
 		,	E.iE = iE
-		,	SVGForAll( CB, E )
+		,	PathForAll( CB, E )
 		)
 	)
 )
@@ -538,6 +549,7 @@ DrawMain		= mdmv => {
 	)
 	DrawPoint( svg )
 
+console.log( 'sels.length', sels.length )
 	sels.forEach(
 		P => {
 			P.iP
@@ -581,8 +593,9 @@ DrawMain		= mdmv => {
 		const y = Math.floor( bbox[ 1 ][ 0 ] )
 		const X = Math.ceil( bbox[ 0 ][ 1 ] )
 		const Y = Math.ceil( bbox[ 1 ][ 1 ] )
-		const w = X - x - 1
-		const h = Y - y - 1
+console.log( x, y, X, Y )
+		const w = X - x
+		const h = Y - y
 		HLine( y, x + 1, w )
 		HLine( Y, x + 1, w )
 		VLine( x, y + 1, h )
@@ -744,14 +757,14 @@ const
 FindS = ( _, svg ) => FindF( _, svg )[ 1 ][ _.iS ]
 
 const
-SVGJob = newSVG => {
+SVGJob = ( newSVG, newSels = [] ) => {
 	const
 	oldSVG = svg
 	const
 	oldSels = sels
 	Job(
 		() => ( sels = oldSels, svg = oldSVG )
-	,	() => ( sels = [], svg = newSVG )
+	,	() => ( sels = newSels, svg = newSVG )
 	).Redo()
 	Draw()
 }
@@ -838,15 +851,15 @@ NormalizeElement = ( [ T, D, A, G ] ) => {
 		_G = G.length
 		while ( _G-- ) {
 			const
-			[ MT, CL ] = G[ _G ]
+			[ MT, LC ] = G[ _G ]
 			let
-			_F = CL.length
+			_F = LC.length
 			while ( _F-- ) {
-				let S = CL[ _F ]
-				S.length === 0 && CL.splice( _F, 1 )
+				let S = LC[ _F ]
+				S.length === 0 && LC.splice( _F, 1 )
 			}
-			if ( !MT && CL.length === 1 && CL[ 0 ].length === 1 ) CL.splice( 0, 1 )
-			CL.length === 0 && G.splice( _G, 1 )
+			if ( !MT && LC.length === 1 && LC[ 0 ].length === 1 ) LC.splice( 0, 1 )
+			LC.length === 0 && G.splice( _G, 1 )
 		}
 	}
 	let	_ = D.length
@@ -863,21 +876,23 @@ Delete = _ => {
 	if ( !_.length ) return
 
 	const newSVG = CloneJSONable( svg )
+
+	PathForAll( () => {} )
 	_.filter( P => P.iP === 2		).forEach( P => FindS( P, newSVG ).splice( 2, 1 ) )
 	_.filter( P => P.iP === 1		).forEach( P => FindS( P, newSVG ).splice( 1, 1 ) )
 	_.filter( P => P.iP === 0		).forEach(
 		P => {
 			const
-			[ MT, CL ] = FindF( P, newSVG )
+			[ MT, LC ] = FindF( P, newSVG )
 			//	Line end
-			if ( ( MT && P.iS === 0 ) || CL.length === 1 ) {
-				CL[ 0 ].length = 0
+			if ( ( MT && P.iS === 0 ) || LC.length === 1 ) {
+				LC[ 0 ].length = 0
 				return
 			}
 			const
-			currS = CL[ P.iS ]
+			currS = LC[ P.iS ]
 			const
-			nextS = CL[ ( P.iS ? P.iS : CL.length ) - 1 ]
+			nextS = LC[ ( P.iS ? P.iS : LC.length ) - 1 ]
 			if ( currS.length > 1 ) {
 				switch ( nextS.length ) {
 				case 1:
@@ -898,14 +913,13 @@ Delete = _ => {
 		P => {
 			const
 			F = FindF( P, newSVG )
-		//	F[ 0 ] = null	Figure which contains no segment will be removed. So no need to care about F[ 0 ]
 			const
-			CL = F[ 1 ]
+			LC = F[ 1 ]
 			let
-			index = CL.length
+			index = LC.length
 			while ( index-- ) {
 				const
-				S = CL[ index ]
+				S = LC[ index ]
 				if ( S.length ) {
 					F[ 0 ] = S.pop()
 					break
@@ -925,23 +939,6 @@ MouseXY			= _ => [ _.offsetX, _.offsetY ]
 
 C_MAIN.onmousedown = md => {
 
-	if ( md.button ) {
-//	CONTEXT MENU
-/*
-		const _ = []
-		sels.length
-		?	(	SelectedFigures().length && _.push( 'Copy', 'Cut' )
-			,	_.push(
-					[ 'Delete selected point', 'Delete' ]
-				,	[ 'Change Attribute', 'Change' ]
-				)
-			)
-		:	_.push( 'Paste' )
-		ipcRenderer.send( 'contextMenu', _ )
-*/
-		return
-	}
-
 	const
 	mdXY = MouseXY( md )
 
@@ -951,7 +948,7 @@ C_MAIN.onmousedown = md => {
 	const
 	Hits = () => {
 		let $ = []
-		SVGForAll(
+		PathForAll(
 			_ => {
 				const D = Dist2( Project( _ ), mdXY )
 				D < nearSize2 && (
@@ -966,6 +963,36 @@ C_MAIN.onmousedown = md => {
 	const
 	Hit = () => Hits().sort( ( p, q ) => p.D - q.D )[ 0 ]
 
+	const
+	GridHit = ( [ T, D, A, G ], $ = null ) => {
+
+		if ( TagGroup( T ) === 'path' ) {
+			G.forEach(
+				( F, iF ) => {
+					const
+					[ MT, LC ] = F
+					let cp = MT ? MT : LC[ 0 ][ 0 ]
+					let iS = LC.length
+					while ( iS-- ) {
+						const S = LC[ iS ]
+						Grids( cp, S ).forEach(
+							grid => {
+								const d2 = Dist2( mdXY, Project( grid ) )
+								d2 <= 32 && ( $ === null || d2 < $[ 0 ] ) && ( $ = [ d2, iF, iS, grid, cp ] )
+//d2 <= 32 && console.log( mdXY, Project( grid ), grid, d2, $ )
+							}
+						)
+						cp = S[ 0 ]
+					}
+				}
+			)
+		}
+
+		D.forEach( E => ( $ = GridHit( E, $ ) ) )
+
+		return $
+	}
+
 	switch ( mode ) {
 	case HandB:
 		C_MAIN.onmousemove = mv => (
@@ -979,7 +1006,7 @@ C_MAIN.onmousedown = md => {
 		)
 		break
 	case ChangeB:
-		On( Hit(), _ => Change( _ ) )
+		If( Hit(), _ => Change( _ ) )
 		break
 	case SelectB:
 		{	let
@@ -1009,7 +1036,7 @@ C_MAIN.onmousedown = md => {
 				?	[	...sels.filter( _ => !hits.includes( _ ) )
 					,	...hits.filter( _ => !sels.includes( _ ) )
 					]
-				:	md.altKey ? [ hits[ 0 ] ] : hits
+				:	hits.slice( 0, 1 )
 
 				switch ( md.detail ) {
 				case 1:
@@ -1028,12 +1055,11 @@ C_MAIN.onmousedown = md => {
 					break
 				case 4:
 					sels = []
-					SVGForAll( _ => sels.push( _ ) )
+					PathForAll( _ => sels.push( _ ) )
 					break
 				default:
 					break
 				}
-console.log( 'sels.length', sels.length )
 				DrawMain()
 
 				//	Selection clicked
@@ -1141,7 +1167,7 @@ console.log( 'sels.length', sels.length )
 					const
 					bbox = BBox( mdXY, MouseXY( mu ) )
 					const tmps = []
-					SVGForAll( _ => BBoxContains( bbox, Project( _ ) ) && tmps.push( _ ) )
+					PathForAll( _ => BBoxContains( bbox, Project( _ ) ) && tmps.push( _ ) )
 					sels = [
 						...sels.filter( _ => !tmps.includes( _ ) )
 					,	...tmps.filter( _ => !sels.includes( _ ) )
@@ -1352,235 +1378,184 @@ console.log( found, $.length )
 			}
 		}
 		break
-	}
-}
-
-/*
-{
-	const
-	FindHit = Es => {			//	Elements
-
-		let	$ = null			//	[ d2, S, pix, joint ]
-
-		Es.forEach(
-			E => {
-				const _ = FindHit( E[ 1 ] )
-				_ && ( $ === null || _[ 0 ] < $[ 0 ] ) && ( $ = _ )
-
-				E[ 3 ].forEach(
-					( [ closed, path ] ) => {
-						let joint = path[ 0 ][ 0 ]
-						;(	closed
-						?	[ ...path.slice( 1 ), path[ 0 ] ]
-						:	path.slice( 1 )
-						).forEach(
-							S => {
-								[	() => LinePixels( [ joint, S[ 0 ] ] )
-								,	() => ConicPixels( [ joint, S[ 1 ], S[ 0 ] ] )
-								,	() => BezierPixels( [ joint, S[ 2 ], S[ 1 ], S[ 0 ] ] )
-								][ S.length - 1 ]().forEach(
-									pix => {
-										const d2 = Dist2( mdXY, Project( pix ) )
-//d2 <= 32 && console.log( pix, d2 )
-										d2 <= 32 && ( $ === null || d2 < $[ 0 ] ) && ( $ = [ d2, S, pix, joint ] )
-									}
-								)
-								joint = S[ 0 ]
-							}
-						)
-					}
-				)
-			}
-		)
-		return $
-	}
-
-	{
-	case DivideB:
-		(	() => {
-
-				const
-				$ = ClickedPoint()
-
-				if ( $ ) {
-					if ( $.index ) {
-						alert( 'Please select joint point.' )
-						return
-					}
-
-					const S					= $.segment
-					const F					= S.figure
-					const [ closed, path ]	= F
-					const n					= S.index + 1 === path.length ? 0 : S.index + 1
-					const E					= F.element
-
-					if ( !closed && ( S.index === 0 || S.index + 1 === path.length ) ) {
-						alert( "Can't divide end point." )
-						return
-					}
-
-					const oldSVG = CopySVG()
-					closed
-					?	(	F[ 0 ] = false
-						,	F[ 1 ] = [ [ [ ...$ ] ], ...Slice( path, n, n ) ]
-						)
-					:	E[ 3 ].splice(
-							F.index, 1
-						,	[ false, path.slice( 0, n ) ]
-						,	[ false, [ [ [ ...$ ] ], ...path.slice( n ) ] ]
-						)
-					SVGJob( oldSVG )
-					return
-				}
-
-				const
-				hit = FindHit( glyph )
-
-				if ( hit ) {
-
-					const [ d2, S, pix, joint ]	= hit
-					const F						= S.figure
-					const [ closed, path ]		= F
-					const E						= F.element
-
-					const oldSVG = CopySVG()
-					if ( closed ) {
-						const n = S.index + 1 === path.length ? 0 : S.index + 1
-						switch ( S.length ) {
-						case 1:
-							{	const PixS = () => [ [ ...pix ] ]
-								F[ 0 ] = false
-								F[ 1 ] = [ PixS(), ...Slice( path, S.index, S.index ), PixS() ]
-							}
-							break
-						case 2:
-							{	const _ = DivideConic(
-									[ joint, S[ 1 ], S[ 0 ] ]
-								,	FindConicT( pix, [ joint, S[ 1 ], S[ 0 ] ] )
-								)
-								const C = () => [ ..._[ 1 ] ]
-								F[ 0 ] = false
-								F[ 1 ] = [
-									[ C() ]
-								,	[ S[ 0 ], _[ 2 ] ]
-								,	...Slice( path, n, S.index )
-								,	[ C(), _[ 0 ] ]
-								]
-							}
-							break
-						case 3:
-							{	const _ = DivideBezier(
-									[ joint, S[ 2 ], S[ 1 ], S[ 0 ] ]
-								,	FindBezierT( pix, [ joint, S[ 2 ], S[ 1 ], S[ 0 ] ] )
-								)
-								const C = () => [ ..._[ 2 ] ]
-								F[ 0 ] = false
-								F[ 1 ] = [
-									[ C() ]
-								,	[ S[ 0 ], _[ 4 ], _[ 3 ] ]
-								,	...Slice( path, n, S.index )
-								,	[ C(), _[ 1 ], _[ 0 ] ]
-								]
-							}
-							break
-						}
-					} else {
-						switch ( S.length ) {
-						case 1:
-							{	const PixS = () => [ [ ...pix ] ]
-								E[ 3 ].splice(
-									F.index, 1
-								,	[ false, [ ...path.slice( 0, S.index ), PixS() ] ]
-								,	[ false, [ PixS(), ...path.slice( S.index ) ] ]
-								)
-							}
-							break
-						case 2:
-							{	const _ = DivideConic(
-									[ joint, S[ 1 ], S[ 0 ] ]
-								,	FindConicT( pix, [ joint, S[ 1 ], S[ 0 ] ] )
-								)
-								const C = () => [ ..._[ 1 ] ]
-								E[ 3 ].splice(
-									F.index, 1
-								,	[ false, [ ...path.slice( 0, S.index ), [ C(), _[ 0 ] ] ] ]
-								,	[ false, [ [ C() ], [ S[ 0 ], _[ 2 ] ], ...path.slice( S.index + 1 ) ] ]
-								)
-							}
-							break
-						case 3:
-							{	const _ = DivideBezier(
-									[ joint, S[ 2 ], S[ 1 ], S[ 0 ] ]
-								,	FindBezierT( pix, [ joint, S[ 2 ], S[ 1 ], S[ 0 ] ] )
-								)
-								const C = () => [ ..._[ 2 ] ]
-								E[ 3 ].splice(
-									F.index, 1
-								,	[ false, [ ...path.slice( 0, S.index ), [ C(), _[ 1 ], _[ 0 ] ] ] ]
-								,	[ false, [ [ C() ], [ S[ 0 ], _[ 4 ], _[ 3 ] ], ...path.slice( S.index + 1 ) ] ]
-								)
-							}
-							break
-						}
-					}
-					SVGJob( oldSVG )
-					return
-				}
-			}
-		)()
-		break
 	case PenB:
-		{	const hit = FindHit( glyph )
+		{	const $ = GridHit( svg )
 
-			if ( hit ) {
+			if ( $ ) {
+				const
+				[ d2, iF, iS, grid, cp ] = $
+				const
+				newSVG = CloneJSONable( svg )
 
-				const [ d2, S, pix, joint ]	= hit
-				const [ closed, path ]		= S.figure
-
-				let	inserted
-
-				const oldSVG = CopySVG()
+				PathForAll( () => {} )
+				const
+				[ MT, LC ] = FindF( cp, newSVG )
+				const
+				S = LC[ iS ]
 				switch ( S.length ) {
 				case 1:
-					inserted = pix
-					path.splice( S.index, 0, [ inserted ] )
+					LC.splice( iS + 1, 0, [ grid ] )
 					break
 				case 2:
-					{	const _ = DivideConic(
-							[ joint, S[ 1 ], S[ 0 ] ]
-						,	FindConicT( pix, [ joint, S[ 1 ], S[ 0 ] ] )
+					{	const _ = DivideQuadBezier(
+							[ cp, S[ 1 ], S[ 0 ] ]
+						,	FindQuadBezierT( grid, [ cp, S[ 1 ], S[ 0 ] ] )
 						)
-						inserted = _[ 1 ]
-						path.splice(
-							S.index
+						LC.splice(
+							iS
 						,	1
-						,	[ _[ 1 ], _[ 0 ] ]
 						,	[ S[ 0 ], _[ 2 ] ]
+						,	[ _[ 1 ], _[ 0 ] ]
 						)
 					}
 					break
 				case 3:
-					{	const _ = DivideBezier(
-							[ joint, S[ 2 ], S[ 1 ], S[ 0 ] ]
-						,	FindBezierT( pix, [ joint, S[ 2 ], S[ 1 ], S[ 0 ] ] )
+					{	const _ = DivideCubeBezier(
+							[ cp, S[ 2 ], S[ 1 ], S[ 0 ] ]
+						,	FindCubeBezierT( grid, [ cp, S[ 2 ], S[ 1 ], S[ 0 ] ] )
 						)
-						inserted = _[ 2 ]
-						path.splice(
-							S.index
+						LC.splice(
+							iS
 						,	1
-						,	[ _[ 2 ], _[ 1 ], _[ 0 ] ]
 						,	[ S[ 0 ], _[ 4 ], _[ 3 ] ]
+						,	[ _[ 2 ], _[ 1 ], _[ 0 ] ]
 						)
 					}
 					break
 				}
-				SVGJob( oldSVG, [ inserted ] )
+				SVGJob( newSVG, [ grid ] )
+			}
+		}
+		break
+	case ScissorsB:
+		{	const
+			$ = Hit()
+
+			if ( $ ) {
+				if (
+					$.iP !== 0	//	MT(void 0), 1, 2
+				||	( $.F[ 0 ] !== null && $.iP === 0 && $.iS === 0 )	//	End point
+				) {
+					alert( 'Cannot split here.' )
+					return
+				}
+				const
+				newSVG = CloneJSONable( svg )
+				const
+				[ T, D, A, G ] = FindE( $, newSVG )
+				const
+				F = G[ $.iF ]
+				const
+				[ MT, LC ] = F
+				const
+				newSels = []
+				if ( MT ) {
+					const b = [ [ ...$ ], LC.slice( 0, $.iS )	]
+					const a = [ MT		, LC.slice( $.iS )		]
+					G.splice( $.iF, 1, b, a )
+					newSels.push( b[ 0 ], a[ 1 ][ 0 ][ 0 ] )
+				} else {
+					F[ 0 ] = [ ...$ ]
+					F[ 1 ] = [ ...CircluatingSlice( LC, $.iS, $.iS ) ]
+					newSels.push( F[ 0 ], F[ 1 ][ 0 ][ 0 ] )
+				}
+				SVGJob( newSVG, newSels )
+				return
+			}
+		}
+		{	const
+			$ = GridHit( svg )
+
+			if ( $ ) {
+				const
+				[ d2, iF, iS, grid, cp ] = $
+				const
+				newSVG = CloneJSONable( svg )
+
+				PathForAll( () => {} )
+				const
+				[ T, D, A, G ] = FindE( cp, newSVG )
+				const
+				F = G[ iF ]
+				const
+				[ MT, LC ] = F
+				const
+				S = LC[ iS ]
+				const
+				newSels = [ [ ...grid ], [ ...grid ] ]
+				if ( MT ) {
+					switch ( S.length ) {
+					case 1:
+						G.splice(
+							iF, 1
+						,	[ MT, [ [ newSels[ 0 ] ], ...LC.slice( iS + 1 ) ] ]
+						,	[ newSels[ 1 ], LC.slice( 0, iS + 1 ) ]
+						)
+						break
+					case 2:
+						{	const _ = DivideQuadBezier(
+								[ cp, S[ 1 ], S[ 0 ] ]
+							,	FindQuadBezierT( grid, [ cp, S[ 1 ], S[ 0 ] ] )
+							)
+							S[ 1 ] = _[ 2 ]
+							G.splice(
+								iF, 1
+							,	[ MT, [ [ newSels[ 0 ], _[ 0 ] ], ...LC.slice( iS + 1 ) ] ]
+							,	[ newSels[ 1 ], LC.slice( 0, iS + 1 ) ]
+							)
+						}
+						break
+					case 3:
+						{	const _ = DivideCubeBezier(
+								[ cp, S[ 2 ], S[ 1 ], S[ 0 ] ]
+							,	FindCubeBezierT( grid, [ cp, S[ 2 ], S[ 1 ], S[ 0 ] ] )
+							)
+							S[ 2 ] = _[ 3 ]
+							S[ 1 ] = _[ 4 ]
+							G.splice(
+								iF, 1
+							,	[ MT, [ [ newSels[ 0 ], _[ 1 ], _[ 0 ] ], ...LC.slice( iS + 1 ) ] ]
+							,	[ newSels[ 1 ], LC.slice( 0, iS + 1 ) ]
+							)
+						}
+						break
+					}
+				} else {
+					switch ( S.length ) {
+					case 1:
+						F[ 0 ] = newSels[ 0 ]
+						F[ 1 ] = [ [ newSels[ 1 ] ], ...CircluatingShift( LC, iS + 1 ) ]
+						break
+					case 2:
+						{	const _ = DivideQuadBezier(
+								[ cp, S[ 1 ], S[ 0 ] ]
+							,	FindQuadBezierT( grid, [ cp, S[ 1 ], S[ 0 ] ] )
+							)
+							S[ 1 ] = _[ 2 ]
+							F[ 0 ] = newSels[ 0 ]
+							F[ 1 ] = [ [ newSels[ 1 ], _[ 0 ] ], ...CircluatingShift( LC, iS + 1 ) ]
+						}
+						break
+					case 3:
+						{	const _ = DivideCubeBezier(
+								[ cp, S[ 2 ], S[ 1 ], S[ 0 ] ]
+							,	FindCubeBezierT( grid, [ cp, S[ 2 ], S[ 1 ], S[ 0 ] ] )
+							)
+							S[ 2 ] = _[ 3 ]
+							S[ 1 ] = _[ 4 ]
+							F[ 0 ] = newSels[ 0 ]
+							F[ 1 ] = [ [ newSels[ 1 ], _[ 1 ], _[ 0 ] ], ...CircluatingShift( LC, iS + 1 ) ]
+						}
+						break
+					}
+				}
+				SVGJob( newSVG, newSels )
+				return
 			}
 		}
 		break
 	}
 }
-*/
 
 Array.from( document.body.getElementsByClassName( 'redraw' ) ).forEach(
 	_ => (
@@ -1730,19 +1705,30 @@ onload = async () => {
 			$.push( [ [ 300, 200 ], [ 300, 100 ] ] )
 		}
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 1 ]
-			_.push( [ 400, 300 ] )
+			_.push( [ 400, 100 ] )
 			const $ = []
 			_.push( $ )
-			$.push( [ [ 600, 500 ], [ 700, 400 ], [ 600, 300 ] ] )
-			$.push( [ [ 500, 400 ], [ 400, 500 ], [ 300, 400 ] ] )
+			$.push( [ [ 600, 300 ], [ 700, 200 ], [ 600, 100 ] ] )
+			$.push( [ [ 500, 200 ], [ 400, 300 ], [ 300, 200 ] ] )
 		}
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [] ] ] )
+		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [], [] ] ] )
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
 			_.push( null )
 			const $ = []
 			_.push( $ )
 			$.push( [ [ 100, 500 ], [ 100, 633 ], [ 300, 633 ] ] )
 			$.push( [ [ 300, 500 ], [ 300, 366 ], [ 100, 366 ] ] )
+		}
+		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 1 ]
+			_.push( [ 400, 400 ] )
+			const $ = []
+			_.push( $ )
+			$.push( [ [ 600, 400 ] ] )
+			$.push( [ [ 600, 500 ], [ 600, 600 ] ] )
+			$.push( [ [ 500, 600 ], [ 400, 600 ] ] )
+			$.push( [ [ 400, 500 ] ] )
+			$.push( [ [ 500, 500 ] ] )
+			$.push( [ [ 500, 400 ] ] )
 		}
 		Draw()
 		break
@@ -1765,4 +1751,4 @@ onload = async () => {
 	}
 }
 
-DebugB.onclick = () => Delete( sels ), C_MAIN.focus()
+DebugB.onclick = () => ( Delete( sels ), C_MAIN.focus() )
