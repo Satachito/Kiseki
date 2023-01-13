@@ -1,0 +1,103 @@
+*			{ font-family	: monospace }
+
+.cursive	{ font-family	: cursive	}
+.fantasy	{ font-family	: fantasy	}
+.right		{ float			: right		}
+.RectB		{ cursor		: crosshair	}
+.OvalB		{ cursor		: crosshair	}
+.HandB		{ cursor		: move		}
+.PenB		{ cursor		: url( 'res/grippingArrow.cur' ), auto	}
+
+.w80		{ width			: 80px		}
+
+header		{ border-bottom	: 1px solid black }
+footer		{ border-top	: 1px solid black }
+nav			{ border-right	: 1px solid black }
+aside		{ border-left	: 1px solid black }
+
+nav			{ overflow		: scroll }
+aside		{ overflow		: scroll }
+main		{ overflow		: scroll }
+
+nav		> *	{ padding		: 1px 5px }
+aside	> *	{ padding		: 1px 5px }
+
+body {
+;	margin					: 0
+;	height					: 100vh
+;	display					: grid
+;	grid-template-columns	: auto 1fr auto
+;	grid-template-rows		: auto 1fr auto
+}
+
+header, footer {
+;	grid-column				: 1 / 4
+;	padding					: 0 5px
+}
+
+header input[ type=image ] {
+;	border					: 2px solid grey
+}
+header input[ type=image ].selected {
+;	border					: 2px solid red
+}
+header	> *	{
+;	vertical-align			: middle
+}
+
+main {
+;	position				: relative
+;	background-color		: #eee
+}
+
+canvas {
+;	position				: absolute
+}
+
+#C_PREVIEW {
+;	opacity					: 0.5
+}
+
+.lr {
+;	display					: flex
+;	justify-content			: space-between
+;	align-items				: center
+;	height					: 28px
+}
+
+/*
+.tool {
+;	margin					: 1px
+;	border					: 1px solid black
+}
+*/
+
+.headline {
+;	font-size				: 16px
+;	background				: grey
+;	color					: white
+}
+
+jp-color-picker {
+;	margin-left				: 8px
+;	display					: flex
+;	align-items				: center
+}
+jp-color-picker > input[ type=color ] {
+;	border					: none
+}
+
+
+dialog {
+;	border					: 1px solid black
+;	margin					: auto
+}
+.dialogBlocker {
+;	background				: lightblue
+;	padding					: 8px
+}
+.default {
+;	background				: blue
+;	color					: white
+}
+

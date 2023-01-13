@@ -199,37 +199,36 @@ Grids = ( cp, S ) => {
 	}
 }
 
-//	!!!! TRICK !!!!	EACH SEGMENT IS ATTACHED ITS GRIDS
 const
-BitRGBAs = _ => {	//	Contours, All point must be rounded
-	const [ [ X, XX ], [ Y, YY ] ] = BBox( ..._.flat().flat() )
-	const W = XX - X + 4
-	const H = YY - Y + 4
+BitRGBAs = _ => {	//	Contours
+	const bbox = BBox( ..._.flat().flat() )
+	const X = Math.floor( bbox[ 0 ][ 0 ] )
+	const Y = Math.floor( bbox[ 1 ][ 0 ] )
+	const W = Math.ceil( bbox[ 0 ][ 1 ] ) - X + 4
+	const H = Math.ceil( bbox[ 1 ][ 1 ] ) - Y + 4
 	const $ = new Int8Array( W * H )
 	$.fill( 0 )
 
+//	!!!! TRICKS !!!!	ATTACHING GRIDS TO SEGMENT IN INNER LOOP
 	const OFFSET = [ - X + 2, - Y + 2 ]
-
 	_.forEach(
 		C => {
-//( C, iC ) => {
 			const
 			grids = []
-			let	cp = Add( C[ 0 ][ 0 ], OFFSET )
-			let iS = C.length
-			while ( iS-- ) {
-				const S = C[ iS ]
-				//v	TRICK: RETAIN ITS GRIDS
-				S.grids = Grids( cp, S.map( _ => Add( _, OFFSET ) ) )
-//S.grids.start = cp
-//S.grids.iC = iC
-//S.grids.iS = iS
-//S.grids.S = S.map( _ => Add( _, OFFSET ) )
-//console.log( iC, iS, S.grids.start, S.grids.S[ 0 ], S.grids.at( -1 ) )
+			let	cp = C[ 0 ][ 0 ]
+			let iC = C.length
+			while ( iC-- ) {
+				const S = C[ iC ]
+				//v	PULLING A TRICK
+				S.grids = Grids( cp, S ).map( _ => Add( _, OFFSET ) )
 				//^
-				cp = Add( S[ 0 ], OFFSET )
-				grids.push( ...S.grids, cp )
+				const _ = Add( Round( S[ 0 ] ), OFFSET )
+				S.grids.length
+				?	grids.push( ...S.grids, _ )
+				:	EQ( Add( Round( cp ), OFFSET ), _ ) || grids.push( _ )
+				cp = S[ 0 ]
 			}
+//console.log( grids )
 			let [ pX, pY ] = grids.at( -1 )
 			grids.forEach(
 				( [ cX, cY ] ) => (
@@ -287,14 +286,9 @@ BitRGBAs = _ => {	//	Contours, All point must be rounded
 	ArrayPermutations(
 		_.flat().map( S => S.grids )	//	!!!! TRICK EFFECTS !!!!
 	,	( p, q ) => inters.push( ...IntersectingGrids( p, q ) )
-//	,	( p, q ) => {
-//			const $ = IntersectingGrids( p, q )
-//			console.log( p.iC, p.iS, p.length, p.start, JSON.stringify( p ), p.S[ 0 ] )
-//			console.log( q.iC, q.iS, p.length, q.start, JSON.stringify( q ), q.S[ 0 ] )
-//			console.log( $ )
-//		}
 	)
 
+if ( true ) {
 	const
 	POIs = [ ...joints ]
 	inters.forEach(
@@ -310,8 +304,9 @@ BitRGBAs = _ => {	//	Contours, All point must be rounded
 			)
 	)
 
-console.log( joints )
-console.log( inters )
+//	console.log( joints )
+//	console.log( inters )
+//	console.log( POIs )
 	while ( true ) {
 		let	isSet = 0
 		const
@@ -326,6 +321,7 @@ console.log( inters )
 		)
 		if ( !isSet ) break
 	}
+}
 
 ////	DEBUG	////
 	joints.forEach(
@@ -349,7 +345,7 @@ console.log( inters )
 		}
 	)
 
-	return [ $, W, H, X - 2, Y - 2, POIs ]
+	return [ $, X - 2, Y - 2, W, H ]
 }
 
 const
@@ -431,13 +427,6 @@ PathForAll = ( CB, _ = svg ) => (
 	)
 )
 
-const
-AllPoints = () => {
-	const $ = []
-	PathForAll( _ => $.push( _ ) )
-	return $
-}
-
 let
 sels			= []
 
@@ -488,7 +477,7 @@ DrawMain		= mdmv => {
 	Plot = ( [ x, y ] ) => data[ ( ( y + marginV ) * W + x + marginH ) * 4 + 3 ] = 0xff
 
 	const
-	Circle = ( [ x, y ], rgb ) => {
+	Stroke = ( [ x, y ], rgb ) => {
 		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
 		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
 		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
@@ -517,20 +506,59 @@ DrawMain		= mdmv => {
 		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
 	}
 	const
-	Square = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 4 ) * W + x + marginH - 4 ) * 4 + rgb
-		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
-		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff	; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
-		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff
-	}
+	StrokeEndP = _ => (
+		Stroke( _, 2 )
+	,	Stroke( _, 3 )
+	)
+	const
+	StrokeControlP = _ => (
+		Stroke( _, 0 )
+	,	Stroke( _, 3 )
+	)
+	const
+	EyeEndP = _ => (
+		Eye( _, 2 )
+	,	Eye( _, 3 )
+	)
+	const
+	EyeControlP = _ => (
+		Eye( _, 0 )
+	,	Eye( _, 3 )
+	)
+
+	const
+	DrawPoint = _ => (
+		TagGroup( _[ 0 ] ) === 'path' && (
+			_[ 3 ].forEach(
+				( [ MT, LC ] ) => {
+					let cp = MT ?? LC[ 0 ][ 0 ]
+					MT && StrokeEndP( Round( MT ) )
+					let iS = LC.length
+					while ( iS-- ) {
+						const S = LC[ iS ]
+						Grids( cp, S ).forEach( _ => Plot( _ ) )
+						StrokeEndP( Round( S[ 0 ] ) )
+						S.length > 1 && StrokeControlP( Round( S[ 1 ] ) )
+						S.length > 2 && StrokeControlP( Round( S[ 2 ] ) )
+						cp = S[ 0 ]
+					}
+				}
+			)
+		)
+	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
+	)
+	DrawPoint( svg )
+
+console.log( 'sels.length', sels.length )
+	sels.forEach(
+		P => {
+			P.iP
+			?	P.S.length === 2
+				?	EyeControlP( Round( P ) )
+				:	EyeControlP( Round( P ) )
+			:	EyeEndP( Round( P ) )	// 0 or void 0, EndPoint or Joint
+		}
+	)
 	const
 	HLine = ( y, x, w ) => {
 		let
@@ -559,63 +587,13 @@ DrawMain		= mdmv => {
 	,	VLine( x + w - 1, y + 1, h - 2 )
 	)
 
-	const
-	Joint		= _ => Circle( _, 3 )
-	const
-	Control		= _ => Circle( _, 3 )
-	const
-	EyeJoint	= _ => Eye( _, 3 )
-	const
-	EyeControl	= _ => Eye( _, 3 )
-	const
-	StartEnd	= _ => Square( _, 3 )
-
-	const
-	DrawPoint = _ => (
-		TagGroup( _[ 0 ] ) === 'path' && (
-			_[ 3 ].forEach(
-				( [ MT, LC ] ) => {
-					if ( MT ) {
-						const rMT = Round( MT )
-						Joint( rMT )
-//						StartEnd( rMT )
-					}
-					StartEnd( Round( LC[ 0 ][ 0 ] ) )
-
-					let cp = MT ?? LC[ 0 ][ 0 ]
-					let iS = LC.length
-					while ( iS-- ) {
-						const S = LC[ iS ]
-						Grids( cp, S ).forEach( _ => Plot( _ ) )
-						Joint( Round( S[ 0 ] ) )
-						S.length > 1 && Control( Round( S[ 1 ] ) )
-						S.length > 2 && Control( Round( S[ 2 ] ) )
-						cp = S[ 0 ]
-					}
-				}
-			)
-		)
-	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
-	)
-	DrawPoint( svg )
-
-//console.log( 'sels.length', sels.length )
-	sels.forEach(
-		P => {
-			P.iP
-			?	P.S.length === 2
-				?	EyeControl( Round( P ) )
-				:	EyeControl( Round( P ) )
-			:	EyeJoint( Round( P ) )	// 0 or void 0, EndPoint or Joint
-		}
-	)
 	if ( sels.length > 1 ) {
 		const bbox = BBox( ...sels )
 		const x = Math.floor( bbox[ 0 ][ 0 ] )
 		const y = Math.floor( bbox[ 1 ][ 0 ] )
 		const X = Math.ceil( bbox[ 0 ][ 1 ] )
 		const Y = Math.ceil( bbox[ 1 ][ 1 ] )
-//console.log( x, y, X, Y )
+console.log( x, y, X, Y )
 		const w = X - x
 		const h = Y - y
 		HLine( y, x + 1, w )
@@ -742,8 +720,8 @@ DrawPreview	= ( [ tag, children, attr, data ] = svg, _ = {} ) => {
 	children.forEach( $ => DrawPreview( $, _ ) )
 }
 
-PreviewR.oninput = ev => ( C_PREV.style.opacity = ev.target.value, C_MAIN.focus() )
-SkeltonR.oninput = ev => ( C_MAIN.style.opacity = ev.target.value, C_MAIN.focus() )
+PreviewR.oninput = ev => C_PREV.style.opacity = ev.target.value
+SkeltonR.oninput = ev => C_MAIN.style.opacity = ev.target.value
 
 const
 Draw = () => (
@@ -820,27 +798,6 @@ NewFigureJob = ( tag, figure ) => {
 	,	() => ( sels = [], svg[ 1 ].push( E ) )
 	).Redo()
 	Draw()
-}
-
-const
-MoveJob = oldXYs => {
-	const
-	newXYs = sels.map( _ => [ ..._ ] )
-	const
-	savedSels = [ ...sels ]
-	Job(
-		() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
-	,	() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] ) )
-	)
-	Draw()
-}
-
-const
-XYJob = _ => {
-	const
-	oldXYs = sels.map( _ => [ ..._ ] )
-	_()
-	MoveJob( oldXYs )
 }
 
 const
@@ -1185,7 +1142,17 @@ C_MAIN.onmousedown = md => {
 					C_MAIN.onmousemove = null
 					C_MAIN.onmouseup = null
 					C_MAIN.onmouseleave = null
-					EQ( MouseXY( mu ), mdXY ) || MoveJob( oldXYs )
+					if ( mu.offsetX - mdXY[ 0 ] || mu.offsetY - mdXY[ 1 ] ) {
+						const
+						newXYs = sels.map( _ => [ ..._ ] )
+						const
+						savedSels = [ ...sels ]
+						Job(
+							() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
+						,	() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] ) )
+						)
+						Draw()
+					}
 				}
 			} else {
 				md.shiftKey || (
@@ -1626,7 +1593,7 @@ const
 DrawDebug	= ( _, N ) => {
 
 	const
-	[ bitRGBAs, W, H ] = BitRGBAs( _ )
+	[ bitRGBAs, X, Y, W, H ] = BitRGBAs( _ )
 	const
 	$ = cDebug.createImageData( W * N, H * N )
 	const
@@ -1669,7 +1636,7 @@ DrawDebug	= ( _, N ) => {
 	)
 	C_DEBUG.width = $.width
 	C_DEBUG.height = $.height
-	cDebug.putImageData( $, 0, 0 )
+	cDebug.putImageData( $, X, Y )
 }
 
 const
@@ -1732,10 +1699,10 @@ onload = async () => {
 			_.push( null )
 			const $ = []
 			_.push( $ )
-			$.push( [ [ 200, 300 ], [ 100, 300 ] ] )
-			$.push( [ [ 100, 400 ], [ 100, 500 ] ] )
-			$.push( [ [ 200, 500 ], [ 300, 500 ] ] )
-			$.push( [ [ 300, 400 ], [ 300, 300 ] ] )
+			$.push( [ [ 200, 100 ], [ 100, 100 ] ] )
+			$.push( [ [ 100, 200 ], [ 100, 300 ] ] )
+			$.push( [ [ 200, 300 ], [ 300, 300 ] ] )
+			$.push( [ [ 300, 200 ], [ 300, 100 ] ] )
 		}
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 1 ]
 			_.push( [ 400, 100 ] )
@@ -1784,391 +1751,4 @@ onload = async () => {
 	}
 }
 
-const
-Align = ( ax, minmax ) => {
-	const
-	$ = BBox( ...sels )[ ax ][ minmax ]
-	XYJob( _ => sels.forEach( _ => _[ ax ] = $ ) )
-}
-
-
-const
-AllFigures = () => {
-	const $ = new Set()
-	PathForAll( _ => _.F[ 0 ] === null && $.add( _.F[ 1 ] ) )
-	return Array.from( $ )
-}
-
-const
-Combine = () => {
-
-	if ( sels.some( _ => _.F[ 0 ] ) ) {
-		Toast( 'green', 'Contours only' )
-		return
-	}
-
-	const
-//v	DEBUG
-	selectedCs = Array.from( new Set( sels.map( _ => _.F[ 1 ] ) ) )
-//	selectedCs = AllFigures()
-//^	DEBUG
-
-	if ( !selectedCs.length ) {
-		alert( 'No contours' )
-		return
-	}
-
-	const	//	Rounded
-	RSCs = selectedCs.map(
-		C => C.map(
-			S => S.map(
-				_ => {
-					const $ = Round( _ )
-					$.org = _
-					return $
-				}
-			)
-		)
-	)
-
-	const
-	[ $, W, H, X, Y, POIs ] = BitRGBAs( RSCs )
-console.log( 'POIs', POIs )
-
-	RSCs.forEach( C => C.forEach( S => S.forEach( P => ( P[ 0 ] -= X, P[ 1 ] -= Y ) ) ) )
-
-	const
-	B = ( x, y ) => $[ y * W + x ] & 1
-
-	const
-	Trace = () => {
-		const
-		pathes = []
-
-		const
-		TryTrace = ( sx, sy, RorD ) => {	//	true: R else: D
-			const	xys	= []
-			const	dirs = []
-			let		x = sx
-			let		y = sy
-			let		d
-			const	R = () => { xys.push( [ x++, y ] ), dirs.push( d = 'R' ) }
-			const	L = () => { xys.push( [ x--, y ] ), dirs.push( d = 'L' ) }
-			const	D = () => { xys.push( [ x, y++ ] ), dirs.push( d = 'D' ) }
-			const	U = () => { xys.push( [ x, y-- ] ), dirs.push( d = 'U' ); if ( y < sy || ( y === sy && x < sx ) ) throw [ x, y ] }
-			RorD ? R() : D()
-			while ( x != sx || y != sy ) {
-				switch ( d ) {
-				case 'R': B( x		, y - 1	) ? U() : B( x		, y		) ? R() : D(); break
-				case 'D': B( x		, y		) ? R() : B( x - 1	, y		) ? D() : L(); break
-				case 'L': B( x - 1	, y		) ? D() : B( x - 1	, y - 1	) ? L() : U(); break
-				case 'U': B( x - 1	, y - 1	) ? L() : B( x		, y - 1	) ? U() : R(); break
-				}
-			}
-			pathes.push( [ xys, dirs ] )
-		}
-
-		for ( let sy = 0; sy < H; sy++ ) {
-			for ( let sx = 0; sx < W; sx++ ) {
-				try {
-					B( sx, sy )
-					?	B( sx - 1, sy - 1 ) ||	B( sx - 1, sy ) || B( sx, sy - 1 ) || TryTrace( sx, sy, true )
-					:							B( sx - 1, sy ) && B( sx, sy - 1 ) && TryTrace( sx, sy, false )
-				} catch ( [ x, y ] ) {
-				//	console.log( sx, sy, x, y )
-				}
-			}
-		}
-		return pathes
-	}
-	const newCs = Trace().filter( ( [ xys, dirs ] ) => xys.length > 4 ).map(
-
-		( [ xys, dirs ], _ ) => {
-
-			const
-			NearestXYIndices = xy => {
-				const $ = []
-				xys.forEach( ( XY, _ ) => EQ( xy, XY )		&& $.push( _ ) )
-				if ( $.length ) return $
-				xys.forEach( ( XY, _ ) => Next( xy, XY )	&& $.push( _ ) )
-				if ( $.length ) return $
-				xys.forEach( ( XY, _ ) => Near( xy, XY )	&& $.push( _ ) )
-				return $
-			}
-
-			const
-			_poiIs = []
-			POIs.forEach( _ => _poiIs.push( ...NearestXYIndices( _ ) ) )
-			const
-			poiIs = Array.from( new Set( _poiIs ) )
-			poiIs.sort( ( p, q ) => p - q )
-console.log( 'poiIs:', poiIs )
-
-			const
-			matched = []
-
-			RSCs.forEach(
-				C => {
-					let	prev = C[ 0 ][ 0 ]
-					let iS = C.length
-					while ( iS-- ) {
-						const S = C[ iS ]
-						if ( S.grids.length > 2 ) {	//	!!!! TRICK EFFECTS !!!!
-							const sI = NearestXYIndices( prev ).filter( _ => poiIs.includes( _ ) )[ 0 ]
-							const mI = NearestXYIndices( S.grids[ Math.floor( S.grids.length / 2 ) ] )[ 0 ]
-							const eI = NearestXYIndices( S[ 0 ] ).filter( _ => poiIs.includes( _ ) )[ 0 ]
-							if ( sI != void 0 && eI != void 0 && mI != void 0 ) {
-								const Nor = () => matched.push( [ sI, eI, S.map( P => P.org ), prev.org ] )
-								const Rev = () => matched.push( [ eI, sI, [ prev.org, ...S.slice( 1 ).reverse().map( P => P.org ) ], S[ 0 ].org ] )
-								sI < mI
-								?	mI < eI
-									?	!poiIs.some( _ => sI < _ && _ < eI ) && Nor()		//	( console.log( 'NOR SME' ), Nor() )
-									:	eI < sI
-										?	!poiIs.some( _ => sI < _ || _ < eI ) && Nor()	//	( console.log( 'NOR SMZE' ), Nor() )
-										:	!poiIs.some( _ => eI < _ || _ < sI ) && Rev()	//	( console.log( 'REV SZME' ), Rev() )
-								:	mI > eI
-									?	!poiIs.some( _ => eI < _ && _ < sI ) && Rev()		//	( console.log( 'REV SME' ), Rev() )
-									:	eI < sI 
-										?	!poiIs.some( _ => sI < _ || _ < eI ) && Nor()	//	( console.log( 'NOR SZME' ), Nor() )
-										:	!poiIs.some( _ => eI < _ || _ < sI ) && Rev()	//	( console.log( 'REV SMZE' ), Rev() )
-							}
-						}
-						prev = S[ 0 ]
-					}
-				}
-			)
-console.log( "#matched:", matched.length, matched )
-			xys = xys.map( ( [ x, y ] ) => [ x + X, y + Y ] )
-			const
-			NewSegments = ( sI, eI, level = 0 ) => {	//	eI inclusive
-				if ( ( sI + 1 ) % xys.length === eI ) return []
-				{	const _ = sI < eI
-					?	poiIs.filter( _ => sI < _ && _ < eI )
-					:	poiIs.filter( _ => _ < eI || sI < _ )
-					if ( _.length ) return NewSegments( sI, _[ 0 ], level + 1 ).concat( NewSegments( _[ 0 ], eI, level + 1 ) )
-				}
-				const $ = sI < eI
-				?	xys.slice( sI, eI + 1 )
-				:	xys.slice( sI ).concat( xys.slice( 0, eI + 1 ) )
-
-//console.log( '$:', $[ 0 ], $.at( -1 ) )
-				const lastI = $.length - 1
-				if ( $.length < 4 ) return [ $.slice( lastI ) ]
-
-				const pq = Vec( $[ 0 ], $[ lastI ] )
-				if ( $.slice( 1, lastI ).every( r => Math.abs( PerpendicularLength2V( pq, Vec( $[ 0 ], r ) ) ) < 2 ) ) return [ $.slice( lastI ) ]
-
-				let [ p, q ] = FitCubeBezier( $ )
-
-//v	Adjust
-				selectedCs.forEach(
-					C => {
-						const angleC = C.reduce(
-							( $, S, _ ) => {
-								const prevP = C[ _ + 1 === C.length ? 0 : _ + 1 ][ 0 ]
-								const nextP = C[ ( _ ? _ : C.length ) - 1 ][ 0 ]
-								const currP = S[ 0 ]
-								return $ + Angle( Vec( prevP, currP ), Vec( currP, nextP ) )
-							}
-						,	0
-						)
-//console.log( 'angleC:', angleC, angleC < 0 ? '右' : '左' )
-						C.forEach(
-							( S, _ ) => {
-								const prev = C[ _ + 1 === C.length ? 0 : _ + 1 ][ 0 ]
-								if ( S.length > 2 ) {
-									const bez = [ prev, S[ 2 ], S[ 1 ], S[ 0 ] ]
-									if ( Near( prev, $[ 0 ] ) ) {
-										const T = FindCubeBezierT( $.at( -1 ), bez )
-										if ( T ) {
-//console.log( 'S S:', $.at( -1 ), ...bez, T )
-											const div = DivideCubeBezier( bez, T )
-											p = div[ 0 ]
-											q = div[ 1 ]
-										}
-									}
-									if ( Near( S[ 0 ], $.at( -1 ) ) ) {
-										const T = FindCubeBezierT( $[ 0 ], bez )
-										if ( T ) {
-//console.log( 'E E:', $[ 0 ], ...bez, T )
-											const div = DivideCubeBezier( bez, T )
-											p = div[ 3 ]
-											q = div[ 4 ]
-										}
-									}
-									if ( Near( S[ 0 ], $[ 0 ] ) ) {
-										const T = FindCubeBezierT( $.at( -1 ), bez )
-										if ( T ) {
-//console.log( 'E S:', $.at( -1 ), ...bez, T )
-											const div = DivideCubeBezier( bez, T )
-											p = div[ 4 ]
-											q = div[ 3 ]
-										}
-									}
-									if ( Near( prev, $.at( -1 ) ) ) {
-										const T = FindCubeBezierT( $[ 0 ], bez )
-										if ( T ) {
-//console.log( 'S E:', $[ 0 ], ...bez, T )
-											const div = DivideCubeBezier( bez, T )
-											p = div[ 1 ]
-											q = div[ 0 ]
-										}
-									}
-								}
-							}
-						)
-					}
-				)
-//^	Adjust
-				return [ [ $[ lastI ], q, p ] ] 
-			}
-
-			if ( matched.length ) {
-				matched.sort( ( l, r ) => l[ 0 ] - r[ 0 ] )
-				let joint = matched.at( -1 )[ 1 ]
-				return matched.reduce(
-					( $, [ sI, eI, S, prev ] ) => {
-						if ( joint != sI ) {
-							const _ = NewSegments( joint, sI )
-							$.push( ..._ )
-						}
-						$.push( S )
-						joint = eI 
-						return $
-					}
-				,	[]
-				).reverse()
-			} else {
-				return poiIs.length > 1
-				?	NewSegments( poiIs[ 0 ], poiIs[ 1 ] ).concat( NewSegments( poiIs[ 1 ], poiIs[ 0 ] ) ).reverse()
-				:	xys.map( _ => [ _ ] ).reverse()
-			}
-		}
-	)
-console.log( newCs )
-
-
-//	JOB
-	const
-	Reduct = ( [ T, D, A, G ] ) => [
-		T
-	,	D.map( _ => Reduct( _ ) )
-	,	{ ...A }
-	,	TagGroup( T ) === 'path'
-		?	G.filter( F => !selectedCs.includes( F[ 1 ] ) )
-		:	G
-	]
-
-	const
-	newSVG = Reduct( svg )
-
-	newSVG[ 1 ].push(
-		[	'path'
-		,	[]
-		,	Template()
-		,	newCs.map( C => [ null, C ] )
-		]
-	)
-	SVGJob( newSVG, newCs.flat().flat() )
-}
-
-const
-Reverse = () => {
-
-	if ( !sels.length ) {
-		Toast( 'yellow', 'No contours' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-	new Set( sels.map( _ => FindF( _, newSVG ) ) ).forEach(
-		F => {
-			const
-			[ MT, LC ] = F
-			if ( MT ) {	//	Line
-			//	const _ = LC.map( ( $, _ ) => [ $[ 0 ], ...LC[ ++_ === LC.length ? 0 : _ ].slice( 1 ).reverse() ] )
-			//	F[ 1 ] = [ _[ 0 ], ..._.slice( 1 ).reverse() ]
-
-				F[ 0 ] = LC[ 0 ][ 0 ]
-				F[ 1 ] = [ [ MT, ...LC.at( -1 ).slice( 1 ).reverse() ] ]
-				let iS = LC.length
-				while ( --iS ) F[ 1 ].push( [ LC[ iS ][ 0 ], ...LC[ iS - 1 ].slice( 1 ).reverse() ] )
-			} else {	//	Contour
-				F[ 1 ] = [ [ LC[ 0 ][ 0 ], ...LC.at( -1 ).slice( 1 ).reverse() ] ]
-				let iS = LC.length
-				while ( --iS ) F[ 1 ].push( [ LC[ iS ][ 0 ], ...LC[ iS - 1 ].slice( 1 ).reverse() ] )
-			}
-		}
-	)
-	SVGJob( newSVG )
-}
-
-const
-Forward = () => {
-
-	const _ = sels.filter( _ => _.F[ 0 ] === null )
-	if ( !_.length ) {
-		Toast( 'yellow', 'No contours' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.unshift( C.pop() ) )
-	SVGJob( newSVG )
-}
-
-const
-Backward = () => {
-
-	const _ = sels.filter( _ => _.F[ 0 ] === null )
-	if ( !_.length ) {
-		Toast( 'yellow', 'No contours' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.push( C.shift( 1 ) ) )
-	SVGJob( newSVG )
-}
-
-const
-Info = () => {
-
-	const
-	_ = sels.length ? sels : AllPoints()
-
-	const
-	[ [ x, X ], [ y, Y ] ] = BBox( ..._ )
-
-	alert(
-		`# of points  : ${_.length}\n`
-	+	`# of figures : ${_.reduce( ( $, P ) => $.add( P.F ), new Set() ).size}\n`
-	+	`# of elements: ${_.reduce( ( $, P ) => $.add( P.E ), new Set() ).size}\n`
-	+	`Bounding box :\n`
-	+	`    L: ${x.toFixed( 2 )}\n`
-	+	`    T: ${y.toFixed( 2 )}\n`
-	+	`    R: ${X.toFixed( 2 )}\n`
-	+	`    B: ${Y.toFixed( 2 )}\n`
-	)
-}
-
-UndoB		.onclick = () => ( Undo()			, C_MAIN.focus() )
-RedoB		.onclick = () => ( Redo()			, C_MAIN.focus() )
-DeleteB		.onclick = () => ( Delete( sels )	, C_MAIN.focus() )
-AlignLB		.onclick = () => ( Align( 0, 0 )	, C_MAIN.focus() )
-AlignRB		.onclick = () => ( Align( 0, 1 )	, C_MAIN.focus() )
-AlignTB		.onclick = () => ( Align( 1, 0 )	, C_MAIN.focus() )
-AlignBB		.onclick = () => ( Align( 1, 1 )	, C_MAIN.focus() )
-CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
-ReverseB	.onclick = () => ( Reverse()		, C_MAIN.focus() )
-ForwardB	.onclick = () => ( Forward()		, C_MAIN.focus() )
-BackwardB	.onclick = () => ( Backward()		, C_MAIN.focus() )
-InfoB		.onclick = () => ( Info()			, C_MAIN.focus() )
-
-DebugB	.onclick = () => (
-	DrawDebug( [ sels[ 0 ].F[ 1 ] ], 1 )
-,	C_MAIN.focus()
-)
+DeleteB.onclick = () => ( Delete( sels ), C_MAIN.focus() )

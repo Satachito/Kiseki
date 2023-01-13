@@ -1,0 +1,23 @@
+{
+  "name": "@satachito/jp-tree-view",
+  "version": "1.0.3",
+  "description": "JSON based object browser",
+  "main": "_.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Satachito/jp-tree-view.git"
+  },
+  "keywords": [
+    "JSON",
+    "tree"
+  ],
+  "author": "Satoru Ogura <satoru.ogura@me.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Satachito/jp-tree-view/issues"
+  },
+  "homepage": "https://github.com/Satachito/jp-tree-view#readme"
+}
