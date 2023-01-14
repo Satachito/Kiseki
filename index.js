@@ -147,11 +147,49 @@ ShowClipboard = () => navigator.clipboard.read().then(
 )
 
 const
-Cut		= () => console.log( 'Cut'		)
+CLIPBOARD_ID = 'vecedit.828.tyoko'
+
 const
-Copy	= () => console.log( 'Copy'		)
+AllInclusive = ( [ T, D, A, G ] ) => D.every( E => AllInclusive( E ) ) && G.every(
+	( [ MT, LC ] ) => ( MT ? sels.includes( MT ) : true ) && LC.flat().every( P => sels.includes( P ) )
+)
+
 const
-Paste	= () => console.log( 'Paste'	)
+Copy = () => {
+	const Es = Array.from( new Set( sels.map( _ => _.E ) ) )
+	if ( !Es.length ) {
+		Toast( 'yellow', 'No elements' )
+		return false
+	}
+	if ( !Es.every( E => AllInclusive( E ) ) ) {
+		Toast( 'yellow', 'Element only' )
+		return false
+	}
+	navigator.clipboard.writeText( CLIPBOARD_ID + JSON.stringify( Es ) )
+	return true
+}
+
+const
+Cut = () => Copy() && Delete( sels )
+
+const
+Paste = async () => {
+	const
+	_ = await navigator.clipboard.readText()
+	if ( _.startsWith( CLIPBOARD_ID ) ) {
+		const $ = JSON.parse( _.slice( CLIPBOARD_ID.length ) )
+		const newSVG = CloneJSONable( svg )
+		newSVG[ 1 ].push( ...$ )
+		NewSVGJob( newSVG )
+	}
+}
+
+const
+SelectAll = () => (
+	sels = []
+,	PathForAll( P => sels.push( P ) )
+,	DrawMain()
+)
 
 C_MAIN.oncut	= _ => console.log( 'C_MAIN cut'	)
 C_MAIN.oncopy	= _ => console.log( 'C_MAIN copy'	)
@@ -778,8 +816,37 @@ FindF = ( _, svg ) => FindE( _, svg )[ 3 ][ _.iF ]
 const
 FindS = ( _, svg ) => FindF( _, svg )[ 1 ][ _.iS ]
 
+/*
 const
-SVGJob = ( newSVG, newSels = [] ) => {
+SVGJob = ( _SVG, _sels ) => {
+	const
+	$SVG = svg
+	const
+	$sels = sels
+	const $ = Job(
+		() => ( sels = $sels, svg = $SVG )
+	,	() => ( sels = _sels, svg = _SVG )
+	)
+	Draw()
+	return $
+}
+*/
+
+const
+OldSVGJob = ( oldSVG, oldSels = [] ) => {
+	const
+	newSVG = svg
+	const
+	newSels = sels
+	Job(
+		() => ( sels = oldSels, svg = oldSVG )
+	,	() => ( sels = newSels, svg = newSVG )
+	)
+	Draw()
+}
+
+const
+NewSVGJob = ( newSVG, newSels = [] ) => {
 	const
 	oldSVG = svg
 	const
@@ -836,14 +903,6 @@ MoveJob = oldXYs => {
 }
 
 const
-XYJob = _ => {
-	const
-	oldXYs = sels.map( _ => [ ..._ ] )
-	_()
-	MoveJob( oldXYs )
-}
-
-const
 Change = _ => {
 
 	if ( _.iP === void 0 ) {
@@ -884,7 +943,7 @@ Change = _ => {
 		,	LC[ ( _.iS ? _.iS : LC.length ) - 1 ].push( ...S )
 		)
 	
-	SVGJob( newSVG )
+	NewSVGJob( newSVG )
 }
 
 const
@@ -973,7 +1032,7 @@ Delete = _ => {
 	
 	NormalizeElement( newSVG )
 
-	SVGJob( newSVG )
+	NewSVGJob( newSVG )
 
 }
 
@@ -1456,7 +1515,7 @@ console.log( found, $.length )
 					}
 					break
 				}
-				SVGJob( newSVG, [ grid ] )
+				NewSVGJob( newSVG, [ grid ] )
 			}
 		}
 		break
@@ -1492,7 +1551,7 @@ console.log( found, $.length )
 					F[ 1 ] = [ ...CircluatingSlice( LC, $.iS, $.iS ) ]
 					newSels.push( F[ 0 ], F[ 1 ][ 0 ][ 0 ] )
 				}
-				SVGJob( newSVG, newSels )
+				NewSVGJob( newSVG, newSels )
 				return
 			}
 		}
@@ -1582,7 +1641,7 @@ console.log( found, $.length )
 						break
 					}
 				}
-				SVGJob( newSVG, newSels )
+				NewSVGJob( newSVG, newSels )
 				return
 			}
 		}
@@ -1785,41 +1844,60 @@ onload = async () => {
 }
 
 const
-Align = ( ax, minmax ) => {
+Unite = () => {
+
 	const
-	$ = BBox( ...sels )[ ax ][ minmax ]
-	XYJob( _ => sels.forEach( _ => _[ ax ] = $ ) )
-}
+	Fs = Array.from( new Set( sels.map( _ => _.F ) ) )
+	if ( Fs.some( _ => !_[ 0 ] ) ) {
+		Toast( 'green', 'Lines only' )
+		return
+	}
+	if ( !Fs.length ) {
+		alert( 'No lines' )
+		return
+	}
 
+	const
+	oldSVG = CloneJSONable( svg )
+	const
+	oldSels = [ ...sels ]
 
-const
-AllFigures = () => {
-	const $ = new Set()
-	PathForAll( _ => _.F[ 0 ] === null && $.add( _.F[ 1 ] ) )
-	return Array.from( $ )
+	Fs.forEach( F => F[ 0 ] = null )
+	sels = []
+
+	OldSVGJob( oldSVG, oldSels )
 }
 
 const
 Combine = () => {
 
-	if ( sels.some( _ => _.F[ 0 ] ) ) {
+	const
+	Fs = Array.from( new Set( sels.map( _ => _.F ) ) )
+	if ( Fs.some( _ => _[ 0 ] ) ) {
 		Toast( 'green', 'Contours only' )
 		return
 	}
-
-	const
-//v	DEBUG
-	selectedCs = Array.from( new Set( sels.map( _ => _.F[ 1 ] ) ) )
-//	selectedCs = AllFigures()
-//^	DEBUG
-
-	if ( !selectedCs.length ) {
+	if ( !Fs.length ) {
 		alert( 'No contours' )
 		return
 	}
 
+//v	DEBUG
+//const
+//AllContours = () => {
+//	const $ = new Set()
+//	PathForAll( _ => _.F[ 0 ] === null && $.add( _.F[ 1 ] ) )
+//	return Array.from( $ )
+//}
+//	const
+//	Cs = AllContours()
+//^	DEBUG
+
+	const
+	Cs = Fs.map( _ => _[ 1 ] )
+
 	const	//	Rounded
-	RSCs = selectedCs.map(
+	RSCs = Cs.map(
 		C => C.map(
 			S => S.map(
 				_ => {
@@ -1961,7 +2039,7 @@ console.log( "#matched:", matched.length, matched )
 				let [ p, q ] = FitCubeBezier( $ )
 
 //v	Adjust
-				selectedCs.forEach(
+				Cs.forEach(
 					C => {
 						const angleC = C.reduce(
 							( $, S, _ ) => {
@@ -2055,7 +2133,7 @@ console.log( newCs )
 	,	D.map( _ => Reduct( _ ) )
 	,	{ ...A }
 	,	TagGroup( T ) === 'path'
-		?	G.filter( F => !selectedCs.includes( F[ 1 ] ) )
+		?	G.filter( F => !Cs.includes( F[ 1 ] ) )
 		:	G
 	]
 
@@ -2069,7 +2147,7 @@ console.log( newCs )
 		,	newCs.map( C => [ null, C ] )
 		]
 	)
-	SVGJob( newSVG, newCs.flat().flat() )
+	NewSVGJob( newSVG, newCs.flat().flat() )
 }
 
 const
@@ -2101,7 +2179,7 @@ Reverse = () => {
 			}
 		}
 	)
-	SVGJob( newSVG )
+	NewSVGJob( newSVG )
 }
 
 const
@@ -2116,7 +2194,7 @@ Forward = () => {
 	const
 	newSVG = CloneJSONable( svg )
 	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.unshift( C.pop() ) )
-	SVGJob( newSVG )
+	NewSVGJob( newSVG )
 }
 
 const
@@ -2131,7 +2209,7 @@ Backward = () => {
 	const
 	newSVG = CloneJSONable( svg )
 	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.push( C.shift( 1 ) ) )
-	SVGJob( newSVG )
+	NewSVGJob( newSVG )
 }
 
 const
@@ -2155,20 +2233,104 @@ Info = () => {
 	)
 }
 
+const
+XYJob = _ => {
+	const
+	oldXYs = sels.map( _ => [ ..._ ] )
+	_()
+	MoveJob( oldXYs )
+}
+
+const
+Align = ( ax, minmax ) => {
+	const
+	$ = BBox( ...sels )[ ax ][ minmax ]
+	XYJob( _ => sels.forEach( _ => _[ ax ] = $ ) )
+}
+
+const
+MidXYJob = _ => {
+	if ( !sels.length ) {
+		Toast( 'yellow', 'No selection' )
+		return
+	}
+	const
+	oldXYs = sels.map( _ => [ ..._ ] )
+	const [ [ x, X ], [ y, Y ] ] = BBox( ...sels )
+	const midX = ( x + X ) / 2
+	const midY = ( y + Y ) / 2
+	_( midX, midY )
+	MoveJob( oldXYs )
+}
+
+const
+MirrorH = () => sels.length && MidXYJob(
+	( midX, midY ) => sels.forEach( _ => _[ 0 ] = midX - ( _[ 0 ] - midX ) )
+)
+const
+MirrorV = () => sels.length && MidXYJob(
+	( midX, midY ) => sels.forEach( _ => _[ 1 ] = midY - ( _[ 1 ] - midY ) )
+)
+const
+Rotate90R = () => sels.length && MidXYJob(
+	( midX, midY ) => sels.forEach( _ => [ _[ 0 ], _[ 1 ] ] = [ midY - _[ 1 ] + midX, _[ 0 ] - midX + midY ] )
+)
+const
+Rotate90L = () => sels.length && MidXYJob(
+	( midX, midY ) => sels.forEach( _ => [ _[ 0 ], _[ 1 ] ] = [ _[ 1 ] - midY + midX, midX - _[ 0 ] + midY ] )
+)
+const
+Rotate = () => sels.length && MidXYJob(
+	( midX, midY ) => {
+		const theta = RotationAngle.value * Math.PI / 180
+		const sinTheta = Math.sin( theta )
+		const cosTheta = Math.cos( theta )
+		sels.forEach(
+			_ => {
+				const x = _[ 0 ] - midX
+				const y = _[ 1 ] - midY
+				_[ 0 ] = x * cosTheta - y * sinTheta + midX
+				_[ 1 ] = x * sinTheta + y * cosTheta + midY
+			}
+		)
+	}
+)
+const
+Resize = () => sels.length && MidXYJob(
+	( midX, midY ) => sels.forEach(
+		_ => [ _[ 0 ], _[ 1 ] ] = [
+			midX + ( _[ 0 ] - midX ) * ResizeH.value / 100
+		,	midY + ( _[ 1 ] - midY ) * ResizeV.value / 100
+		]
+	)
+)
+
 UndoB		.onclick = () => ( Undo()			, C_MAIN.focus() )
 RedoB		.onclick = () => ( Redo()			, C_MAIN.focus() )
+CutB		.onclick = () => ( Cut()			, C_MAIN.focus() )
+CopyB		.onclick = () => ( Copy()			, C_MAIN.focus() )
+PasteB		.onclick = () => ( Paste()			, C_MAIN.focus() )
+SelectAllB	.onclick = () => ( SelectAll()		, C_MAIN.focus() )
 DeleteB		.onclick = () => ( Delete( sels )	, C_MAIN.focus() )
 AlignLB		.onclick = () => ( Align( 0, 0 )	, C_MAIN.focus() )
 AlignRB		.onclick = () => ( Align( 0, 1 )	, C_MAIN.focus() )
 AlignTB		.onclick = () => ( Align( 1, 0 )	, C_MAIN.focus() )
 AlignBB		.onclick = () => ( Align( 1, 1 )	, C_MAIN.focus() )
-CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
+MirrorHB	.onclick = () => ( MirrorH()		, C_MAIN.focus() )
+MirrorVB	.onclick = () => ( MirrorV()		, C_MAIN.focus() )
+Rotate90RB	.onclick = () => ( Rotate90R()		, C_MAIN.focus() )
+Rotate90LB	.onclick = () => ( Rotate90L()		, C_MAIN.focus() )
+RotateB		.onclick = () => ( Rotate()			, C_MAIN.focus() )
+ResizeB		.onclick = () => ( Resize()			, C_MAIN.focus() )
 ReverseB	.onclick = () => ( Reverse()		, C_MAIN.focus() )
 ForwardB	.onclick = () => ( Forward()		, C_MAIN.focus() )
 BackwardB	.onclick = () => ( Backward()		, C_MAIN.focus() )
+UniteB		.onclick = () => ( Unite()			, C_MAIN.focus() )
+CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()			, C_MAIN.focus() )
 
 DebugB	.onclick = () => (
 	DrawDebug( [ sels[ 0 ].F[ 1 ] ], 1 )
 ,	C_MAIN.focus()
 )
+
