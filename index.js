@@ -170,7 +170,7 @@ Copy = () => {
 }
 
 const
-Cut = () => Copy() && Delete( sels )
+Cut = () => Copy() && Delete()
 
 const
 Paste = async () => {
@@ -180,7 +180,7 @@ Paste = async () => {
 		const $ = JSON.parse( _.slice( CLIPBOARD_ID.length ) )
 		const newSVG = CloneJSONable( svg )
 		newSVG[ 1 ].push( ...$ )
-		NewSVGJob( newSVG, sels.map( _ => FindP( _, newSVG ) ) )
+		SVGJob( newSVG, sels.map( _ => FindP( _, newSVG ) ) )
 	}
 }
 
@@ -440,7 +440,10 @@ PathForAll = ( CB, _ = svg ) => (
 			const
 			[ MT, LC ] = F
 			MT && (
-				MT.F	= F			// Trick for double click
+				delete MT[ 'iP' ]
+			,	delete MT[ 'S' ]
+			,	delete MT[ 'iS' ]
+			,	MT.F	= F			// Trick for double click
 			,	MT.iF	= iF
 			,	MT.E	= _			// Trick for triple click
 			,	CB( MT )
@@ -816,37 +819,11 @@ FindF = ( _, svg ) => FindE( _, svg )[ 3 ][ _.iF ]
 const
 FindS = ( _, svg ) => FindF( _, svg )[ 1 ][ _.iS ]
 
-/*
 const
-SVGJob = ( _SVG, _sels ) => {
-	const
-	$SVG = svg
-	const
-	$sels = sels
-	const $ = Job(
-		() => ( sels = $sels, svg = $SVG )
-	,	() => ( sels = _sels, svg = _SVG )
-	)
-	Draw()
-	return $
-}
-*/
+FindP = ( _, svg ) => _.S ? FindS( _, svg )[ _.iP ] : FindF( _, svg )[ 0 ]
 
 const
-OldSVGJob = ( oldSVG, oldSels = [] ) => {
-	const
-	newSVG = svg
-	const
-	newSels = sels
-	Job(
-		() => ( sels = oldSels, svg = oldSVG )
-	,	() => ( sels = newSels, svg = newSVG )
-	)
-	Draw()
-}
-
-const
-NewSVGJob = ( newSVG, newSels = [] ) => {
+SVGJob = ( newSVG, newSels = [] ) => {
 	const
 	oldSVG = svg
 	const
@@ -943,7 +920,7 @@ Change = _ => {
 		,	LC[ ( _.iS ? _.iS : LC.length ) - 1 ].push( ...S )
 		)
 	
-	NewSVGJob( newSVG )
+	SVGJob( newSVG )
 }
 
 const
@@ -973,22 +950,22 @@ NormalizeElement = ( [ T, D, A, G ] ) => {
 }
 
 const
-Delete = _ => {
+Delete = () => {
 	
-	if ( !_.length ) return
+	if ( !sels.length ) return
 
 	const newSVG = CloneJSONable( svg )
 
 	PathForAll( () => {} )
-	_.filter( P => P.iP === 2		).forEach( P => FindS( P, newSVG ).splice( 2, 1 ) )
-	_.filter( P => P.iP === 1		).forEach( P => FindS( P, newSVG ).splice( 1, 1 ) )
-	_.filter( P => P.iP === 0		).forEach(
+	sels.filter( P => P.iP === 2 ).forEach( P => FindS( P, newSVG ).splice( 2, 1 ) )
+	sels.filter( P => P.iP === 1 ).forEach( P => FindS( P, newSVG ).splice( 1, 1 ) )
+	sels.filter( P => P.iP === 0 ).forEach(
 		P => {
 			const
 			[ MT, LC ] = FindF( P, newSVG )
 			//	Line end
 			if ( ( MT && P.iS === 0 ) || LC.length === 1 ) {
-				LC[ 0 ].length = 0
+				LC[ 0 ].splice( 0, 1 )
 				return
 			}
 			const
@@ -1011,7 +988,7 @@ Delete = _ => {
 			currS.length = 0
 		}
 	)
-	_.filter( P => P.iP === void 0	).forEach(
+	sels.filter( P => P.iP === void 0 ).forEach(
 		P => {
 			const
 			F = FindF( P, newSVG )
@@ -1029,11 +1006,9 @@ Delete = _ => {
 			}
 		}
 	)
-	
+	sels = []
 	NormalizeElement( newSVG )
-
-	NewSVGJob( newSVG )
-
+	SVGJob( newSVG )
 }
 
 const
@@ -1270,7 +1245,8 @@ C_MAIN.onmousedown = md => {
 		}
 		break
 	case EraserB:
-		Delete( Hits() )
+		sels = Hits()
+		Delete()
 		break
 	case RectB:
 		C_MAIN.onmousemove = mv => {
@@ -1515,7 +1491,7 @@ console.log( found, $.length )
 					}
 					break
 				}
-				NewSVGJob( newSVG, [ grid ] )
+				SVGJob( newSVG, [ grid ] )
 			}
 		}
 		break
@@ -1551,7 +1527,7 @@ console.log( found, $.length )
 					F[ 1 ] = [ ...CircluatingSlice( LC, $.iS, $.iS ) ]
 					newSels.push( F[ 0 ], F[ 1 ][ 0 ][ 0 ] )
 				}
-				NewSVGJob( newSVG, newSels )
+				SVGJob( newSVG, newSels )
 				return
 			}
 		}
@@ -1641,7 +1617,7 @@ console.log( found, $.length )
 						break
 					}
 				}
-				NewSVGJob( newSVG, newSels )
+				SVGJob( newSVG, newSels )
 				return
 			}
 		}
@@ -1858,14 +1834,11 @@ Unite = () => {
 	}
 
 	const
-	oldSVG = CloneJSONable( svg )
-	const
-	oldSels = [ ...sels ]
+	newSVG = CloneJSONable( svg )
 
-	Fs.forEach( F => F[ 0 ] = null )
-	sels = []
+	new Set( sels.map( _ => FindF( _, newSVG ) ) ).forEach( F => F[ 0 ] = null )
 
-	OldSVGJob( oldSVG, oldSels )
+	SVGJob( newSVG )
 }
 
 const
@@ -2147,7 +2120,7 @@ console.log( newCs )
 		,	newCs.map( C => [ null, C ] )
 		]
 	)
-	NewSVGJob( newSVG, newCs.flat().flat() )
+	SVGJob( newSVG, newCs.flat().flat() )
 }
 
 const
@@ -2179,7 +2152,7 @@ Reverse = () => {
 			}
 		}
 	)
-	NewSVGJob( newSVG )
+	SVGJob( newSVG )
 }
 
 const
@@ -2194,7 +2167,7 @@ Forward = () => {
 	const
 	newSVG = CloneJSONable( svg )
 	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.unshift( C.pop() ) )
-	NewSVGJob( newSVG )
+	SVGJob( newSVG )
 }
 
 const
@@ -2209,7 +2182,7 @@ Backward = () => {
 	const
 	newSVG = CloneJSONable( svg )
 	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.push( C.shift( 1 ) ) )
-	NewSVGJob( newSVG )
+	SVGJob( newSVG )
 }
 
 const
@@ -2311,7 +2284,7 @@ CutB		.onclick = () => ( Cut()			, C_MAIN.focus() )
 CopyB		.onclick = () => ( Copy()			, C_MAIN.focus() )
 PasteB		.onclick = () => ( Paste()			, C_MAIN.focus() )
 SelectAllB	.onclick = () => ( SelectAll()		, C_MAIN.focus() )
-DeleteB		.onclick = () => ( Delete( sels )	, C_MAIN.focus() )
+DeleteB		.onclick = () => ( Delete()			, C_MAIN.focus() )
 AlignLB		.onclick = () => ( Align( 0, 0 )	, C_MAIN.focus() )
 AlignRB		.onclick = () => ( Align( 0, 1 )	, C_MAIN.focus() )
 AlignTB		.onclick = () => ( Align( 1, 0 )	, C_MAIN.focus() )
