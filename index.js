@@ -180,7 +180,7 @@ Paste = async () => {
 		const $ = JSON.parse( _.slice( CLIPBOARD_ID.length ) )
 		const newSVG = CloneJSONable( svg )
 		newSVG[ 1 ].push( ...$ )
-		NewSVGJob( newSVG )
+		NewSVGJob( newSVG, sels.map( _ => FindP( _, newSVG ) ) )
 	}
 }
 
@@ -2282,7 +2282,7 @@ Rotate90L = () => sels.length && MidXYJob(
 const
 Rotate = () => sels.length && MidXYJob(
 	( midX, midY ) => {
-		const theta = RotationAngle.value * Math.PI / 180
+		const theta = RotateAngle.value * Math.PI / 180
 		const sinTheta = Math.sin( theta )
 		const cosTheta = Math.cos( theta )
 		sels.forEach(

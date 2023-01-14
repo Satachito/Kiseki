@@ -22,6 +22,8 @@ main		{ overflow		: scroll }
 nav		> *	{ padding		: 1px 5px }
 aside	> *	{ padding		: 1px 5px }
 
+nav > input[ type=text ] { width: 32px }
+
 body {
 ;	margin					: 0
 ;	height					: 100vh
