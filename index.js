@@ -838,6 +838,7 @@ SVGJob = ( newSVG, newSels = [] ) => {
 const
 Template = () => {
 	const _ = {}
+	/*
 	_[ 'fill'	] = TempFillC.checked ? TempFillStyle.value : 'none'
 	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
 	_[ 'stroke'	] = TempStrokeC.checked ? TempStrokeStyle.value : 'none'
@@ -848,8 +849,8 @@ Template = () => {
 	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
 	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
 	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
+	*/
 
-	/*
 	TempFillC		.checked && ( _[ 'fill'				] = TempFillStyle		.value )
 	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
 	TempStrokeC		.checked && ( _[ 'stroke'			] = TempStrokeStyle		.value )
@@ -860,7 +861,6 @@ Template = () => {
 	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
 	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
 	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
-	*/
 	return _
 }
 
@@ -1775,7 +1775,7 @@ onload = async () => {
 		Render( glyph )
 		break
 	case 6:
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'purple', 'stroke-width': 4, 'fill': 'none' }, [ [], [] ] ] )
+		svg[ 1 ].push( [ 'path', [], { 'stroke': 'purple', 'stroke-width': 4 }, [ [], [] ] ] )
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
 			_.push( null )
 			const $ = []
@@ -1792,7 +1792,7 @@ onload = async () => {
 			$.push( [ [ 600, 300 ], [ 700, 200 ], [ 600, 100 ] ] )
 			$.push( [ [ 500, 200 ], [ 400, 300 ], [ 300, 200 ] ] )
 		}
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4, 'fill': 'none' }, [ [], [] ] ] )
+		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [], [] ] ] )
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
 			_.push( null )
 			const $ = []
@@ -2322,6 +2322,8 @@ SVG = ( [ T, D, A, G ] ) => {
 	Object.entries( A ).forEach( ( [ k, v ] ) => $ += ' ' + k + '="' + v + '"\n' )
 	switch ( tagGroup ) {
 	case 'path':
+		A.fill || ( $ += ' fill="none"\n' )
+		A.stroke || ( $ += ' stroke="none"\n' )
 		$ += 'd="\n'
 		G.forEach(
 			( [ MT, CL ] ) => {
