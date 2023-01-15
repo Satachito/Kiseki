@@ -838,6 +838,18 @@ SVGJob = ( newSVG, newSels = [] ) => {
 const
 Template = () => {
 	const _ = {}
+	_[ 'fill'	] = TempFillC.checked ? TempFillStyle.value : 'none'
+	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
+	_[ 'stroke'	] = TempStrokeC.checked ? TempStrokeStyle.value : 'none'
+	TempOpacityC	.checked && ( _[ 'opacity'			] = TempOpacityValue	.value )
+	TempStrokeWidthC.checked && ( _[ 'stroke-width'		] = TempStrokeWidthValue.value )
+	TempLineCapC	.checked && ( _[ 'stroke-linecap'	] = TempLineCapValue	.value )
+	TempLineJoinC	.checked && ( _[ 'stroke-linejoin'	] = TempLineJoinValue	.value )
+	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
+	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
+	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
+
+	/*
 	TempFillC		.checked && ( _[ 'fill'				] = TempFillStyle		.value )
 	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
 	TempStrokeC		.checked && ( _[ 'stroke'			] = TempStrokeStyle		.value )
@@ -848,6 +860,7 @@ Template = () => {
 	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
 	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
 	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
+	*/
 	return _
 }
 
@@ -1762,7 +1775,7 @@ onload = async () => {
 		Render( glyph )
 		break
 	case 6:
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'purple', 'stroke-width': 4 }, [ [], [] ] ] )
+		svg[ 1 ].push( [ 'path', [], { 'stroke': 'purple', 'stroke-width': 4, 'fill': 'none' }, [ [], [] ] ] )
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
 			_.push( null )
 			const $ = []
@@ -1779,7 +1792,7 @@ onload = async () => {
 			$.push( [ [ 600, 300 ], [ 700, 200 ], [ 600, 100 ] ] )
 			$.push( [ [ 500, 200 ], [ 400, 300 ], [ 300, 200 ] ] )
 		}
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [], [] ] ] )
+		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4, 'fill': 'none' }, [ [], [] ] ] )
 		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
 			_.push( null )
 			const $ = []
@@ -2278,6 +2291,140 @@ Resize = () => sels.length && MidXYJob(
 	)
 )
 
+const
+Download = ( button, ext, _ ) => (
+	button.setAttribute( 'download', BaseName.value + ext )
+,	button.href = window.URL.createObjectURL( new Blob( [ _ ], { type: 'text/plain' } ) )
+)
+const
+AsJSON = () => Download( AsJSONB, '.ve', JSON.stringify( svg, null, '\t' ) )
+const
+AsEPS = () => Download(
+	AsEPSB
+,	'.eps'
+,	`%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${ width } ${ height }\n${ EPS( svg ) }`
+)
+const
+AsSVG = () => (
+	svg[ 2 ].xmlns = 'http://www.w3.org/2000/svg'
+,	svg[ 2 ].width = width
+,	svg[ 2 ].height = height
+,	Download( AsSVGB, '.svg', SVG( svg ) )
+)
+
+
+const
+Fix2C = $ => $.map( $ => $.toFixed( 2 ) ).join( ',' )
+const
+SVG = ( [ T, D, A, G ] ) => {
+	const tagGroup = TagGroup( T )
+	let $ = '<' + tagGroup + '\n'
+	Object.entries( A ).forEach( ( [ k, v ] ) => $ += ' ' + k + '="' + v + '"\n' )
+	switch ( tagGroup ) {
+	case 'path':
+		$ += 'd="\n'
+		G.forEach(
+			( [ MT, CL ] ) => {
+				$ += 'M ' + Fix2C( MT ?? CL[ 0 ][ 0 ] ) + '\n'
+				let	iS = CL.length
+				while ( iS-- ) {
+					const S = CL[ iS ]
+					switch ( S.length ) {
+					case 1:
+						$ += 'L ' + Fix2C( S[ 0 ] ) + '\n'
+						break
+					case 2:
+						$ += 'Q ' + Fix2C( S[ 1 ] ) + ' ' + Fix2C( S[ 0 ] ) + '\n'
+						break
+					case 3:
+						$ += 'C ' + Fix2C( S[ 2 ] ) + ' ' + Fix2C( S[ 1 ] ) + ' ' + Fix2C( S[ 0 ] ) + '\n'
+						break
+					}
+				}
+				MT || ( $ += 'Z\n' )
+			}
+		)
+		$ += '"\n'
+		break
+	}
+	$ += '>\n'
+	$ += D.map( E => SVG( E ) ).join( '' )
+	$ += '</' + tagGroup + '>\n'
+	return $
+}
+
+import	{ ColorValues } from './jp-color-picker/_.js'
+const
+RGB = _ => {
+	const $ = _.charAt( 0 ) === '#' ? _ : ColorValues[ _.toLowerCase() ] ?? '#000000'
+	let	r = 0
+	let	g = 0
+	let	b = 0
+	switch ( $.length ) {
+	case 5:
+	case 4:
+		r = parseInt( $.charAt( 1 ), 16 ) / 15
+		g = parseInt( $.charAt( 2 ), 16 ) / 15
+		b = parseInt( $.charAt( 3 ), 16 ) / 15
+		break
+	case 9:
+	case 7:
+		r = parseInt( $.substr( 1, 2 ), 16 ) / 255
+		g = parseInt( $.substr( 3, 2 ), 16 ) / 255
+		b = parseInt( $.substr( 5, 2 ), 16 ) / 255
+		break
+	}
+	return r + ' ' + g + ' ' + b
+}
+
+const
+Fix2S = _ => [ _[ 0 ].toFixed( 2 ), ( height - _[ 1 ] ).toFixed( 2 ) ].join( ' ' )
+const
+EPS = ( [ T, D, A, G ] = svg ) => {
+	let $ = ''
+	switch ( TagGroup( T ) ) {
+	case 'path':
+		G.forEach(
+			( [ MT, CL ] ) => {
+				let sp = MT ?? CL[ 0 ][ 0 ]
+				$ += Fix2S( sp ) + ' moveto\n'
+				let	iS = CL.length
+				while ( iS-- ) {
+					const S = CL[ iS ]
+					switch ( S.length ) {
+					case 1:
+						$ = $ + Fix2S( S[ 0 ] ) + ' lineto\n'
+						break
+					case 2:
+						$ = $
+					+	Fix2S( Div( Add( sp, Mul( S[ 1 ], 2 ) ), 3 ) ) + ' '
+					+	Fix2S( Div( Add( S[ 0 ], Mul( S[ 1 ], 2 ) ), 3 ) ) + ' '
+					+	Fix2S( S[ 0 ] ) + ' curveto\n'
+						break
+					case 3:
+						$ = $ + Fix2S( S[ 2 ] ) + ' ' + Fix2S( S[ 1 ] ) + ' ' + Fix2S( S[ 0 ] ) + ' curveto\n'
+						break
+					}
+					sp = S[ 0 ]
+				}
+				MT || ( $ += 'closepath\n' )
+			}
+		)
+
+		If( A[ 'fill'				], _ => $ += RGB( _ )				+ ' setrgbcolor fill\n' )
+		If( A[ 'stroke-width'		], _ => $ += _						+ ' setlinewidth\n' )
+		If( A[ 'stroke-linecap'		], _ => $ += LineCapIndex( _ )		+ ' setlinecap\n' )
+		If( A[ 'stroke-linejoin'	], _ => $ += LineJoinIndex( _ )		+ ' setlinejoin\n' )
+		If( A[ 'stroke-miterlimit'	], _ => $ += MiterLimitIndex( _ )	+ ' setmiterlimit\n' )
+		If( A[ 'stroke-dashoffset'	], _ => $ += _						+ ' setdashoffset\n' )
+		If( A[ 'stroke-dasharray'	], _ => $ += '[ ' + _ + ' ]'		+ ' setdasharray\n' )
+		If( A[ 'stroke'				], _ => $ += RGB( _ )				+ ' setrgbcolor stroke\n' )
+		break
+	}
+	D.forEach( E => $ += EPS( E ) )
+	return $
+}
+
 UndoB		.onclick = () => ( Undo()			, C_MAIN.focus() )
 RedoB		.onclick = () => ( Redo()			, C_MAIN.focus() )
 CutB		.onclick = () => ( Cut()			, C_MAIN.focus() )
@@ -2301,6 +2448,9 @@ BackwardB	.onclick = () => ( Backward()		, C_MAIN.focus() )
 UniteB		.onclick = () => ( Unite()			, C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()			, C_MAIN.focus() )
+AsJSONB		.onclick = () => ( AsJSON()			, C_MAIN.focus() )
+AsSVGB		.onclick = () => ( AsSVG()			, C_MAIN.focus() )
+AsEPSB		.onclick = () => ( AsEPS()			, C_MAIN.focus() )
 
 DebugB	.onclick = () => (
 	DrawDebug( [ sels[ 0 ].F[ 1 ] ], 1 )
