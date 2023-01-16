@@ -191,42 +191,6 @@ SelectAll = () => (
 ,	DrawMain()
 )
 
-C_MAIN.oncut	= _ => console.log( 'C_MAIN cut'	)
-C_MAIN.oncopy	= _ => console.log( 'C_MAIN copy'	)
-C_MAIN.onpaste	= _ => console.log( 'C_MAIN paste'	)
-
-C_MAIN.onkeydown = kd => {
-	if ( kd.metaKey ) {
-		kd.preventDefault()
-		switch ( kd.code ) {
-		case 'KeyZ':
-			kd.shiftKey ? Redo() : Undo()
-			break
-		case 'KeyX':
-			Cut()
-			break
-		case 'KeyC':
-			Copy()
-			break
-		case 'KeyV':
-			Paste()
-			break
-		}
-	} else {
-console.log( kd )
-		switch ( kd.key ) {
-		case 'Escape':
-			SetMode( SelectB )
-			break
-		case '=': ShowClipboard()
-			break
-		case '+': navigator.clipboard.writeText( 'DUMMY TEXT' ).then( () => Toast( 'green', 'copied' ), er => Toast( 'red', er ) )
-			break
-		}
-	}
-}
-C_MAIN.focus()
-
 const
 Grids = ( cp, S ) => {
 	switch ( S.length ) {
@@ -401,20 +365,6 @@ gripSize		= controlSize * 2
 
 let
 mode			= SelectB
-
-const
-SetMode = _ => (
-	C_MAIN.classList.remove( mode.id )	//	For cursor
-,	mode.classList.remove( 'selected' )	//	For border
-,	mode = _
-,	mode.classList.add( 'selected' )
-,	C_MAIN.classList.add( mode.id )
-,	C_MAIN.focus()
-,	mode === SelectB || ( sels = [], DrawMain() )
-)
-
-;[ SelectB, RectB, OvalB, LineB, CurveB, EraserB, PenB, ScissorsB, ChangeB, HandB ].forEach( _ => _.onclick = () => SetMode( _ ) )
-
 
 let
 svg = [ 'svg', [], {}, null ]
@@ -783,9 +733,6 @@ DrawPreview	= ( [ tag, children, attr, data ] = svg, _ = {} ) => {
 	children.forEach( $ => DrawPreview( $, _ ) )
 }
 
-PreviewR.oninput = ev => ( C_PREV.style.opacity = ev.target.value, C_MAIN.focus() )
-SkeltonR.oninput = ev => ( C_MAIN.style.opacity = ev.target.value, C_MAIN.focus() )
-
 const
 Draw = () => (
 	cPrev.clearRect( 0, 0, C_PREV.width, C_PREV.height )
@@ -838,19 +785,6 @@ SVGJob = ( newSVG, newSels = [] ) => {
 const
 Template = () => {
 	const _ = {}
-	/*
-	_[ 'fill'	] = TempFillC.checked ? TempFillStyle.value : 'none'
-	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
-	_[ 'stroke'	] = TempStrokeC.checked ? TempStrokeStyle.value : 'none'
-	TempOpacityC	.checked && ( _[ 'opacity'			] = TempOpacityValue	.value )
-	TempStrokeWidthC.checked && ( _[ 'stroke-width'		] = TempStrokeWidthValue.value )
-	TempLineCapC	.checked && ( _[ 'stroke-linecap'	] = TempLineCapValue	.value )
-	TempLineJoinC	.checked && ( _[ 'stroke-linejoin'	] = TempLineJoinValue	.value )
-	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
-	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
-	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
-	*/
-
 	TempFillC		.checked && ( _[ 'fill'				] = TempFillStyle		.value )
 	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
 	TempStrokeC		.checked && ( _[ 'stroke'			] = TempStrokeStyle		.value )
@@ -1638,200 +1572,6 @@ console.log( found, $.length )
 	}
 }
 
-Array.from( document.body.getElementsByClassName( 'redraw' ) ).forEach(
-	_ => (
-		_.list.addEventListener( 'change', ev => console.log( 'list', _, _.value ) )
-	,	_.palette.addEventListener( 'input', ev => console.log( 'palette', _, _.value ) )
-	)
-)
-
-const
-Refresh = () => {
-	MarginH	.value	= marginH
-	MarginV	.value	= marginV
-	Width	.value	= width
-	Height	.value	= height
-	C_MAIN	.width	= marginH + marginH + width
-	C_MAIN	.height	= marginV + marginV + height
-	C_PREV	.width	= marginH + marginH + width
-	C_PREV	.height	= marginV + marginV + height
-	Draw()
-}
-
-MarginH	.onchange	= Refresh
-MarginV	.onchange	= Refresh
-Width	.onchange	= Refresh
-Height	.onchange	= Refresh
-
-Refresh()
-
-////////////////////////////////////////////////////////////////	DEBUG
-
-const
-cDebug		= C_DEBUG.getContext( '2d' )
-
-const
-DrawDebug	= ( _, N ) => {
-
-	const
-	[ bitRGBAs, W, H ] = BitRGBAs( _ )
-	const
-	$ = cDebug.createImageData( W * N, H * N )
-	const
-	data = $.data
-	const
-	nPerH = N * 4
-	const
-	nPerLine = W * nPerH
-	const
-	nPerV = nPerLine * N
-	const
-	Plot = ( x, y, r, g, b, a ) => {
-		x *= nPerH
-		y *= nPerV
-		for ( let _y = 0; _y < N; _y++ ) {
-			let _ = y + x
-			for ( let _x = 0; _x < N; _x++ ) (
-				data[ _++ ] = r
-			,	data[ _++ ] = g
-			,	data[ _++ ] = b
-			,	data[ _++ ] = a
-			)
-			y += nPerLine
-		}
-	}
-
-	Product(
-		H
-	,	W
-	,	( y, x ) => {
-			switch ( bitRGBAs[ y * W + x ] & 0x60 ) {
-			case 0x60:	Plot( x, y, 0xff, 0xff, 0xff, 0xff )	; break
-			case 0x40:	Plot( x, y, 0xff, 0x00, 0xff, 0xff )	; break
-			case 0x20:	Plot( x, y, 0x00, 0xff, 0xff, 0xff )	; break
-			}
-			bitRGBAs[ y * W + x ] & 0x10 && Plot( x, y, 0xff, 0x00, 0x00, 0xff )
-			bitRGBAs[ y * W + x ] & 0x0f && Plot( x, y, 0x00, 0x00, 0x00, 0xff )
-			bitRGBAs[ y * W + x ] & 0x80 && Plot( x, y, 0x40, 0x40, 0x40, 0xff )
-		}
-	)
-	C_DEBUG.width = $.width
-	C_DEBUG.height = $.height
-	cDebug.putImageData( $, 0, 0 )
-}
-
-const
-sample = `<?xml version='1.0'?><!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN''http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg xmlns="http://www.w3.org/2000/svg" style='fill-opacity:1; color-rendering:auto; color-interpolation:auto; text-rendering:auto; stroke:black; stroke-linecap:square; stroke-miterlimit:10; shape-rendering:auto; stroke-opacity:1; fill:black; stroke-dasharray:none; font-weight:normal; stroke-width:1; font-family:Arial; font-style:normal; stroke-linejoin:miter; font-size:12px; stroke-dashoffset:0; image-rendering:auto;' width='1120' height='760' xmlns='http://www.w3.org/2000/svg'><!--Generated--><defs id='genericDefs'/><g style='stroke-linecap:round; stroke-width:4; fill:none'><line x1='200.0' y1='680.0' x2='200.0' y2='80.0'/><line x1='200.0' y1='680.0' x2='880.0' y2='680.0'/><line x1='200.0' y1='80.0' x2='190.0' y2='100.0'/><line x1='200.0' y1='80.0' x2='210.0' y2='100.0'/><line x1='880.0' y1='680.0' x2='860.0' y2='670.0'/><line x1='880.0' y1='680.0' x2='860.0' y2='690.0'/></g><g style='stroke-linecap:round; stroke-width:4; fill:none'><line x1='200.0' y1='180.0' x2='800.0' y2='680.0'/><line x1='200.0' y1='180.0' x2='500.0' y2='680.0'/><path d='M 250.0 480.0 Q350.0 680.0, 580.0 130.0'/><path d='M 380.0 180.0 Q480.0 410.0, 680.0 200.0'/></g><g style='stroke-width:0;' fill = 'black' font-size = '20' font-family='Arial' alignment-baseline='hanging'></g></svg>`
-
-onload = async () => {
-	switch ( 6 ) {
-	case 0:
-		MoveTo( [ 24, 24 ] )
-		LineTo( [ 26, 24 ] )
-		LineTo( [ 26, 26 ] )
-		LineTo( [ 24, 26 ] )
-		ClosePath()
-		DrawDebug( glyph, 4 )
-		break
-	case 1:
-		MoveTo( [ 50, 50 ] )
-		LineTo( [ 150, 50 ] )
-		QuadTo( [ 200, 100 ], [ 150, 150 ] )
-		CubeTo( [ 50, 150 ], [ 50, 150 ], [ 50, 100 ] )
-		ClosePath()
-		Render( glyph )
-		DrawDebug( glyph, 2 )
-		break
-	case 2:
-		svg[ 1 ][ 0 ][ 3 ] = ( await fetch( '_.ved' ).then( _ => _.json() ) )[ 0 ][ 0 ][ 3 ].map( _ => _[ 1 ] )
-	//	svg[ 1 ][ 0 ][ 3 ] = [ ( await fetch( '_.ved' ).then( _ => _.json() ) )[ 0 ][ 0 ][ 3 ][ 3 ][ 1 ] ]
-		DrawDebug( glyph, 8 )
-		break
-	case 3:
-		MoveTo( [ 100, 0 ] )
-		LineTo( [ 103, 0 ] )
-		LineTo( [ 100, 3 ] )
-		LineTo( [ 103, 3 ] )
-		ClosePath()
-		DrawDebug( glyph, 8 )
-		break
-	case 4:
-		MoveTo( [ 100, 0 ] )
-		LineTo( [ 103, 3 ] )
-		LineTo( [ 100, 3 ] )
-		ClosePath()
-		MoveTo( [ 100, 3 ] )
-		LineTo( [ 100, 0 ] )
-		LineTo( [ 103, 0 ] )
-		ClosePath()
-		DrawDebug( glyph, 8 )
-		break
-	case 5:
-		MoveTo( [ 100, 100 ] )
-		LineTo( [ 200, 100 ] )
-		CubeTo( [ 300, 100 ], [ 300, 200 ], [ 200, 200 ] )
-		QuadTo( [ 100, 200 ], [ 100, 100 ] )
-		ClosePath()
-		Render( glyph )
-		break
-	case 6:
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'purple', 'stroke-width': 4 }, [ [], [] ] ] )
-		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
-			_.push( null )
-			const $ = []
-			_.push( $ )
-			$.push( [ [ 200, 300 ], [ 100, 300 ] ] )
-			$.push( [ [ 100, 400 ], [ 100, 500 ] ] )
-			$.push( [ [ 200, 500 ], [ 300, 500 ] ] )
-			$.push( [ [ 300, 400 ], [ 300, 300 ] ] )
-		}
-		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 1 ]
-			_.push( [ 400, 100 ] )
-			const $ = []
-			_.push( $ )
-			$.push( [ [ 600, 300 ], [ 700, 200 ], [ 600, 100 ] ] )
-			$.push( [ [ 500, 200 ], [ 400, 300 ], [ 300, 200 ] ] )
-		}
-		svg[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [], [] ] ] )
-		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 0 ]
-			_.push( null )
-			const $ = []
-			_.push( $ )
-			$.push( [ [ 100, 500 ], [ 100, 633 ], [ 300, 633 ] ] )
-			$.push( [ [ 300, 500 ], [ 300, 366 ], [ 100, 366 ] ] )
-		}
-		{	const _ = svg[ 1 ].at( -1 )[ 3 ][ 1 ]
-			_.push( [ 400, 400 ] )
-			const $ = []
-			_.push( $ )
-			$.push( [ [ 600, 400 ] ] )
-			$.push( [ [ 600, 500 ], [ 600, 600 ] ] )
-			$.push( [ [ 500, 600 ], [ 400, 600 ] ] )
-			$.push( [ [ 400, 500 ] ] )
-			$.push( [ [ 500, 500 ] ] )
-			$.push( [ [ 500, 400 ] ] )
-		}
-		Draw()
-		break
-	case 7:
-		MoveTo( [ 1, 0 ] )
-		LineTo( [ 2, 1 ] )
-		LineTo( [ 1, 2 ] )
-		LineTo( [ 0, 1 ] )
-		ClosePath()
-
-		MoveTo( [ 4, 3 ] )
-		LineTo( [ 3, 4 ] )
-		LineTo( [ 4, 5 ] )
-		LineTo( [ 5, 4 ] )
-		ClosePath()
-
-	//	Render( glyph )
-	//	DrawDebug( glyph, 8 )
-		break
-	}
-}
-
 const
 Unite = () => {
 
@@ -2291,27 +2031,6 @@ Resize = () => sels.length && MidXYJob(
 	)
 )
 
-const
-Download = ( button, ext, _ ) => (
-	button.setAttribute( 'download', BaseName.value + ext )
-,	button.href = window.URL.createObjectURL( new Blob( [ _ ], { type: 'text/plain' } ) )
-)
-const
-AsJSON = () => Download( AsJSONB, '.ve', JSON.stringify( svg, null, '\t' ) )
-const
-AsEPS = () => Download(
-	AsEPSB
-,	'.eps'
-,	`%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${ width } ${ height }\n${ EPS( svg ) }`
-)
-const
-AsSVG = () => (
-	svg[ 2 ].xmlns = 'http://www.w3.org/2000/svg'
-,	svg[ 2 ].width = width
-,	svg[ 2 ].height = height
-,	Download( AsSVGB, '.svg', SVG( svg ) )
-)
-
 
 const
 Fix2C = $ => $.map( $ => $.toFixed( 2 ) ).join( ',' )
@@ -2427,6 +2146,27 @@ EPS = ( [ T, D, A, G ] = svg ) => {
 	return $
 }
 
+const
+Download = ( button, ext, _ ) => (
+	button.setAttribute( 'download', BaseName.value + ext )
+,	button.href = URL.createObjectURL( new Blob( [ _ ], { type: 'text/plain' } ) )
+)
+const
+AsVEJ = () => Download( AsVEJB, '.vej', JSON.stringify( svg, null, '\t' ) )
+const
+AsEPS = () => Download(
+	AsEPSB
+,	'.eps'
+,	`%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${ width } ${ height }\n${ EPS( svg ) }`
+)
+const
+AsSVG = () => (
+	svg[ 2 ].xmlns = 'http://www.w3.org/2000/svg'
+,	svg[ 2 ].width = width
+,	svg[ 2 ].height = height
+,	Download( AsSVGB, '.svg', SVG( svg ) )
+)
+
 UndoB		.onclick = () => ( Undo()			, C_MAIN.focus() )
 RedoB		.onclick = () => ( Redo()			, C_MAIN.focus() )
 CutB		.onclick = () => ( Cut()			, C_MAIN.focus() )
@@ -2450,12 +2190,317 @@ BackwardB	.onclick = () => ( Backward()		, C_MAIN.focus() )
 UniteB		.onclick = () => ( Unite()			, C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()			, C_MAIN.focus() )
-AsJSONB		.onclick = () => ( AsJSON()			, C_MAIN.focus() )
+AsVEJB		.onclick = () => ( AsVEJ()			, C_MAIN.focus() )
 AsSVGB		.onclick = () => ( AsSVG()			, C_MAIN.focus() )
 AsEPSB		.onclick = () => ( AsEPS()			, C_MAIN.focus() )
 
-DebugB	.onclick = () => (
-	DrawDebug( [ sels[ 0 ].F[ 1 ] ], 1 )
+OfVEJB		.onchange = ev => {
+	console.log( ev.target.files )
+	const fr = new FileReader()
+	fr.onload = () => (
+		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
+	,	svg = JSON.parse( fr.result )
+	,	undos.length = 0
+	,	redos.length = 0
+	,	Draw()
+	)
+	fr.readAsText( ev.target.files[ 0 ] )
+}
+
+OfSVGB		.onchange = ev => {
+	console.log( ev.target.files )
+	const fr = new FileReader()
+	fr.onload = () => (
+		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
+	,	svg = JSON.parse( fr.result )
+	,	undos.length = 0
+	,	redos.length = 0
+	,	Draw()
+	)
+	fr.readAsText( ev.target.files[ 0 ] )
+}
+
+OfEPSB		.onchange = ev => {
+	console.log( ev.target.files )
+	const fr = new FileReader()
+	fr.onload = () => (
+		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
+	,	svg = JSON.parse( fr.result )
+	,	undos.length = 0
+	,	redos.length = 0
+	,	Draw()
+	)
+	fr.readAsText( ev.target.files[ 0 ] )
+}
+
+PreviewR	.oninput = () => ( C_PREV.style.opacity = PreviewR.value, C_MAIN.focus() )
+SkeltonR	.oninput = () => ( C_MAIN.style.opacity = SkeltonR.value, C_MAIN.focus() )
+SkeltonR	.value = 1
+SkeltonR	.oninput()
+PreviewR	.oninput()
+
+const
+Refresh = () => {
+	MarginH	.value	= marginH
+	MarginV	.value	= marginV
+	Width	.value	= width
+	Height	.value	= height
+	C_MAIN	.width	= marginH + marginH + width
+	C_MAIN	.height	= marginV + marginV + height
+	C_PREV	.width	= marginH + marginH + width
+	C_PREV	.height	= marginV + marginV + height
+	Draw()
+}
+
+MarginH		.onchange = Refresh
+MarginV		.onchange = Refresh
+Width		.onchange = Refresh
+Height		.onchange = Refresh
+Refresh()
+
+const
+SetMode = _ => (
+	C_MAIN.classList.remove( mode.id )	//	For cursor
+,	mode.classList.remove( 'selected' )	//	For border
+,	mode = _
+,	mode.classList.add( 'selected' )
+,	C_MAIN.classList.add( mode.id )
 ,	C_MAIN.focus()
 )
+
+;[ SelectB, RectB, OvalB, LineB, CurveB, EraserB, PenB, ScissorsB, ChangeB, HandB ].forEach(
+	_ => _.onclick = () => (
+		SetMode( _ )
+	,	sels = []
+	,	DrawMain()
+	)
+)
+SelectB		.onclick = () => SetMode( SelectB )
+
+C_MAIN.oncut	= _ => console.log( 'C_MAIN cut'	)
+C_MAIN.oncopy	= _ => console.log( 'C_MAIN copy'	)
+C_MAIN.onpaste	= _ => console.log( 'C_MAIN paste'	)
+
+C_MAIN.onkeydown = kd => {
+	if ( kd.metaKey ) {
+		kd.preventDefault()
+		switch ( kd.code ) {
+		case 'KeyZ':
+			kd.shiftKey ? Redo() : Undo()
+			break
+		case 'KeyX':
+			Cut()
+			break
+		case 'KeyC':
+			Copy()
+			break
+		case 'KeyV':
+			Paste()
+			break
+		}
+	} else {
+console.log( kd )
+		switch ( kd.key ) {
+		case 'Backspace':
+			Delete()
+			break
+		case 'Escape':
+			SetMode( SelectB )
+			break
+		case '=': ShowClipboard()
+			break
+		case '+': navigator.clipboard.writeText( 'DUMMY TEXT' ).then( () => Toast( 'green', 'copied' ), er => Toast( 'red', er ) )
+			break
+		}
+	}
+}
+C_MAIN.focus()
+
+onbeforeunload = () => localStorage.setItem( 'vej', JSON.stringify( svg, null, '' ) )
+
+onload = () => (
+	svg = JSON.parse( localStorage.getItem( 'vej' ) )
+,	Draw()
+)
+
+////////////////////////////////////////////////////////////////	DEBUG
+
+Array.from( document.body.getElementsByClassName( 'redraw' ) ).forEach(
+	_ => (
+		_.list.addEventListener( 'change', ev => console.log( 'list', _, _.value ) )
+	,	_.palette.addEventListener( 'input', ev => console.log( 'palette', _, _.value ) )
+	)
+)
+
+const
+cDebug		= C_DEBUG.getContext( '2d' )
+
+const
+DrawDebug	= ( _, N ) => {
+
+	const
+	[ bitRGBAs, W, H ] = BitRGBAs( _ )
+	const
+	$ = cDebug.createImageData( W * N, H * N )
+	const
+	data = $.data
+	const
+	nPerH = N * 4
+	const
+	nPerLine = W * nPerH
+	const
+	nPerV = nPerLine * N
+	const
+	Plot = ( x, y, r, g, b, a ) => {
+		x *= nPerH
+		y *= nPerV
+		for ( let _y = 0; _y < N; _y++ ) {
+			let _ = y + x
+			for ( let _x = 0; _x < N; _x++ ) (
+				data[ _++ ] = r
+			,	data[ _++ ] = g
+			,	data[ _++ ] = b
+			,	data[ _++ ] = a
+			)
+			y += nPerLine
+		}
+	}
+
+	Product(
+		H
+	,	W
+	,	( y, x ) => {
+			switch ( bitRGBAs[ y * W + x ] & 0x60 ) {
+			case 0x60:	Plot( x, y, 0xff, 0xff, 0xff, 0xff )	; break
+			case 0x40:	Plot( x, y, 0xff, 0x00, 0xff, 0xff )	; break
+			case 0x20:	Plot( x, y, 0x00, 0xff, 0xff, 0xff )	; break
+			}
+			bitRGBAs[ y * W + x ] & 0x10 && Plot( x, y, 0xff, 0x00, 0x00, 0xff )
+			bitRGBAs[ y * W + x ] & 0x0f && Plot( x, y, 0x00, 0x00, 0x00, 0xff )
+			bitRGBAs[ y * W + x ] & 0x80 && Plot( x, y, 0x40, 0x40, 0x40, 0xff )
+		}
+	)
+	C_DEBUG.width = $.width
+	C_DEBUG.height = $.height
+	cDebug.putImageData( $, 0, 0 )
+}
+
+const
+sample = `<?xml version='1.0'?><!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN''http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg xmlns="http://www.w3.org/2000/svg" style='fill-opacity:1; color-rendering:auto; color-interpolation:auto; text-rendering:auto; stroke:black; stroke-linecap:square; stroke-miterlimit:10; shape-rendering:auto; stroke-opacity:1; fill:black; stroke-dasharray:none; font-weight:normal; stroke-width:1; font-family:Arial; font-style:normal; stroke-linejoin:miter; font-size:12px; stroke-dashoffset:0; image-rendering:auto;' width='1120' height='760' xmlns='http://www.w3.org/2000/svg'><!--Generated--><defs id='genericDefs'/><g style='stroke-linecap:round; stroke-width:4; fill:none'><line x1='200.0' y1='680.0' x2='200.0' y2='80.0'/><line x1='200.0' y1='680.0' x2='880.0' y2='680.0'/><line x1='200.0' y1='80.0' x2='190.0' y2='100.0'/><line x1='200.0' y1='80.0' x2='210.0' y2='100.0'/><line x1='880.0' y1='680.0' x2='860.0' y2='670.0'/><line x1='880.0' y1='680.0' x2='860.0' y2='690.0'/></g><g style='stroke-linecap:round; stroke-width:4; fill:none'><line x1='200.0' y1='180.0' x2='800.0' y2='680.0'/><line x1='200.0' y1='180.0' x2='500.0' y2='680.0'/><path d='M 250.0 480.0 Q350.0 680.0, 580.0 130.0'/><path d='M 380.0 180.0 Q480.0 410.0, 680.0 200.0'/></g><g style='stroke-width:0;' fill = 'black' font-size = '20' font-family='Arial' alignment-baseline='hanging'></g></svg>`
+
+DebugB		.onclick = () => {
+	const
+	newSVG = CloneJSONable( svg )
+	newSVG[ 1 ].push( [ 'path', [], { 'stroke': 'purple', 'stroke-width': 4 }, [ [], [] ] ] )
+	{	const _ = newSVG[ 1 ].at( -1 )[ 3 ][ 0 ]
+		_.push( null )
+		const $ = []
+		_.push( $ )
+		$.push( [ [ 200, 300 ], [ 100, 300 ] ] )
+		$.push( [ [ 100, 400 ], [ 100, 500 ] ] )
+		$.push( [ [ 200, 500 ], [ 300, 500 ] ] )
+		$.push( [ [ 300, 400 ], [ 300, 300 ] ] )
+	}
+	{	const _ = newSVG[ 1 ].at( -1 )[ 3 ][ 1 ]
+		_.push( [ 400, 100 ] )
+		const $ = []
+		_.push( $ )
+		$.push( [ [ 600, 300 ], [ 700, 200 ], [ 600, 100 ] ] )
+		$.push( [ [ 500, 200 ], [ 400, 300 ], [ 300, 200 ] ] )
+	}
+	newSVG[ 1 ].push( [ 'path', [], { 'stroke': 'violet', 'stroke-width': 4 }, [ [], [] ] ] )
+	{	const _ = newSVG[ 1 ].at( -1 )[ 3 ][ 0 ]
+		_.push( null )
+		const $ = []
+		_.push( $ )
+		$.push( [ [ 100, 500 ], [ 100, 633 ], [ 300, 633 ] ] )
+		$.push( [ [ 300, 500 ], [ 300, 366 ], [ 100, 366 ] ] )
+	}
+	{	const _ = newSVG[ 1 ].at( -1 )[ 3 ][ 1 ]
+		_.push( [ 400, 400 ] )
+		const $ = []
+		_.push( $ )
+		$.push( [ [ 600, 400 ] ] )
+		$.push( [ [ 600, 500 ], [ 600, 600 ] ] )
+		$.push( [ [ 500, 600 ], [ 400, 600 ] ] )
+		$.push( [ [ 400, 500 ] ] )
+		$.push( [ [ 500, 500 ] ] )
+		$.push( [ [ 500, 400 ] ] )
+	}
+	SVGJob( newSVG )
+}
+
+/*
+onload = async () => {
+	switch ( 6 ) {
+	case 0:
+		MoveTo( [ 24, 24 ] )
+		LineTo( [ 26, 24 ] )
+		LineTo( [ 26, 26 ] )
+		LineTo( [ 24, 26 ] )
+		ClosePath()
+		DrawDebug( glyph, 4 )
+		break
+	case 1:
+		MoveTo( [ 50, 50 ] )
+		LineTo( [ 150, 50 ] )
+		QuadTo( [ 200, 100 ], [ 150, 150 ] )
+		CubeTo( [ 50, 150 ], [ 50, 150 ], [ 50, 100 ] )
+		ClosePath()
+		Render( glyph )
+		DrawDebug( glyph, 2 )
+		break
+	case 2:
+		svg[ 1 ][ 0 ][ 3 ] = ( await fetch( '_.ved' ).then( _ => _.json() ) )[ 0 ][ 0 ][ 3 ].map( _ => _[ 1 ] )
+	//	svg[ 1 ][ 0 ][ 3 ] = [ ( await fetch( '_.ved' ).then( _ => _.json() ) )[ 0 ][ 0 ][ 3 ][ 3 ][ 1 ] ]
+		DrawDebug( glyph, 8 )
+		break
+	case 3:
+		MoveTo( [ 100, 0 ] )
+		LineTo( [ 103, 0 ] )
+		LineTo( [ 100, 3 ] )
+		LineTo( [ 103, 3 ] )
+		ClosePath()
+		DrawDebug( glyph, 8 )
+		break
+	case 4:
+		MoveTo( [ 100, 0 ] )
+		LineTo( [ 103, 3 ] )
+		LineTo( [ 100, 3 ] )
+		ClosePath()
+		MoveTo( [ 100, 3 ] )
+		LineTo( [ 100, 0 ] )
+		LineTo( [ 103, 0 ] )
+		ClosePath()
+		DrawDebug( glyph, 8 )
+		break
+	case 5:
+		MoveTo( [ 100, 100 ] )
+		LineTo( [ 200, 100 ] )
+		CubeTo( [ 300, 100 ], [ 300, 200 ], [ 200, 200 ] )
+		QuadTo( [ 100, 200 ], [ 100, 100 ] )
+		ClosePath()
+		Render( glyph )
+		break
+	case 6:
+		break
+	case 7:
+		MoveTo( [ 1, 0 ] )
+		LineTo( [ 2, 1 ] )
+		LineTo( [ 1, 2 ] )
+		LineTo( [ 0, 1 ] )
+		ClosePath()
+
+		MoveTo( [ 4, 3 ] )
+		LineTo( [ 3, 4 ] )
+		LineTo( [ 4, 5 ] )
+		LineTo( [ 5, 4 ] )
+		ClosePath()
+
+	//	Render( glyph )
+	//	DrawDebug( glyph, 8 )
+		break
+	}
+}
+*/
 

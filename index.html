@@ -25,23 +25,27 @@
 
 <nav id=NAV class=open>
 
+	<div class=headline>Upload</div>
+	<input type=file	id=OfVEJB accept=*/* style="display: none"><label for=OfVEJB style="border: 1px solid black">VEJ File</label><br>
+	<input type=file	id=OfSVGB accept=*/* style="display: none"><label for=OfSVGB style="border: 1px solid black">SVG File</label><br>
+	<input type=file	id=OfEPSB accept=*/* style="display: none"><label for=OfEPSB style="border: 1px solid black">EPS File</label><br>
+
 	<div class=headline>Downloads</div>
 	BaseName:
-	<input type=text	id=BaseName		value=VE				><br>
-	<a href=_blank		id=AsJSONB								>.ve</a><br>
+	<input type=text	id=BaseName		value=VEJ				><br>
+	<a href=_blank		id=AsVEJB								>.vej</a><br>
 	<a href=_blank		id=AsSVGB								>.svg</a><br>
 	<a href=_blank		id=AsEPSB								>.eps</a><br>
 
-	<div class=headline>Jobs</div>
+	<div class=headline>Edit</div>
 	<input type=button	id=UndoB		value=Undo				><br>
 	<input type=button	id=RedoB		value=Redo				><br>
 	<input type=button	id=CutB			value=Cut				><br>
 	<input type=button	id=CopyB		value=Copy				><br>
 	<input type=button	id=PasteB		value=Paste				><br>
-	<input type=button	id=SelectAllB	value=SelectAll			><br>
-
-	<div class=headline>Selection</div>
 	<input type=button	id=DeleteB		value=Delete			><br>
+	<input type=button	id=SelectAllB	value=SelectAll			><br>
+	<hr>
 	<input type=button	id=AlignLB		value=AlignLeft			><br>
 	<input type=button	id=AlignRB		value=AlignRight		><br>
 	<input type=button	id=AlignTB		value=AlignTop			><br>
@@ -69,7 +73,7 @@
 
 	<div class=headline>Debug</div>
 	<input type=button	id=InfoB		value=Info				><br>
-	<input type=button	id=DebugB		value=Debug				><br>
+	<input type=button	id=DebugB		value="Load Sample"		><br>
 </nav>
 
 <main id=MAIN>
@@ -196,9 +200,9 @@
 	<div class=headline id=DisplayParametersT>Display parameters</div>
 	<br>
 	<label>Preview</label><br>
-	<input type=range id=PreviewR max=1 step=0.1 value=1><br>
+	<input type=range id=PreviewR max=1 step=0.1><br>
 	<label>Skelton</label><br>
-	<input type=range id=SkeltonR max=1 step=0.1 value=1><br>
+	<input type=range id=SkeltonR max=1 step=0.1><br>
 	<br>
 
 	<label>Clockwise contour color</label>
