@@ -1,4 +1,4 @@
-import { CF, Add, Sub } from './JP/JS/G.js'
+import { EQ, CF, Add, Sub } from './JP/JS/G.js'
 
 const
 D2Path = _ => {
@@ -108,64 +108,70 @@ D2Path = _ => {
 	let		v = null
 	while ( i < _.length ) {
 		const mnemonic = _[ i++ ]
-console.log( mnemonic )
+//console.log( "'" + _.slice( i - 1, 16 ) + "'" )
 		switch ( mnemonic ) {
-		case 'Z', 'z':
-if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
-			v && v.length >= 2 && v[ 0 ][ 0 ][ 0 ] == v[ 1 ][ 0 ][ 0 ] && v[ 0 ][ 0 ][ 1 ] == v[ 1 ][ 0 ][ 1 ] && v.pop()
-			v && $.push( [ true, v ] )
-			lastC2 = lastC3 = null
+		case 'Z':
+		case 'z':
+			if ( v === null ) debugger
+			if ( v[ 0 ] === null ) debugger
+			if ( v[ 1 ] === null ) debugger
+			v[ 1 ].length && (
+				EQ( v[ 0 ], v[ 1 ][ 0 ][ 0 ] ) || v[ 1 ].unshift( [ v[ 0 ] ] )
+			,	v[ 0 ] = null
+			,	$.push( v )
+			)
 			v = null
+			lastC2 = lastC3 = null
 			break
 		case 'M':
-			v && $.push( [ false, v ] )
+			v && $.push( v )
 			{	const xys = XYs()
-				v = [ [ cp = xys[ 0 ] ] ]
-				for ( let _ = 1; _ < xys.length; _++ ) v.push( [ cp = xys[ _ ] ] )
+				v = [ cp = xys[ 0 ], [] ]
+				for ( let _ = 1; _ < xys.length; _++ ) v[ 1 ].unshift( [ cp = xys[ _ ] ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'm':
-			if ( v ) $.push( [ false, v ] )
+			v && $.push( v )
 			{	const xys = XYs()
-				v = [ [ Rel( xys[ 0 ] ) ] ]
-				for ( let _ = 1; _ < xys.length; _++ ) v.push( [ Rel( xys[ _ ] ) ] )
+				v = [ Rel( xys[ 0 ] ), [] ]
+				for ( let _ = 1; _ < xys.length; _++ ) v[ 1 ].unshift( [ Rel( xys[ _ ] ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'L':
 			{	const xys = XYs()
-				for ( let _ = 0; _ < xys.length; _++ ) v.push( [ cp = xys[ _ ] ] )
+				for ( let _ = 0; _ < xys.length; _++ ) v[ 1 ].unshift( [ cp = xys[ _ ] ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'l':
 			{	const xys = XYs()
-				for ( let _ = 0; _ < xys.length; _++ ) v.push( [ Rel( xys[ _ ] ) ] )
+				for ( let _ = 0; _ < xys.length; _++ ) v[ 1 ].unshift( [ Rel( xys[ _ ] ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'H':
 			{	const ns = Ns()
-				for ( let _ = 0; _ < ns.length; _++ ) v.push( [ AbsH( ns[ _ ] ) ] )
+				for ( let _ = 0; _ < ns.length; _++ ) v[ 1 ].unshift( [ AbsH( ns[ _ ] ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'h':
 			{	const ns = Ns()
-				for ( let _ = 0; _ < ns.length; _++ ) v.push( [ RelH( ns[ _ ] ) ] )
+				for ( let _ = 0; _ < ns.length; _++ ) v[ 1 ].unshift( [ RelH( ns[ _ ] ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'V':
 			{	const ns = Ns()
-				for ( let _ = 0; _ < ns.length; _++ ) v.push( [ AbsV( ns[ _ ] ) ] )
+				for ( let _ = 0; _ < ns.length; _++ ) v[ 1 ].unshift( [ AbsV( ns[ _ ] ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'v':
 			{	const ns = Ns()
-				for ( let _ = 0; _ < ns.length; _++ ) v.push( [ RelV( ns[ _ ] ) ] )
+				for ( let _ = 0; _ < ns.length; _++ ) v[ 1 ].unshift( [ RelV( ns[ _ ] ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
@@ -173,7 +179,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 			{	const	xys_3 = XYs_3()
 				for ( let _ = 0; _ < xys_3.length; _++ ) {
 					const	$ = xys_3[ _ ]
-					v.push( [ cp = $[ 2 ], lastC3 = $[ 1 ], $[ 0 ] ] )
+					v[ 1 ].unshift( [ cp = $[ 2 ], lastC3 = $[ 1 ], $[ 0 ] ] )
 				}
 			}
 			lastC2 = null
@@ -184,7 +190,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 					const	$ = xys_3[ _ ]
 					const	q = Add( cp, $[ 1 ] )
 					const	r = Add( cp, $[ 0 ] )
-					v.push( [ Rel( $[ 2 ] ), lastC3 = q, r ] )
+					v[ 1 ].unshift( [ Rel( $[ 2 ] ), lastC3 = q, r ] )
 				}
 			}
 			lastC2 = null
@@ -194,7 +200,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 				for ( let _ = 0; _ < xys_2.length; _++ ) {
 					const	$ = xys_2[ _ ]
 					const	r = lastC3 ? Sub( cp, Sub( lastC3, cp ) ) : cp
-					v.push( [ cp = $[ 1 ], lastC3 = $[ 0 ], r ] )
+					v[ 1 ].unshift( [ cp = $[ 1 ], lastC3 = $[ 0 ], r ] )
 				}
 			}
 			lastC2 = null
@@ -205,7 +211,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 					const	$ = xys_2[ _ ]
 					const	q = Add( cp, $[ 0 ] )
 					const	r = lastC3 ? Sub( cp, Sub( lastC3, cp ) ) : cp
-					v.push( [ Rel( $[ 1 ] ), lastC3 = q, r ] )
+					v[ 1 ].unshift( [ Rel( $[ 1 ] ), lastC3 = q, r ] )
 				}
 			}
 			lastC2 = null
@@ -214,7 +220,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 			{	const	xys_2 = XYs_2()
 				for ( let _ = 0; _ < xys_2.length; _++ ) {
 					const	$ = xys_2[ _ ]
-					v.push( [ cp = $[ 1 ], lastC2 = $[ 0 ] ] )
+					v[ 1 ].unshift( [ cp = $[ 1 ], lastC2 = $[ 0 ] ] )
 				}
 			}
 			lastC3 = null
@@ -224,7 +230,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 				for ( let _ = 0; _ < xys_2.length; _++ ) {
 					const	$ = xys_2[ _ ]
 					const	q = Add( cp, $[ 0 ] )
-					v.push( [ Rel( $[ 1 ] ), lastC2 = q ] )
+					v[ 1 ].unshift( [ Rel( $[ 1 ] ), lastC2 = q ] )
 				}
 			}
 			lastC3 = null
@@ -233,7 +239,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 			{	const	xys = XYs()
 				for ( let _ = 0; _ < xys.length; _++ ) {
 					const	q = lastC2 ? Sub( cp, Sub( lastC2, cp ) ) : cp
-					v.push( [ cp = xys[ _ ], lastC2 = q ] )
+					v[ 1 ].unshift( [ cp = xys[ _ ], lastC2 = q ] )
 				}
 			}
 			lastC3 = null
@@ -242,7 +248,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 			{	const	xys = XYs()
 				for ( let _ = 0; _ < xys.length; _++ ) {
 					const	q = lastC2 ? Sub( cp, Sub( lastC2, cp ) ) : cp
-					v.push( [ Rel( xys[ _ ] ), lastC2 = q ] )
+					v[ 1 ].unshift( [ Rel( xys[ _ ] ), lastC2 = q ] )
 				}
 			}
 			lastC3 = null
@@ -253,7 +259,7 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 				const	large = ReadNumber()
 				const	sweep = ReadNumber()
 				const	xy = XY()
-				v.push( [ cp = xy ] )
+				v[ 1 ].unshift( [ cp = xy ] )
 			}
 			lastC2 = lastC3 = null
 			break
@@ -264,108 +270,113 @@ if ( v && v.length == 1 ) console.log( 'v.length == 1 ', v )
 				const	sweep = ReadNumber()
 				const	xy = XY()
 console.log( 'a', rx, ry, angle, large, sweep, xy )
-				v.push( [ Rel( xy ) ] )
+				v[ 1 ].unshift( [ Rel( xy ) ] )
 			}
 			lastC2 = lastC3 = null
 			break
 		default:
-console.log( 'UNKNOWN MNEMONIC', mnemonic )
+console.log( 'UNKNOWN MNEMONIC', "'" + mnemonic + "'" )
 			break
 		}
 	}
-	v && $.push( [ false, v ] )
+	v && $.push( v )
 	return $
 }
 
 const
-RectPath = ( x, y, w, h, rx, ry ) => {	//	rx, ry: NaN, Number
-	const $ = []
+RectPath = ( x, y, w, h, rx, ry ) => {
 
-	if ( Number.isNaN( rx ) ) {
-		if ( Number.isNaN( ry ) ) {
-			rx = 0
-			ry = 0
-		} else rx = ry
-	} else if ( Number.isNaN( ry ) ) ry = rx
+	const $ = []
 
 	if ( rx || ry ) {
 		rx * 2 > w && ( rx = w / 2 )
 		ry * 2 > h && ( rx = h / 2 )
 
-		$.push( [ [ x + rx, y ], [ x, y ] ] )
-		$.push( [ [ x + w - rx, y ] ] )
-		$.push( [ [ x + w, y + ry ], [ x + w, y ] ] )
-		$.push( [ [ x + w, y + h - ry ] ] )
-		$.push( [ [ x + w - rx, y + h ], [ x + w, y + h ] ] )
-		$.push( [ [ x + rx, y + h ] ] )
-		$.push( [ [ x, y + h - ry ], [ x, y + h ] ] )
-		$.push( [ [ x, y + ry ] ] )
+		return [
+			null
+		,	[	[ [ x + rx, y ], [ x, y ] ]
+			,	[ [ x, y + ry ] ]
+			,	[ [ x, y + h - ry ], [ x, y + h ] ]
+			,	[ [ x + rx, y + h ] ]
+			,	[ [ x + w - rx, y + h ], [ x + w, y + h ] ]
+			,	[ [ x + w, y + h - ry ] ]
+			,	[ [ x + w, y + ry ], [ x + w, y ] ]
+			,	[ [ x + w - rx, y ] ]
+			]
+		]
 	} else {
-		$.push( [ [ x, y ] ] )
-		$.push( [ [ x + w	, y		] ] )
-		$.push( [ [ x + w	, y + h	] ] )
-		$.push( [ [ x		, y + h	] ] )
+		return [
+			null
+		,	[	[ [ x		, y		] ]
+			,	[ [ x + w	, y		] ]
+			,	[ [ x + w	, y + h	] ]
+			,	[ [ x		, y + h	] ]
+			]
+		]
 	}
 
-	return [ [ true, $ ] ]
+	return [ true, $ ]
 }
 
 const
 Crawl = _ => {
-	const $ = [ _.tagName, [], {} ]	//	tag, CHILDREN, AttributeDict
-	$[ 1 ] = Array.from( _.children ).map( _ => Crawl( _ ) ).filter( _ => _ )
-	_.getAttributeNames().forEach(
-		name => $[ 2 ][ name ] = _.getAttribute( name )
-	)
-	switch ( _.tagName ) {
+	const $ = [
+		_.tagName
+	,	Array.from( _.children ).map( _ => Crawl( _ ) ).filter( _ => _ )
+	,	Object.fromEntries( _.getAttributeNames().map( name => [ name, _.getAttribute( name ) ] ) )
+	]
+	const [ T, D, A ] = $
+	switch ( T ) {
 	case 'path':
-		$.push( D2Path( $[ 2 ].d ) )
-		delete $[ 2 ].d
-		if ( $[ 3 ].length == 0 ) return null
+		$[ 3 ] = D2Path( A.d )
 		break
 	case 'rect':
-		{	const _ = $[ 2 ]
-			const w = _.width  ? Number( _.width  ) : 0	; if ( !w ) return
-			const h = _.height ? Number( _.height ) : 0	; if ( !h ) return
-			const x = _.x ? Number( _.x ) : 0
-			const y = _.y ? Number( _.y ) : 0
-			const rx = _.rx ? Number( _.rx ) : NaN
-			const ry = _.ry ? Number( _.ry ) : NaN	
-			$.push( RectPath( x, y, w, h, rx, ry ) )
-		}
+		$[ 3 ] = [
+			RectPath(
+				A.x ? Number( A.x ) : 0
+			,	A.y ? Number( A.y ) : 0
+			,	Number( A.width )
+			,	Number( A.height )
+			,	A.rx ? Number( A.rx ) : 0
+			,	A.ry ? Number( A.ry ) : 0
+			)
+		]
 		break
 	case 'line':
-		{	const _ = $[ 2 ]
-			$.push( [ [ false, [ [ [ Number( _.x2 ), Number( _.y2 ) ] ], [ [ Number( _.x1 ), Number( _.y1 ) ] ] ] ] ] )
-		}
+		$[ 3 ] = [
+			[	[ Number( A.x1 ), Number( A.y1 ) ]
+			,	[ [ [ Number( A.x2 ), Number( A.y2 ) ] ] ]
+			]
+		]
 		break
 	case 'polygon':
-		{	const nums = $[ 2 ].points.split( /[\,\s]+/ ).filter( _ => _.length ).map( _ => Number( _ ) )
-			const points = []
-			for ( let i = 0; i < nums.length; i += 2 ) points.push( [ [ nums[ i ], nums[ i + 1 ] ] ] )
-			$.push( [ [ true, points ] ] )
+		{	const nums = A.points.split( /[\,\s]+/ ).filter( _ => _.length ).map( _ => Number( _ ) )
+			if ( nums < 4 ) return
+			const Ss = []
+			for ( let i = 0; i < nums.length; i += 2 ) Ss.unshift( [ [ nums[ i ], nums[ i + 1 ] ] ] )
+			$[ 3 ] = [ [ null, Ss ] ]
 		}
 		break
 	case 'polyline':
-		{	const nums = $[ 2 ].points.split( /[\,\s]+/ ).filter( _ => _.length ).map( _ => Number( _ ) )
-			const points = []
-			for ( let i = 0; i < nums.length; i += 2 ) points.push( [ [ nums[ i ], nums[ i + 1 ] ] ] )
-			$.push( [ [ false, points ] ] )
+		{	const nums = A.points.split( /[\,\s]+/ ).filter( _ => _.length ).map( _ => Number( _ ) )
+			if ( nums < 4 ) return
+			const Ss = []
+			for ( let i = 2; i < nums.length; i += 2 ) Ss.unshift( [ [ nums[ i ], nums[ i + 1 ] ] ] )
+			$[ 3 ] = [ [ [ nums[ 0 ], nums[ 1 ] ], Ss ] ]
 		}
 		break
 	case 'circle':
-		{	const _ = $[ 2 ]
-			const r = Number( _.r )
-			if ( !r ) return null
+		{	if ( !A.r ) return
+			const r = Number( A.r )
 			const r_cf = r * CF
-			const cx = _.cx ? Number( _.cx ) : 0
-			const cy = _.cy ? Number( _.cy ) : 0
+			const cx = Number( A.cx ) 
+			const cy = Number( A.cy )
 			$.push(
-				[	[	true
-					,	[	[ [ cx, cy - r ], [ cx - r_cf, cy - r ], [ cx - r, cy - r_cf ] ]
-						,	[ [ cx + r, cy ], [ cx + r, cy - r_cf ], [ cx + r_cf, cy - r ] ]
+				[	[	null
+					,	[	[ [ cx - r, cy ], [ cx - r, cy + r_cf ], [ cx - r_cf, cy + r ] ]
 						,	[ [ cx, cy + r ], [ cx + r_cf, cy + r ], [ cx + r, cy + r_cf ] ]
-						,	[ [ cx - r, cy ], [ cx - r, cy + r_cf ], [ cx - r_cf, cy + r ] ]
+						,	[ [ cx + r, cy ], [ cx + r, cy - r_cf ], [ cx + r_cf, cy - r ] ]
+						,	[ [ cx, cy - r ], [ cx - r_cf, cy - r ], [ cx - r, cy - r_cf ] ]
 						]
 					]
 				]
@@ -373,35 +384,34 @@ Crawl = _ => {
 		}
 		break
 	case 'ellipse':
-		{	const _ = $[ 2 ]
-			const rx = Number( _.rx )
-			if ( !rx ) return null
-			const ry = Number( _.ry )
-			if ( !ry ) return null
+		{	if ( !A.rx ) return
+			if ( !A.ry ) return
+			const rx = Number( A.rx )
+			const ry = Number( A.ry )
 			const rx_cf = rx * CF
 			const ry_cf = ry * CF
-			const cx = _.cx ? Number( _.cx ) : 0
-			const cy = _.cy ? Number( _.cy ) : 0
+			const cx = Number( A.cx )
+			const cy = Number( A.cy )
 			$.push(
-				[	[	true
-					,	[	[ [ cx, cy - ry ], [ cx - rx_cf, cy - ry ], [ cx - rx, cy - ry_cf ] ]
-						,	[ [ cx + rx, cy ], [ cx + rx, cy - ry_cf ], [ cx + rx_cf, cy - ry ] ]
+				[	[	null
+					,	[	[ [ cx - rx, cy ], [ cx - rx, cy + ry_cf ], [ cx - rx_cf, cy + ry ] ]
 						,	[ [ cx, cy + ry ], [ cx + rx_cf, cy + ry ], [ cx + rx, cy + ry_cf ] ]
-						,	[ [ cx - rx, cy ], [ cx - rx, cy + ry_cf ], [ cx - rx_cf, cy + ry ] ]
+						,	[ [ cx + rx, cy ], [ cx + rx, cy - ry_cf ], [ cx + rx_cf, cy - ry ] ]
+						,	[ [ cx, cy - ry ], [ cx - rx_cf, cy - ry ], [ cx - rx, cy - ry_cf ] ]
 						]
 					]
 				]
 			)
 		}
 		break
-	case 'g':
-		if ( $[ 1 ].length == 0 ) return null
-		if ( Object.keys( $[ 2 ] ).length == 0 && $[ 1 ].length == 1 ) return $[ 1 ][ 0 ]
+	case 'g':	//	Optimization
+		if ( D.length == 0 ) return
+		if ( Object.keys( A ).length == 0 && D.length == 1 ) return D[ 0 ]
 		break
 	}
 	return $
 }
 
-export const
-Parse = _ => Array.from( new DOMParser().parseFromString( _, 'text/html' ).getElementsByTagName( 'svg' ) ).map( $ => Crawl( $ ) )
+export default
+_ => Array.from( new DOMParser().parseFromString( _, 'text/html' ).getElementsByTagName( 'svg' ) ).map( $ => Crawl( $ ) )
 
