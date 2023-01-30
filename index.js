@@ -980,7 +980,7 @@ NormalizeElement = ( [ T, D, A, G ] ) => {
 	while ( _-- ) {
 		const E = D[ _ ]
 		NormalizeElement( E )
-		!E[ 3 ].length && !E[ 1 ].length && D.splice( _, 1 )
+		TagGroup( E[ 0 ] ) === 'path' && !E[ 3 ].length && !E[ 1 ].length && D.splice( _, 1 )
 	}
 }
 
@@ -2312,7 +2312,7 @@ OfSVGB		.onchange = ev => {
 PreviewR	.oninput = () => ( C_PREV.style.opacity = PreviewR.value, C_MAIN.focus() )
 PreviewR	.value = 1
 SkeltonR	.oninput = () => ( C_MAIN.style.opacity = SkeltonR.value, C_MAIN.focus() )
-SkeltonR	.value = 0
+SkeltonR	.value = 1
 SkeltonR	.oninput()
 PreviewR	.oninput()
 
@@ -2360,6 +2360,7 @@ C_MAIN.oncopy	= _ => console.log( 'C_MAIN copy'	)
 C_MAIN.onpaste	= _ => console.log( 'C_MAIN paste'	)
 
 C_MAIN.onkeydown = kd => {
+console.log( kd )
 	if ( kd.metaKey ) {
 		kd.preventDefault()
 		switch ( kd.code ) {
@@ -2375,9 +2376,11 @@ C_MAIN.onkeydown = kd => {
 		case 'KeyV':
 			Paste()
 			break
+		case 'KeyA':
+			SelectAll()
+			break
 		}
 	} else {
-console.log( kd )
 		switch ( kd.key ) {
 		case 'Backspace':
 			Delete()
@@ -2394,11 +2397,11 @@ console.log( kd )
 }
 C_MAIN.focus()
 
-onbeforeunload = () => localStorage.setItem( 'vej', JSON.stringify( svg, null, '' ) )
+onbeforeunload = () => localStorage.setItem( 'vej.828.tokyo', JSON.stringify( svg, null, '' ) )
 
 /*
 onload = () => (
-	svg = JSON.parse( localStorage.getItem( 'vej' ) )
+	svg = JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) )
 ,	Draw()
 )
 */
@@ -2610,12 +2613,17 @@ onload = async () => {
 }
 */
 
-DebugB		.onclick = async () => {
-//	const text = await fetch( '_.svg' ).then( _ => _.text() )
-	const text = await fetch( 'https://www.ikyu.com', { mode: 'no-cors' } ).then( _ => _.text() )
-	console.log( text )
+const
+Load = async file => {
+	const text = await fetch( file ).then( _ => _.text() )
 	const _ = ParseSVG( text )[ 0 ]
-	console.log( _ )
 	SVGJob( _ )
 }
+
+TigerB		.onclick = async () => Load( 'Tiger.svg' )
+IkyuB		.onclick = async () => Load( 'Ikyu.svg' )
+QuatroArcB	.onclick = async () => Load( 'QuatroArc.svg' )
+SVGLogoB	.onclick = async () => Load( 'SVGLogo.svg' )
+DebugB		.onclick = async () => Load( '_.svg' )
+
 

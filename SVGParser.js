@@ -1,4 +1,100 @@
-import { EQ, CF, Add, Sub } from './JP/JS/G.js'
+import { Round, EQ, CF, Add, Sub, Mid, Mul, Div } from './JP/JS/G.js'
+
+const
+UnitArcByCB = θ => {	// θ: -2π < Angle < 2π
+	const L = 4 / 3 * Math.tan( θ / 4 )
+	const sinθ = Math.sin( θ )
+	const cosθ = Math.cos( θ )
+	return [
+		[ 1, 0 ]
+	,	[ 1, L ]
+	,	[ cosθ + sinθ * L, sinθ - cosθ * L ]
+	,	[ cosθ, sinθ ]
+	]
+}
+
+const
+UnitArcByCBs = θ => {	// θ: -2π < Angle < 2π
+	const nArcs = Math.ceil( Math.abs( 2 * θ / Math.PI ) )
+	switch ( nArcs ) {
+	case 0:
+		return [ 1, 0 ]
+	case 1:
+		return UnitArcByCB( θ )
+	default:
+		{	θ = θ / nArcs
+			const $ = UnitArcByCB( θ )
+			const _ = $.slice( 1 )
+			for ( let i = 1; i < nArcs; i++ ) {
+				const sinθ = Math.sin( θ * i )
+				const cosθ = Math.cos( θ * i )
+				$.push( ..._.map( ( [ x, y ] ) => [ cosθ * x - sinθ * y, sinθ * x + cosθ * y ] ) )
+			}
+			return $
+		}
+	}
+}
+
+//	https://www.w3.org/TR/SVG/implnote.html#ArcImplementationNotes
+const
+ArcByCBs = ( d, r, φ, fA, fS ) => {
+
+	const sinφ = Math.sin( φ )
+	const cosφ = Math.cos( φ )
+	const RotateL = ( [ x, y ] ) => [ cosφ * x + sinφ * y, cosφ * y - sinφ * x ]
+	const RotateR = ( [ x, y ] ) => [ cosφ * x - sinφ * y, cosφ * y + sinφ * x ]
+
+	const [ dX , dY  ] = RotateL( d )
+	const [ dX2, dY2 ] = [ dX * dX, dY * dY ]
+	const [ rH , rV  ] = r
+	const [ rH2, rV2 ] = [ rH * rH, rV * rV ]
+
+	const num = rH2 * rV2 - rH2 * dY2 - rV2 * dX2
+	if ( num < 0 ) return []
+
+	const _ = Math.sqrt(
+		( rH2 * rV2 - rH2 * dY2 - rV2 * dX2 )
+	/	( rH2 * dY2 + rV2 * dX2 )
+	)
+	const o = RotateR( Mul( [ rH * dY / rV, - rV * dX / rH ], fA === fS ? -_ : _ ) )
+	const [ oX, oY ] = o
+
+	const Angle = ( x, y ) => ( y > 0 ? 1 : -1 ) * Math.acos( x / ( x * x + y * y ) )
+	//	acos's return value: in radians between 0 and π, inclusive 
+	//	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
+	let
+	sθ = Angle( ( dX - oX ) / rH, ( dY - oY ) / rV )
+	let
+	eθ = Angle( ( -dX - oX ) / rH, ( -dY - oY ) / rV )
+
+	//	fS: 0: CC, 1: Clockwise
+	fS || ( [ eθ, sθ ] = [ sθ, eθ ] )
+
+	let
+	δ = eθ - sθ
+	while ( δ < 0 ) δ += Math.PI * 2
+	fA && δ < Math.PI && ( δ = Math.PI * 2 - δ )
+
+	const s = Math.sin( sθ )
+	const c = Math.cos( sθ )
+	const $ = UnitArcByCBs( δ ).map( ( [ x, y ] ) => Add( RotateR( [ ( c * x - s * y ) * rH, ( s * x + c * y ) * rV ] ), o ) )
+	return ( fS ? $ : $.reverse() ).slice( 1 )
+}
+
+//	VIA VE
+const
+Arc = ( s, r, φ, fA, fS, e ) => {
+	const m = Mid( s, e )
+	//	DESTRUCTIVE
+	const _ = ArcByCBs( Div( Sub( s, e ), 2 ), r, φ, fA, fS ).map( _ => Add( _, m ) )
+	if ( !_.length ) return [ [ e ] ]
+	const $ = []
+	while ( _.length ) (
+		$.unshift( _.slice( 0, 3 ).reverse() )
+	,	_.splice( 0, 3 )
+	)
+	return $
+}
 
 const
 D2Path = _ => {
@@ -254,23 +350,20 @@ D2Path = _ => {
 			lastC3 = null
 			break
 		case 'A':
-			{	const	[ rx, ry ] = XY()
-				const	angle = ReadNumber()
-				const	large = ReadNumber()
-				const	sweep = ReadNumber()
-				const	xy = XY()
-				v[ 1 ].unshift( [ cp = xy ] )
+			{	const	ns = Ns()
+				for ( let iNs = 0; iNs < ns.length; iNs += 7 ) {
+					const [ rx, ry, angle, large, sweep, x, y ] = ns.slice( iNs )
+					v[ 1 ].unshift( ...Arc( cp, [ rx, ry ], angle * Math.PI / 180, large, sweep, cp = [ x, y ] ) )
+				}
 			}
 			lastC2 = lastC3 = null
 			break
 		case 'a':
-			{	const	[ rx, ry ] = XY()
-				const	angle = ReadNumber()
-				const	large = ReadNumber()
-				const	sweep = ReadNumber()
-				const	xy = XY()
-console.log( 'a', rx, ry, angle, large, sweep, xy )
-				v[ 1 ].unshift( [ Rel( xy ) ] )
+			{	const	ns = Ns()
+				for ( let iNs = 0; iNs < ns.length; iNs += 7 ) {
+					const [ rx, ry, angle, large, sweep, dx, dy ] = ns.slice( iNs )
+					v[ 1 ].unshift( ...Arc( cp, [ rx, ry ], angle * Math.PI / 180, large, sweep, Rel( [ dx, dy ] ) ) )
+				}
 			}
 			lastC2 = lastC3 = null
 			break
@@ -371,16 +464,15 @@ Crawl = _ => {
 			const r_cf = r * CF
 			const cx = Number( A.cx ) 
 			const cy = Number( A.cy )
-			$.push(
-				[	[	null
-					,	[	[ [ cx - r, cy ], [ cx - r, cy + r_cf ], [ cx - r_cf, cy + r ] ]
-						,	[ [ cx, cy + r ], [ cx + r_cf, cy + r ], [ cx + r, cy + r_cf ] ]
-						,	[ [ cx + r, cy ], [ cx + r, cy - r_cf ], [ cx + r_cf, cy - r ] ]
-						,	[ [ cx, cy - r ], [ cx - r_cf, cy - r ], [ cx - r, cy - r_cf ] ]
-						]
+			$[ 3 ] = [
+				[	null
+				,	[	[ [ cx - r, cy ], [ cx - r, cy + r_cf ], [ cx - r_cf, cy + r ] ]
+					,	[ [ cx, cy + r ], [ cx + r_cf, cy + r ], [ cx + r, cy + r_cf ] ]
+					,	[ [ cx + r, cy ], [ cx + r, cy - r_cf ], [ cx + r_cf, cy - r ] ]
+					,	[ [ cx, cy - r ], [ cx - r_cf, cy - r ], [ cx - r, cy - r_cf ] ]
 					]
 				]
-			)
+			]
 		}
 		break
 	case 'ellipse':
@@ -392,16 +484,15 @@ Crawl = _ => {
 			const ry_cf = ry * CF
 			const cx = Number( A.cx )
 			const cy = Number( A.cy )
-			$.push(
-				[	[	null
-					,	[	[ [ cx - rx, cy ], [ cx - rx, cy + ry_cf ], [ cx - rx_cf, cy + ry ] ]
-						,	[ [ cx, cy + ry ], [ cx + rx_cf, cy + ry ], [ cx + rx, cy + ry_cf ] ]
-						,	[ [ cx + rx, cy ], [ cx + rx, cy - ry_cf ], [ cx + rx_cf, cy - ry ] ]
-						,	[ [ cx, cy - ry ], [ cx - rx_cf, cy - ry ], [ cx - rx, cy - ry_cf ] ]
-						]
+			$[ 3 ] = [
+				[	null
+				,	[	[ [ cx - rx, cy ], [ cx - rx, cy + ry_cf ], [ cx - rx_cf, cy + ry ] ]
+					,	[ [ cx, cy + ry ], [ cx + rx_cf, cy + ry ], [ cx + rx, cy + ry_cf ] ]
+					,	[ [ cx + rx, cy ], [ cx + rx, cy - ry_cf ], [ cx + rx_cf, cy - ry ] ]
+					,	[ [ cx, cy - ry ], [ cx - rx_cf, cy - ry ], [ cx - rx, cy - ry_cf ] ]
 					]
 				]
-			)
+			]
 		}
 		break
 	case 'g':	//	Optimization
