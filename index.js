@@ -2301,7 +2301,7 @@ OfSVGB		.onchange = ev => {
 	const fr = new FileReader()
 	fr.onload = () => (
 		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
-	,	svg = ParseSVG( fr.result )
+	,	svg = ParseSVG( fr.result )[ 0 ]
 	,	undos.length = 0
 	,	redos.length = 0
 	,	Draw()
@@ -2312,7 +2312,7 @@ OfSVGB		.onchange = ev => {
 PreviewR	.oninput = () => ( C_PREV.style.opacity = PreviewR.value, C_MAIN.focus() )
 PreviewR	.value = 1
 SkeltonR	.oninput = () => ( C_MAIN.style.opacity = SkeltonR.value, C_MAIN.focus() )
-SkeltonR	.value = 1
+SkeltonR	.value = 0.3
 SkeltonR	.oninput()
 PreviewR	.oninput()
 

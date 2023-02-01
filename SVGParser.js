@@ -62,22 +62,24 @@ ArcByCBs = ( d, r, φ, fA, fS ) => {
 	const Angle = ( x, y ) => ( y > 0 ? 1 : -1 ) * Math.acos( x / ( x * x + y * y ) )
 	//	acos's return value: in radians between 0 and π, inclusive 
 	//	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
-	let
-	sθ = Angle( ( dX - oX ) / rH, ( dY - oY ) / rV )
-	let
-	eθ = Angle( ( -dX - oX ) / rH, ( -dY - oY ) / rV )
+	let sθ = Angle( (  dX - oX ) / rH, (  dY - oY ) / rV )
+	let eθ = Angle( ( -dX - oX ) / rH, ( -dY - oY ) / rV )
 
 	//	fS: 0: CC, 1: Clockwise
 	fS || ( [ eθ, sθ ] = [ sθ, eθ ] )
 
-	let
-	Δ = eθ - sθ
+	let Δ = eθ - sθ
 	while ( Δ < 0 ) Δ += Math.PI * 2
 	fA && Δ < Math.PI && ( Δ = Math.PI * 2 - Δ )
 
 	const s = Math.sin( sθ )
 	const c = Math.cos( sθ )
-	const $ = UnitArcByCBs( Δ ).map( ( [ x, y ] ) => Add( RotateR( [ ( c * x - s * y ) * rH, ( s * x + c * y ) * rV ] ), o ) )
+	const $ = UnitArcByCBs( Δ ).map(
+		( [ x, y ] ) => Add(
+			RotateR( [ ( c * x - s * y ) * rH, ( s * x + c * y ) * rV ] )
+		,	o
+		)
+	)
 	return ( fS ? $ : $.reverse() ).slice( 1 )
 }
 
@@ -203,8 +205,8 @@ D2Path = _ => {
 	const	$ = []
 	let		v = null
 	while ( i < _.length ) {
+//console.log( "'" + _.slice( i, i + 16 ) + "'" )
 		const mnemonic = _[ i++ ]
-//console.log( "'" + _.slice( i - 1, 16 ) + "'" )
 		switch ( mnemonic ) {
 		case 'Z':
 		case 'z':
@@ -412,42 +414,141 @@ RectPath = ( x, y, w, h, rx, ry ) => {
 }
 
 const
-Crawl = _ => {
-	const $ = [
-		_.tagName
-	,	Array.from( _.children ).map( _ => Crawl( _ ) ).filter( _ => _ )
-	,	Object.fromEntries( _.getAttributeNames().map( name => [ name, _.getAttribute( name ) ] ) )
+Parse2 = _ => [ 0, 0 ]
+
+const
+A2DMul = ( p, q ) => [
+	p[ 0 ] * q[ 0 ] + p[ 1 ] * q[ 2 ]
+,	p[ 0 ] * q[ 1 ] + p[ 1 ] * q[ 3 ]
+,	p[ 2 ] * q[ 0 ] + p[ 3 ] * q[ 2 ]
+,	p[ 2 ] * q[ 1 ] + p[ 3 ] * q[ 3 ]
+,	p[ 4 ] * q[ 0 ] + p[ 5 ] * q[ 2 ] + q[ 4 ]
+,	p[ 4 ] * q[ 1 ] + p[ 5 ] * q[ 3 ] + q[ 5 ]
+]
+
+//	https://www.w3.org/TR/SVG/coords.html
+//	https://developer.mozilla.org/ja/docs/Web/SVG/Attribute/transform
+const
+Crawl = ( _, mat = [ 1, 0, 0, 1, 0, 0 ] ) => {
+	const A = Object.fromEntries( _.getAttributeNames().map( name => [ name, _.getAttribute( name ) ] ) )
+//console.log( _.tagName, A.transform, mat )
+	let ctm = [ 1, 0, 0, 1, 0, 0 ]
+	const
+	TS = A.transform
+	if ( TS ) {
+		//	https://stackoverflow.com/questions/22131798/using-multiple-svg-transformations-at-the-same-time
+		//	REVERSE!!!
+		TS.split( /\)\s*/ ).map( _ => _.trim() ).filter( _ => _ ).reverse().forEach(
+			_ => {
+				const
+				nums = _.split( '(' )[ 1 ].trim().split( /[\,\s]+/ ).map( _ => Number( _ ) )
+				if ( _.startsWith( 'translate' ) ) {
+					ctm = A2DMul(
+						ctm
+					,	[ 1, 0, 0, 1, nums[ 0 ] ?? 0, nums[ 1 ] ?? 0 ]
+					)
+				}
+				if ( _.startsWith( 'scale' ) ) {
+					const x = nums[ 0 ] ?? 1
+					const y = nums[ 1 ] ?? x
+					ctm = A2DMul(
+						ctm
+					,	[ x, 0, 0, y, 0, 0 ]
+					)
+				}
+				if ( _.startsWith( 'rotate' ) ) {
+					const _ = nums[ 0 ] * Math.PI / 180
+					const s = Math.sin( _ )
+					const c = Math.cos( _ )
+					if ( nums.length === 3 ) {
+					//	https://stackoverflow.com/questions/31446613/rotating-a-svg-path-around-center-using-matrix
+						const x = nums[ 1 ]
+						const y = nums[ 2 ]
+						ctm = A2DMul(
+							ctm
+						,	[ c, s, -s, c, -c * x + s * y + x, -s * x - c * y + y ]
+						)
+					} else {
+						ctm = A2DMul(
+							ctm
+						,	[ c, s, -s, c, 0, 0 ]
+						)
+					}
+				}
+				if ( _.startsWith( 'skewX' ) ) {
+					//	https://stackoverflow.com/questions/673216/skew-matrix-algorithm
+					ctm = A2DMul(
+						ctm
+					,	[ 1, 0, Math.tan( nums[ 0 ] * Math.PI / 180 ), 1, 0, 0 ]
+					)
+				}
+				if ( _.startsWith( 'skewY' ) ) {
+					//	https://stackoverflow.com/questions/673216/skew-matrix-algorithm
+					ctm = A2DMul(
+						ctm
+					,	[ 1, Math.tan( nums[ 0 ] * Math.PI / 180 ), 0, 1, 0, 0 ]
+					)
+				}
+				if ( _.startsWith( 'matrix' ) ) {
+					ctm = A2DMul( ctm, nums )
+				}
+console.log( ctm )
+			}
+		)
+	}
+	ctm = A2DMul( ctm, mat )
+
+	const
+	D = Array.from( _.children ).map( _ => Crawl( _, ctm ) ).filter( _ => _ )
+	if ( _.tagName === 'g' ) {	//	Optimization
+		if ( D.length == 0 ) return
+		if ( Object.keys( A ).length == 0 && D.length == 1 ) return D[ 0 ]
+	}
+
+	const
+	Transform = ( [ x, y ] ) => [
+		x * ctm[ 0 ] + y * ctm[ 2 ] + ctm[ 4 ]
+	,	x * ctm[ 1 ] + y * ctm[ 3 ] + ctm[ 5 ]
 	]
-	const [ T, D, A ] = $
-	switch ( T ) {
+	const
+	TransformPath = _ => _.map(
+		( [ MT, LC ] ) => [
+			MT ? Transform( MT ) : null
+		,	LC.map( _ => _.map( _ => Transform( _ ) ) )
+		]
+	)
+	let G = []
+	switch ( _.tagName ) {
 	case 'path':
-		$[ 3 ] = D2Path( A.d )
+		G = TransformPath( D2Path( A.d ) )
 		break
 	case 'rect':
-		$[ 3 ] = [
-			RectPath(
-				A.x ? Number( A.x ) : 0
-			,	A.y ? Number( A.y ) : 0
-			,	Number( A.width )
-			,	Number( A.height )
-			,	A.rx ? Number( A.rx ) : 0
-			,	A.ry ? Number( A.ry ) : 0
-			)
-		]
+		G = TransformPath(
+			[	RectPath(
+					A.x ? Number( A.x ) : 0
+				,	A.y ? Number( A.y ) : 0
+				,	Number( A.width )
+				,	Number( A.height )
+				,	A.rx ? Number( A.rx ) : 0
+				,	A.ry ? Number( A.ry ) : 0
+				)
+			]
+		)
 		break
 	case 'line':
-		$[ 3 ] = [
-			[	[ Number( A.x1 ), Number( A.y1 ) ]
-			,	[ [ [ Number( A.x2 ), Number( A.y2 ) ] ] ]
+		G = TransformPath(
+			[	[	[ Number( A.x1 ), Number( A.y1 ) ]
+				,	[ [ [ Number( A.x2 ), Number( A.y2 ) ] ] ]
+				]
 			]
-		]
+		)
 		break
 	case 'polygon':
 		{	const nums = A.points.split( /[\,\s]+/ ).filter( _ => _.length ).map( _ => Number( _ ) )
 			if ( nums < 4 ) return
 			const Ss = []
 			for ( let i = 0; i < nums.length; i += 2 ) Ss.unshift( [ [ nums[ i ], nums[ i + 1 ] ] ] )
-			$[ 3 ] = [ [ null, Ss ] ]
+			G = TransformPath( [ [ null, Ss ] ] )
 		}
 		break
 	case 'polyline':
@@ -455,7 +556,7 @@ Crawl = _ => {
 			if ( nums < 4 ) return
 			const Ss = []
 			for ( let i = 2; i < nums.length; i += 2 ) Ss.unshift( [ [ nums[ i ], nums[ i + 1 ] ] ] )
-			$[ 3 ] = [ [ [ nums[ 0 ], nums[ 1 ] ], Ss ] ]
+			$[ 3 ] = TransformPath( [ [ [ nums[ 0 ], nums[ 1 ] ], Ss ] ] )
 		}
 		break
 	case 'circle':
@@ -464,15 +565,16 @@ Crawl = _ => {
 			const r_cf = r * CF
 			const cx = Number( A.cx ) 
 			const cy = Number( A.cy )
-			$[ 3 ] = [
-				[	null
-				,	[	[ [ cx - r, cy ], [ cx - r, cy + r_cf ], [ cx - r_cf, cy + r ] ]
-					,	[ [ cx, cy + r ], [ cx + r_cf, cy + r ], [ cx + r, cy + r_cf ] ]
-					,	[ [ cx + r, cy ], [ cx + r, cy - r_cf ], [ cx + r_cf, cy - r ] ]
-					,	[ [ cx, cy - r ], [ cx - r_cf, cy - r ], [ cx - r, cy - r_cf ] ]
+			G = TransformPath(
+				[	[	null
+					,	[	[ [ cx - r, cy ], [ cx - r, cy + r_cf ], [ cx - r_cf, cy + r ] ]
+						,	[ [ cx, cy + r ], [ cx + r_cf, cy + r ], [ cx + r, cy + r_cf ] ]
+						,	[ [ cx + r, cy ], [ cx + r, cy - r_cf ], [ cx + r_cf, cy - r ] ]
+						,	[ [ cx, cy - r ], [ cx - r_cf, cy - r ], [ cx - r, cy - r_cf ] ]
+						]
 					]
 				]
-			]
+			)
 		}
 		break
 	case 'ellipse':
@@ -484,23 +586,20 @@ Crawl = _ => {
 			const ry_cf = ry * CF
 			const cx = Number( A.cx )
 			const cy = Number( A.cy )
-			$[ 3 ] = [
-				[	null
-				,	[	[ [ cx - rx, cy ], [ cx - rx, cy + ry_cf ], [ cx - rx_cf, cy + ry ] ]
-					,	[ [ cx, cy + ry ], [ cx + rx_cf, cy + ry ], [ cx + rx, cy + ry_cf ] ]
-					,	[ [ cx + rx, cy ], [ cx + rx, cy - ry_cf ], [ cx + rx_cf, cy - ry ] ]
-					,	[ [ cx, cy - ry ], [ cx - rx_cf, cy - ry ], [ cx - rx, cy - ry_cf ] ]
+			G = TransformPath(
+				[	[	null
+					,	[	[ [ cx - rx, cy ], [ cx - rx, cy + ry_cf ], [ cx - rx_cf, cy + ry ] ]
+						,	[ [ cx, cy + ry ], [ cx + rx_cf, cy + ry ], [ cx + rx, cy + ry_cf ] ]
+						,	[ [ cx + rx, cy ], [ cx + rx, cy - ry_cf ], [ cx + rx_cf, cy - ry ] ]
+						,	[ [ cx, cy - ry ], [ cx - rx_cf, cy - ry ], [ cx - rx, cy - ry_cf ] ]
+						]
 					]
 				]
-			]
+			)
 		}
 		break
-	case 'g':	//	Optimization
-		if ( D.length == 0 ) return
-		if ( Object.keys( A ).length == 0 && D.length == 1 ) return D[ 0 ]
-		break
 	}
-	return $
+	return [ _.tagName, D, A, G ]
 }
 
 export default
