@@ -71,13 +71,13 @@ ArcByCBs = ( d, r, φ, fA, fS ) => {
 	fS || ( [ eθ, sθ ] = [ sθ, eθ ] )
 
 	let
-	δ = eθ - sθ
-	while ( δ < 0 ) δ += Math.PI * 2
-	fA && δ < Math.PI && ( δ = Math.PI * 2 - δ )
+	Δ = eθ - sθ
+	while ( Δ < 0 ) Δ += Math.PI * 2
+	fA && Δ < Math.PI && ( Δ = Math.PI * 2 - Δ )
 
 	const s = Math.sin( sθ )
 	const c = Math.cos( sθ )
-	const $ = UnitArcByCBs( δ ).map( ( [ x, y ] ) => Add( RotateR( [ ( c * x - s * y ) * rH, ( s * x + c * y ) * rV ] ), o ) )
+	const $ = UnitArcByCBs( Δ ).map( ( [ x, y ] ) => Add( RotateR( [ ( c * x - s * y ) * rH, ( s * x + c * y ) * rV ] ), o ) )
 	return ( fS ? $ : $.reverse() ).slice( 1 )
 }
 
