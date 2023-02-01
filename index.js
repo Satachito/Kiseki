@@ -2162,7 +2162,7 @@ SVG = ( [ T, D, A, G ] ) => {
 	return $
 }
 
-import	{ ColorValues } from './jp-color-picker/_.js'
+import	{ ColorValues } from './JPColorPicker.js'
 const
 RGB = _ => {
 	const $ = _.charAt( 0 ) === '#' ? _ : ColorValues[ _.toLowerCase() ] ?? '#000000'
