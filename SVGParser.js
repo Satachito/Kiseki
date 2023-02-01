@@ -428,33 +428,36 @@ A2DMul = ( p, q ) => [
 
 //	https://www.w3.org/TR/SVG/coords.html
 //	https://developer.mozilla.org/ja/docs/Web/SVG/Attribute/transform
+
+
+//v	////////	GLOBAL: to find by id, when tag is 'use'
+let svg
+//^
+
 const
 Crawl = ( _, mat = [ 1, 0, 0, 1, 0, 0 ] ) => {
+	let	T = _.tagName
 	const A = Object.fromEntries( _.getAttributeNames().map( name => [ name, _.getAttribute( name ) ] ) )
-//console.log( _.tagName, A.transform, mat )
+//console.log( T, A.transform, mat )
 	let ctm = [ 1, 0, 0, 1, 0, 0 ]
 	const
-	TS = A.transform
-	if ( TS ) {
+	CTMCat = _ => ctm = A2DMul( ctm, _ )
+	const
+	$ = A.transform
+	if ( $ ) {
 		//	https://stackoverflow.com/questions/22131798/using-multiple-svg-transformations-at-the-same-time
 		//	REVERSE!!!
-		TS.split( /\)\s*/ ).map( _ => _.trim() ).filter( _ => _ ).reverse().forEach(
+		$.split( /\)\s*/ ).map( _ => _.trim() ).filter( _ => _ ).reverse().forEach(
 			_ => {
 				const
 				nums = _.split( '(' )[ 1 ].trim().split( /[\,\s]+/ ).map( _ => Number( _ ) )
 				if ( _.startsWith( 'translate' ) ) {
-					ctm = A2DMul(
-						ctm
-					,	[ 1, 0, 0, 1, nums[ 0 ] ?? 0, nums[ 1 ] ?? 0 ]
-					)
+					CTMCat( [ 1, 0, 0, 1, nums[ 0 ] ?? 0, nums[ 1 ] ?? 0 ] )
 				}
 				if ( _.startsWith( 'scale' ) ) {
 					const x = nums[ 0 ] ?? 1
 					const y = nums[ 1 ] ?? x
-					ctm = A2DMul(
-						ctm
-					,	[ x, 0, 0, y, 0, 0 ]
-					)
+					CTMCat( [ x, 0, 0, y, 0, 0 ] )
 				}
 				if ( _.startsWith( 'rotate' ) ) {
 					const _ = nums[ 0 ] * Math.PI / 180
@@ -464,43 +467,30 @@ Crawl = ( _, mat = [ 1, 0, 0, 1, 0, 0 ] ) => {
 					//	https://stackoverflow.com/questions/31446613/rotating-a-svg-path-around-center-using-matrix
 						const x = nums[ 1 ]
 						const y = nums[ 2 ]
-						ctm = A2DMul(
-							ctm
-						,	[ c, s, -s, c, -c * x + s * y + x, -s * x - c * y + y ]
-						)
+						CTMCat( [ c, s, -s, c, -c * x + s * y + x, -s * x - c * y + y ] )
 					} else {
-						ctm = A2DMul(
-							ctm
-						,	[ c, s, -s, c, 0, 0 ]
-						)
+						CTMCat( [ c, s, -s, c, 0, 0 ] )
 					}
 				}
 				if ( _.startsWith( 'skewX' ) ) {
 					//	https://stackoverflow.com/questions/673216/skew-matrix-algorithm
-					ctm = A2DMul(
-						ctm
-					,	[ 1, 0, Math.tan( nums[ 0 ] * Math.PI / 180 ), 1, 0, 0 ]
-					)
+					CTMCat( [ 1, 0, Math.tan( nums[ 0 ] * Math.PI / 180 ), 1, 0, 0 ] )
 				}
 				if ( _.startsWith( 'skewY' ) ) {
 					//	https://stackoverflow.com/questions/673216/skew-matrix-algorithm
-					ctm = A2DMul(
-						ctm
-					,	[ 1, Math.tan( nums[ 0 ] * Math.PI / 180 ), 0, 1, 0, 0 ]
-					)
+					CTMCat( [ 1, Math.tan( nums[ 0 ] * Math.PI / 180 ), 0, 1, 0, 0 ] )
 				}
 				if ( _.startsWith( 'matrix' ) ) {
-					ctm = A2DMul( ctm, nums )
+					CTMCat( nums )
 				}
-console.log( ctm )
 			}
 		)
 	}
-	ctm = A2DMul( ctm, mat )
+	CTMCat( mat )
 
 	const
 	D = Array.from( _.children ).map( _ => Crawl( _, ctm ) ).filter( _ => _ )
-	if ( _.tagName === 'g' ) {	//	Optimization
+	if ( T === 'g' ) {	//	Optimization
 		if ( D.length == 0 ) return
 		if ( Object.keys( A ).length == 0 && D.length == 1 ) return D[ 0 ]
 	}
@@ -517,8 +507,8 @@ console.log( ctm )
 		,	LC.map( _ => _.map( _ => Transform( _ ) ) )
 		]
 	)
-	let G = []
-	switch ( _.tagName ) {
+	let G = null
+	switch ( T ) {
 	case 'path':
 		G = TransformPath( D2Path( A.d ) )
 		break
@@ -556,7 +546,7 @@ console.log( ctm )
 			if ( nums < 4 ) return
 			const Ss = []
 			for ( let i = 2; i < nums.length; i += 2 ) Ss.unshift( [ [ nums[ i ], nums[ i + 1 ] ] ] )
-			$[ 3 ] = TransformPath( [ [ [ nums[ 0 ], nums[ 1 ] ], Ss ] ] )
+			G = TransformPath( [ [ [ nums[ 0 ], nums[ 1 ] ], Ss ] ] )
 		}
 		break
 	case 'circle':
@@ -598,10 +588,18 @@ console.log( ctm )
 			)
 		}
 		break
+	case 'use':
+		{	const $ = Crawl( svg.querySelector( A[ "xlink:href" ] ) )
+			T = $[ 0 ]
+			G = TransformPath( $[ 3 ] )
+		}
+		break
 	}
-	return [ _.tagName, D, A, G ]
+	return [ T, D, A, G ]
 }
 
 export default
-_ => Array.from( new DOMParser().parseFromString( _, 'text/html' ).getElementsByTagName( 'svg' ) ).map( $ => Crawl( $ ) )
+_ => Array.from( new DOMParser().parseFromString( _, 'text/html' ).getElementsByTagName( 'svg' ) ).map(
+	$ => Crawl( svg = $ )
+)
 

@@ -2624,6 +2624,7 @@ TigerB		.onclick = async () => Load( 'Tiger.svg' )
 IkyuB		.onclick = async () => Load( 'Ikyu.svg' )
 QuatroArcB	.onclick = async () => Load( 'QuatroArc.svg' )
 SVGLogoB	.onclick = async () => Load( 'SVGLogo.svg' )
+TransformB	.onclick = async () => Load( 'Transform.svg' )
 DebugB		.onclick = async () => Load( '_.svg' )
 
 
