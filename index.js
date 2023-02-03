@@ -323,7 +323,7 @@ DrawMain		= mdmv => {
 
 	const
 	elappsed = performance.now() - start
-	elappsed > 10 && console.log( drawMainCount, ':', elappsed )
+	elappsed > 10 && console.log( 'elappsed: ', elappsed )
 }
 
 const
@@ -416,6 +416,7 @@ Update = () => (
 ,	DrawPreview()
 ,	cPrev.translate( -marginH, -marginV )
 ,	Layer.props( svg )
+,	DrawMain()
 )
 
 
@@ -733,6 +734,95 @@ Points = ( _ = svg ) => {
 	return $
 }
 
+const
+Properties = () => {
+	const _ = {}
+	PropFillC		.checked && ( _[ 'fill'				] = PropFillStyle		.value )
+	PropFillRuleC	.checked && ( _[ 'fill-rule'		] = PropFillRuleValue	.value )
+	PropStrokeC		.checked && ( _[ 'stroke'			] = PropStrokeStyle		.value )
+	PropOpacityC	.checked && ( _[ 'opacity'			] = PropOpacityValue	.value )
+	PropStrokeWidthC.checked && ( _[ 'stroke-width'		] = PropStrokeWidthValue.value )
+	PropLineCapC	.checked && ( _[ 'stroke-linecap'	] = PropLineCapValue	.value )
+	PropLineJoinC	.checked && ( _[ 'stroke-linejoin'	] = PropLineJoinValue	.value )
+	PropMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = PropMiterLimitValue	.value )
+	PropDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = PropDashOffsetValue	.value )
+	PropDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = PropDashArrayValue	.value )
+	return _
+}
+
+const
+SpreadAttributes = _ => {
+	const A = _[ 2 ]
+
+	PropFillC.checked			= A[ 'fill' ] !== void 0
+	PropFillStyle.value			= A[ 'fill' ] ?? 'black'
+
+	PropFillRuleC.checked		= A[ 'fill-rule' ] !== void 0
+	PropFillRuleValue.value		= A[ 'fill-rule' ] ?? 'nonzero'
+
+	PropStrokeC.checked			= A[ 'stroke' ] !== void 0
+	PropStrokeStyle.value		= A[ 'stroke' ] ?? 'black'
+
+	PropOpacityC.checked		= A[ 'opacity' ] !== void 0
+	PropOpacityValue.value		= A[ 'opacity' ] ?? '1'
+
+	PropStrokeWidthC.checked	= A[ 'stroke-width' ] !== void 0
+	PropStrokeWidthValue.value	= A[ 'stroke-width' ] ?? '1'
+
+	PropLineCapC.checked		= A[ 'stroke-linecap' ] !== void 0
+	PropLineCapValue.value		= A[ 'stroke-linecap' ] ?? 'inherit'
+
+	PropLineJoinC.checked		= A[ 'stroke-linejoin' ] !== void 0
+	PropLineJoinValue.value		= A[ 'stroke-linejoin' ] ?? 'inherit'
+
+	PropMiterLimitC.checked		= A[ 'stroke-miterlimit' ] !== void 0
+	PropMiterLimitValue.value	= A[ 'stroke-miterlimit' ] ?? '1'
+
+	PropDashArrayC.checked		= A[ 'stroke-dasharray' ] !== void 0
+	PropDashArrayValue.value	= A[ 'stroke-dasharray' ] ?? ''
+
+	PropDashOffsetC.checked		= A[ 'stroke-dashoffset' ] !== void 0
+	PropDashOffsetValue.value	= A[ 'stroke-dashoffset' ] ?? '0'
+
+	const
+	Set = () => AllInclusive( _ ) && (
+		_[ 2 ] = Properties()
+	,	Update()
+	)
+	PropFillC.onchange				= Set 
+	PropFillStyle.onchange			= Set
+
+	PropFillRuleC.onchange			= Set
+	PropFillRuleValue.onchange		= Set
+
+	PropStrokeC.onchange			= Set
+	PropStrokeStyle.onchange		= Set
+
+	PropOpacityC.onchange			= Set
+	PropOpacityValue.onchange		= Set
+
+	PropStrokeWidthC.onchange		= Set
+	PropStrokeWidthValue.onchange	= Set
+
+	PropLineCapC.onchange			= Set
+	PropLineCapValue.onchange		= Set
+
+	PropLineJoinC.onchange			= Set
+	PropLineJoinValue.onchange		= Set
+
+	PropMiterLimitC.onchange		= Set
+	PropMiterLimitValue.onchange	= Set
+
+	PropDashArrayC.onchange			= Set
+	PropDashArrayValue.onchange		= Set
+
+	PropDashOffsetC.onchange		= Set
+	PropDashOffsetValue.onchange	= Set
+
+}
+
+let
+selectedLayer
 class
 VETree extends HTMLElement {
 	props( _, depth = 0, cur_dep = 0 ) {
@@ -740,7 +830,14 @@ VETree extends HTMLElement {
 		this.style.paddingLeft = cur_dep + 'em'
 		const $ = this.appendChild( document.createElement( 'span' ) )
 		$.textContent = _[ 0 ]
-		$.onclick = ev => ( sels = Points( _ ), DrawMain() )
+		$.onclick = ev => (
+			SpreadAttributes( _ )
+		,	selectedLayer && ( selectedLayer.style.backgroundColor = 'white' )
+		,	selectedLayer = $
+		,	$.style.backgroundColor = 'red'
+		,	sels = Points( _ )
+		,	DrawMain()
+		)
 		this.appendChild( document.createElement( 'br' ) )
 		_[ 1 ].length && _[ 1 ].forEach( _ => this.appendChild( new VETree() ).props( _, depth, cur_dep + 1 ) )
 	}
