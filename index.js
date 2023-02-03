@@ -829,7 +829,7 @@ NewFigureJob = ( T, F ) => {
 	]
 	Job(
 		() => ( sels = [], svg[ 1 ].pop() )
-	,	() => ( sels = [], svg[ 1 ].push( E ) )
+	,	() => ( sels = Points( E ), svg[ 1 ].push( E ) )
 	).Redo()
 	Update()
 }
@@ -837,12 +837,12 @@ NewFigureJob = ( T, F ) => {
 const
 MoveJob = oldXYs => {
 	const
-	newXYs = sels.map( _ => [ ..._ ] )
+	oldSels = sels
 	const
-	savedSels = [ ...sels ]
+	newXYs = sels.map( _ => [ ..._ ] )
 	Job(
-		() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
-	,	() => ( sels = savedSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] ) )
+		() => ( sels = oldSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
+	,	() => sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] )
 	)
 	Update()
 }
@@ -1421,6 +1421,8 @@ console.log( found, $.length )
 				[ d2, iF, iS, grid, cp ] = $
 				const
 				newSVG = CloneJSONable( svg )
+				const
+				newSels = []
 
 				PathForAll( () => {} )
 				const
@@ -1430,12 +1432,14 @@ console.log( found, $.length )
 				switch ( S.length ) {
 				case 1:
 					LC.splice( iS + 1, 0, [ grid ] )
+					newSels.push( grid )
 					break
 				case 2:
 					{	const _ = DivideQuadBezier(
 							[ cp, S[ 1 ], S[ 0 ] ]
 						,	FindQuadBezierT( grid, [ cp, S[ 1 ], S[ 0 ] ] )
 						)
+						newSels.push( _[ 1 ] )
 						LC.splice(
 							iS
 						,	1
@@ -1449,6 +1453,7 @@ console.log( found, $.length )
 							[ cp, S[ 2 ], S[ 1 ], S[ 0 ] ]
 						,	FindCubeBezierT( grid, [ cp, S[ 2 ], S[ 1 ], S[ 0 ] ] )
 						)
+						newSels.push( _[ 2 ] )
 						LC.splice(
 							iS
 						,	1
@@ -1458,7 +1463,7 @@ console.log( found, $.length )
 					}
 					break
 				}
-				SVGJob( newSVG, [ grid ] )
+				SVGJob( newSVG, newSels )
 			}
 		}
 		break
@@ -2330,10 +2335,10 @@ C_MAIN.focus()
 
 onbeforeunload = () => localStorage.setItem( 'vej.828.tokyo', JSON.stringify( svg, null, '' ) )
 
-onload = () => (
-	svg = JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) )
-,	Update()
-)
+//onload = () => (
+//	svg = JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) )
+//,	Update()
+//)
 
 ////////////////////////////////////////////////////////////////	DEBUG
 
