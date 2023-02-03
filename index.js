@@ -743,8 +743,7 @@ VETree extends HTMLElement {
 	props( _, depth = 0, cur_dep = 0 ) {
 		while ( this.firstChild ) this.removeChild( this.firstChild )
 		this.style.paddingLeft = cur_dep + 'em'
-	//	this.appendChild( document.createTextNode( _[ 0 ] + ': ' ) )
-		const $ = this.appendChild( document.createElement( 'a' ) )
+		const $ = this.appendChild( document.createElement( 'span' ) )
 		$.textContent = _[ 0 ]
 		$.onclick = ev => ( sels = Points( _ ), DrawMain() )
 		this.appendChild( document.createElement( 'br' ) )
