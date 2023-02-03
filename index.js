@@ -43,7 +43,6 @@ CircluatingShift = ( _, $ ) => [ ..._.slice( $ ), ..._.slice( 0, $ ) ]
 import {
 	CF
 
-//	Vector
 ,	EQ
 ,	Round
 ,	Abs
@@ -60,7 +59,6 @@ import {
 ,	BBox
 ,	BBoxOr
 
-//	Bezier
 ,	FindCubeBezierT
 ,	FindQuadBezierT
 ,	DivideCubeBezier
@@ -68,7 +66,6 @@ import {
 ,	FitCubeBezier
 ,	FitQuadBezier
 
-//	GRID
 ,	LineGrids
 ,	QuadGrids
 ,	CubeGrids
@@ -104,6 +101,323 @@ Angles = ( start, Ps, end ) => {
 	return $
 }
 ////////
+
+let
+sels			= []
+
+let
+marginH			= 200
+let
+marginV			= 200
+let
+width			= 1000
+let
+height			= 1000
+
+const
+InvertX			= _ => _ - marginH
+const
+InvertY			= _ => _ - marginV
+const
+Invert			= ( [ x, y ] ) => [ InvertX( x ), InvertY( y ) ]
+
+const
+ProjectX		= _ => _ + marginH
+const
+ProjectY		= _ => _ + marginV
+const
+Project			= ( [ x, y ] ) => [ ProjectX( x ), ProjectY( y ) ]
+
+const
+cMain			= C_MAIN.getContext( '2d' )
+
+const
+DrawMain		= mdmv => {
+
+	const
+	start = performance.now()
+
+	const
+	W = C_MAIN.width
+	const
+	H = C_MAIN.height
+
+	const
+	$ = cMain.createImageData( W, H )
+	const
+	data = $.data
+	const
+	Plot = ( [ x, y ] ) => data[ ( ( y + marginV ) * W + x + marginH ) * 4 + 3 ] = 0xff
+
+	const
+	Circle = ( [ x, y ], rgb ) => {
+		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
+		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
+		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
+	}
+	const
+	Eye = ( [ x, y ], rgb ) => {
+		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
+		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
+
+		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
+
+		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
+
+		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
+
+		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
+		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
+	}
+	const
+	Square = ( [ x, y ], rgb ) => {
+		let _ = ( ( y + marginV - 4 ) * W + x + marginH - 4 ) * 4 + rgb
+		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
+		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff	; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
+		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
+		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff
+	}
+	const
+	HLine = ( y, x, w ) => {
+		let
+		_ = ( ( y + marginV ) * W + x + marginH ) * 4
+		for ( let h = 0; h < w; h++ ) {
+			data[ _ ] = 0xff
+			data[ _ + 3 ] = 0xff
+			_ += 4
+		}
+	}
+	const
+	VLine = ( x, y, h ) => {
+		let
+		_ = ( ( y + marginV ) * W + x + marginH ) * 4
+		for ( let v = 0; v < h; v++ ) {
+			data[ _ ] = 0xff
+			data[ _ + 3 ] = 0xff
+			_ += W * 4
+		}
+	}
+	const
+	Rect = ( x, y, w, h ) => (
+		HLine( y		, x, w )
+	,	HLine( y + h - 1, x, w )
+	,	VLine( x		, y + 1, h - 2 )
+	,	VLine( x + w - 1, y + 1, h - 2 )
+	)
+
+	const
+	Joint		= _ => Circle( _, 3 )
+	const
+	Control		= _ => Circle( _, 3 )
+	const
+	EyeJoint	= _ => Eye( _, 3 )
+	const
+	EyeControl	= _ => Eye( _, 3 )
+	const
+	StartEnd	= _ => Square( _, 3 )
+
+	const
+	DrawPoint = _ => (
+		TagGroup( _[ 0 ] ) === 'path' && (
+			_[ 3 ].forEach(
+				( [ MT, LC ] ) => {
+					if ( MT ) {
+						const rMT = Round( MT )
+						Joint( rMT )
+//						StartEnd( rMT )
+					}
+					StartEnd( Round( LC[ 0 ][ 0 ] ) )
+
+					let cp = MT ?? LC[ 0 ][ 0 ]
+					let iS = LC.length
+					while ( iS-- ) {
+						const S = LC[ iS ]
+						Grids( cp, S ).forEach( _ => Plot( _ ) )
+						Joint( Round( S[ 0 ] ) )
+						S.length > 1 && Control( Round( S[ 1 ] ) )
+						S.length > 2 && Control( Round( S[ 2 ] ) )
+						cp = S[ 0 ]
+					}
+				}
+			)
+		)
+	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
+	)
+	DrawPoint( svg )
+
+//console.log( 'sels.length', sels.length )
+	sels.forEach(
+		P => {
+			P.iP
+			?	P.S.length === 2
+				?	EyeControl( Round( P ) )
+				:	EyeControl( Round( P ) )
+			:	EyeJoint( Round( P ) )	// 0 or void 0, EndPoint or Joint
+		}
+	)
+	if ( sels.length > 1 ) {
+		const bbox = BBox( ...sels )
+		const x = Math.floor( bbox[ 0 ][ 0 ] )
+		const y = Math.floor( bbox[ 1 ][ 0 ] )
+		const X = Math.ceil( bbox[ 0 ][ 1 ] )
+		const Y = Math.ceil( bbox[ 1 ][ 1 ] )
+//console.log( x, y, X, Y )
+		const w = X - x
+		const h = Y - y
+		HLine( y, x + 1, w )
+		HLine( Y, x + 1, w )
+		VLine( x, y + 1, h )
+		VLine( X, y + 1, h )
+
+		HLine( y - 3, x - 2, w + 6 )
+		HLine( Y + 3, x - 2, w + 6 )
+		VLine( x - 3, y - 2, h + 6 )
+		VLine( X + 3, y - 2, h + 6 )
+	}
+
+	if ( mdmv ) {
+		const [ [ x, X ], [ y, Y ] ] = BBox( ...mdmv )
+		{	let _1 = ( y * W - W	+ x - 1 ) * 4
+			let _2 = ( Y * W		+ x - 1 ) * 4
+			for ( let h = x - 1; h <= X; h++ ) {
+				data[ _1 ] = 0xff
+				data[ _1 + 3 ] = 0xff
+				_1 += 4
+				data[ _2 ] = 0xff
+				data[ _2 + 3 ] = 0xff
+				_2 += 4
+			}
+		}
+		{	let _1 = ( y * W - W	+ x - 1 ) * 4
+			let _2 = ( y * W - W	+ X ) * 4
+			for ( let v = y - 1; v <= Y; v++ ) {
+				data[ _1 ] = 0xff
+				data[ _1 + 3 ] = 0xff
+				_1 += W * 4
+				data[ _2 ] = 0xff
+				data[ _2 + 3 ] = 0xff
+				_2 += W * 4
+			}
+		}
+	}
+
+	cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
+
+	cMain.putImageData( $, 0, 0 )
+
+	const
+	elappsed = performance.now() - start
+	elappsed > 10 && console.log( drawMainCount, ':', elappsed )
+}
+
+const
+cPrev		= C_PREV.getContext( '2d' )
+
+const
+DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
+	if ( A.display === 'none' ) return
+
+	_ = { ..._, ...A }
+
+	if ( A.style ) {
+		A.style.split( ';' ).map( $ => $.split( ':' ) ).filter( $ => $.length === 2 ).forEach( $ => _[ $[ 0 ] ] = $[ 1 ] )
+		delete _.style
+	}
+
+	const
+	Assign = ( canvasKey, attrKey ) => _[ attrKey ] && ( cPrev[ canvasKey ] = _[ attrKey ] )
+
+	switch ( TagGroup( T ) ) {
+	case 'path'	:
+		{	const
+			path = new Path2D
+			G.forEach(
+				( [ MT, LC ] ) => {
+					path.moveTo( ...( MT ?? LC[ 0 ][ 0 ] ) )
+					let iS = LC.length
+					while ( iS-- ) {
+						const S = LC[ iS ]
+						switch ( S.length ) {
+						case 1:
+							path.lineTo( ...S[ 0 ] )
+							break
+						case 2:
+							path.quadraticCurveTo( ...S[ 1 ], ...S[ 0 ] )
+							break
+						case 3:
+							path.bezierCurveTo( ...S[ 2 ], ...S[ 1 ], ...S[ 0 ] )
+							break
+						default:
+							throw 'eh?'
+						}
+					}
+					MT || path.closePath()
+				}
+			)
+
+			cPrev.lineWidth = 1
+			cPrev.miterLimit = 4
+			cPrev.fillStyle = 'black'
+
+			Assign( 'globalAlpha'		, 'opacity'				)
+			Assign( 'lineWidth'			, 'stroke-width'		)
+			Assign( 'lineCap'			, 'stroke-linecap'		)
+			Assign( 'lineJoin'			, 'stroke-linejoin'		)
+			Assign( 'miterLimit'		, 'stroke-miterlimit'	)
+			Assign( 'lineDashOffset'	, 'stroke-dashoffset'	)
+			_[ 'stroke-dasharray' ] && cPrev.setLineDash( _[ 'stroke-dasharray' ].split( ' ' ) )
+
+			_.fill && _.fill != 'none' && (
+				cPrev.fillStyle = _.fill
+			,	cPrev.fill( path )
+			)
+
+			_.stroke && _.stroke != 'none' && (
+				cPrev.strokeStyle = _.stroke
+			,	cPrev.stroke( path )
+			)
+
+			_.fill || _.stroke || cPrev.fill( path )
+		}
+		break
+	case 'text'	:
+		break
+	case 'image':
+		{	const { src, x, y } = G
+			const _ = new Image()
+			_.src = src
+			_.onload = () => cPrev.drawImage( _, x, y )
+		}
+		break
+	}
+	D.forEach( $ => DrawPreview( $, _ ) )
+}
+
+const
+Update = () => (
+	cPrev.clearRect( 0, 0, C_PREV.width, C_PREV.height )
+,	cPrev.translate( marginH, marginV )
+,	DrawPreview()
+,	cPrev.translate( -marginH, -marginV )
+,	Layer.props( svg )
+)
+
 
 const
 undos	= []
@@ -353,15 +667,6 @@ console.log( inters )
 	return [ $, W, H, X - 2, Y - 2, POIs ]
 }
 
-const
-controlSize		= 3
-
-const
-nearSize2		= controlSize * controlSize * 2
-
-const
-gripSize		= controlSize * 2
-
 let
 mode			= SelectB
 
@@ -428,316 +733,6 @@ Points = ( _ = svg ) => {
 	return $
 }
 
-let
-sels			= []
-
-let
-marginH			= 200
-let
-marginV			= 200
-let
-width			= 1000
-let
-height			= 1000
-
-const
-InvertX			= _ => _ - marginH
-const
-InvertY			= _ => _ - marginV
-const
-Invert			= ( [ x, y ] ) => [ InvertX( x ), InvertY( y ) ]
-
-const
-ProjectX		= _ => _ + marginH
-const
-ProjectY		= _ => _ + marginV
-const
-Project			= ( [ x, y ] ) => [ ProjectX( x ), ProjectY( y ) ]
-
-const
-cMain			= C_MAIN.getContext( '2d' )
-
-let
-drawMainCount	= 0
-const
-DrawMain		= mdmv => {
-
-	const
-	start = performance.now()
-
-	const
-	W = C_MAIN.width
-	const
-	H = C_MAIN.height
-
-	const
-	$ = cMain.createImageData( W, H )
-	const
-	data = $.data
-	const
-	Plot = ( [ x, y ] ) => data[ ( ( y + marginV ) * W + x + marginH ) * 4 + 3 ] = 0xff
-
-	const
-	Circle = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
-	}
-	const
-	Eye = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
-	}
-	const
-	Square = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 4 ) * W + x + marginH - 4 ) * 4 + rgb
-		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
-		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff	; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
-		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff
-	}
-	const
-	HLine = ( y, x, w ) => {
-		let
-		_ = ( ( y + marginV ) * W + x + marginH ) * 4
-		for ( let h = 0; h < w; h++ ) {
-			data[ _ ] = 0xff
-			data[ _ + 3 ] = 0xff
-			_ += 4
-		}
-	}
-	const
-	VLine = ( x, y, h ) => {
-		let
-		_ = ( ( y + marginV ) * W + x + marginH ) * 4
-		for ( let v = 0; v < h; v++ ) {
-			data[ _ ] = 0xff
-			data[ _ + 3 ] = 0xff
-			_ += W * 4
-		}
-	}
-	const
-	Rect = ( x, y, w, h ) => (
-		HLine( y		, x, w )
-	,	HLine( y + h - 1, x, w )
-	,	VLine( x		, y + 1, h - 2 )
-	,	VLine( x + w - 1, y + 1, h - 2 )
-	)
-
-	const
-	Joint		= _ => Circle( _, 3 )
-	const
-	Control		= _ => Circle( _, 3 )
-	const
-	EyeJoint	= _ => Eye( _, 3 )
-	const
-	EyeControl	= _ => Eye( _, 3 )
-	const
-	StartEnd	= _ => Square( _, 3 )
-
-	const
-	DrawPoint = _ => (
-		TagGroup( _[ 0 ] ) === 'path' && (
-			_[ 3 ].forEach(
-				( [ MT, LC ] ) => {
-					if ( MT ) {
-						const rMT = Round( MT )
-						Joint( rMT )
-//						StartEnd( rMT )
-					}
-					StartEnd( Round( LC[ 0 ][ 0 ] ) )
-
-					let cp = MT ?? LC[ 0 ][ 0 ]
-					let iS = LC.length
-					while ( iS-- ) {
-						const S = LC[ iS ]
-						Grids( cp, S ).forEach( _ => Plot( _ ) )
-						Joint( Round( S[ 0 ] ) )
-						S.length > 1 && Control( Round( S[ 1 ] ) )
-						S.length > 2 && Control( Round( S[ 2 ] ) )
-						cp = S[ 0 ]
-					}
-				}
-			)
-		)
-	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
-	)
-	DrawPoint( svg )
-
-//console.log( 'sels.length', sels.length )
-	sels.forEach(
-		P => {
-			P.iP
-			?	P.S.length === 2
-				?	EyeControl( Round( P ) )
-				:	EyeControl( Round( P ) )
-			:	EyeJoint( Round( P ) )	// 0 or void 0, EndPoint or Joint
-		}
-	)
-	if ( sels.length > 1 ) {
-		const bbox = BBox( ...sels )
-		const x = Math.floor( bbox[ 0 ][ 0 ] )
-		const y = Math.floor( bbox[ 1 ][ 0 ] )
-		const X = Math.ceil( bbox[ 0 ][ 1 ] )
-		const Y = Math.ceil( bbox[ 1 ][ 1 ] )
-//console.log( x, y, X, Y )
-		const w = X - x
-		const h = Y - y
-		HLine( y, x + 1, w )
-		HLine( Y, x + 1, w )
-		VLine( x, y + 1, h )
-		VLine( X, y + 1, h )
-
-		HLine( y - 3, x - 2, w + 6 )
-		HLine( Y + 3, x - 2, w + 6 )
-		VLine( x - 3, y - 2, h + 6 )
-		VLine( X + 3, y - 2, h + 6 )
-	}
-
-	if ( mdmv ) {
-		const [ [ x, X ], [ y, Y ] ] = BBox( ...mdmv )
-		{	let _1 = ( y * W - W	+ x - 1 ) * 4
-			let _2 = ( Y * W		+ x - 1 ) * 4
-			for ( let h = x - 1; h <= X; h++ ) {
-				data[ _1 ] = 0xff
-				data[ _1 + 3 ] = 0xff
-				_1 += 4
-				data[ _2 ] = 0xff
-				data[ _2 + 3 ] = 0xff
-				_2 += 4
-			}
-		}
-		{	let _1 = ( y * W - W	+ x - 1 ) * 4
-			let _2 = ( y * W - W	+ X ) * 4
-			for ( let v = y - 1; v <= Y; v++ ) {
-				data[ _1 ] = 0xff
-				data[ _1 + 3 ] = 0xff
-				_1 += W * 4
-				data[ _2 ] = 0xff
-				data[ _2 + 3 ] = 0xff
-				_2 += W * 4
-			}
-		}
-	}
-
-	cMain.clearRect( 0, 0, C_MAIN.width, C_MAIN.height )
-
-	cMain.putImageData( $, 0, 0 )
-
-	const
-	elappsed = performance.now() - start
-//	elappsed > 5 && console.log( drawMainCount, ':', elappsed )
-	drawMainCount++
-}
-
-const
-cPrev		= C_PREV.getContext( '2d' )
-
-const
-DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
-	if ( A.display === 'none' ) return
-
-	_ = { ..._, ...A }
-
-	if ( A.style ) {
-		A.style.split( ';' ).map( $ => $.split( ':' ) ).filter( $ => $.length === 2 ).forEach( $ => _[ $[ 0 ] ] = $[ 1 ] )
-		delete _.style
-	}
-
-	const
-	Assign = ( canvasKey, attrKey ) => _[ attrKey ] && ( cPrev[ canvasKey ] = _[ attrKey ] )
-
-	switch ( TagGroup( T ) ) {
-	case 'path'	:
-		{	const
-			path = new Path2D
-			G.forEach(
-				( [ MT, LC ] ) => {
-					path.moveTo( ...( MT ?? LC[ 0 ][ 0 ] ) )
-					let iS = LC.length
-					while ( iS-- ) {
-						const S = LC[ iS ]
-						switch ( S.length ) {
-						case 1:
-							path.lineTo( ...S[ 0 ] )
-							break
-						case 2:
-							path.quadraticCurveTo( ...S[ 1 ], ...S[ 0 ] )
-							break
-						case 3:
-							path.bezierCurveTo( ...S[ 2 ], ...S[ 1 ], ...S[ 0 ] )
-							break
-						default:
-							throw 'eh?'
-						}
-					}
-					MT || path.closePath()
-				}
-			)
-
-			cPrev.lineWidth = 1
-			cPrev.miterLimit = 4
-			cPrev.fillStyle = 'black'
-
-			Assign( 'globalAlpha'		, 'opacity'				)
-			Assign( 'lineWidth'			, 'stroke-width'		)
-			Assign( 'lineCap'			, 'stroke-linecap'		)
-			Assign( 'lineJoin'			, 'stroke-linejoin'		)
-			Assign( 'miterLimit'		, 'stroke-miterlimit'	)
-			Assign( 'lineDashOffset'	, 'stroke-dashoffset'	)
-			_[ 'stroke-dasharray' ] && cPrev.setLineDash( _[ 'stroke-dasharray' ].split( ' ' ) )
-
-			_.fill && _.fill != 'none' && (
-				cPrev.fillStyle = _.fill
-			,	cPrev.fill( path )
-			)
-
-			_.stroke && _.stroke != 'none' && (
-				cPrev.strokeStyle = _.stroke
-			,	cPrev.stroke( path )
-			)
-
-			_.fill || _.stroke || cPrev.fill( path )
-		}
-		break
-	case 'text'	:
-		break
-	case 'image':
-		{	const { src, x, y } = G
-			const _ = new Image()
-			_.src = src
-			_.onload = () => cPrev.drawImage( _, x, y )
-		}
-		break
-	}
-	D.forEach( $ => DrawPreview( $, _ ) )
-}
-
 class
 VETree extends HTMLElement {
 	props( _, depth = 0, cur_dep = 0 ) {
@@ -751,16 +746,6 @@ VETree extends HTMLElement {
 	}
 }
 customElements.define( 've-tree', VETree )
-
-const
-Update = () => (
-	cPrev.clearRect( 0, 0, C_PREV.width, C_PREV.height )
-,	cPrev.translate( marginH, marginV )
-,	DrawPreview()
-,	cPrev.translate( -marginH, -marginV )
-,	DrawMain()
-,	Layer.props( svg )
-)
 
 const
 FindE = ( _, svg ) => {
@@ -980,6 +965,15 @@ Delete = () => {
 
 const
 MouseXY			= _ => [ _.offsetX, _.offsetY ]
+
+const
+controlSize		= 3
+
+const
+nearSize2		= controlSize * controlSize * 2
+
+const
+gripSize		= controlSize * 2
 
 C_MAIN.onmousedown = md => {
 
