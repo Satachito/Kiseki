@@ -755,75 +755,74 @@ Properties = () => {
 }
 
 const
-SpreadAttributes = _ => {
-	const A = _[ 2 ]
-console.log( A )
-	PropFillC.checked			= A[ 'fill' ] !== void 0
-	PropFillStyle.value			= A[ 'fill' ] ?? 'black'
+SpreadProperties = _ => {
+	PropFillC.checked			= _[ 'fill' ] !== void 0
+	PropFillStyle.value			= _[ 'fill' ] ?? 'black'
 
-	PropFillRuleC.checked		= A[ 'fill-rule' ] !== void 0
-	PropFillRuleValue.value		= A[ 'fill-rule' ] ?? 'nonzero'
+	PropFillRuleC.checked		= _[ 'fill-rule' ] !== void 0
+	PropFillRuleValue.value		= _[ 'fill-rule' ] ?? 'nonzero'
 
-	PropStrokeC.checked			= A[ 'stroke' ] !== void 0
-	PropStrokeStyle.value		= A[ 'stroke' ] ?? 'black'
+	PropStrokeC.checked			= _[ 'stroke' ] !== void 0
+	PropStrokeStyle.value		= _[ 'stroke' ] ?? 'black'
 
-	PropOpacityC.checked		= A[ 'opacity' ] !== void 0
-	PropOpacityValue.value		= A[ 'opacity' ] ?? '1'
+	PropOpacityC.checked		= _[ 'opacity' ] !== void 0
+	PropOpacityValue.value		= _[ 'opacity' ] ?? '1'
 
-	PropStrokeWidthC.checked	= A[ 'stroke-width' ] !== void 0
-	PropStrokeWidthValue.value	= A[ 'stroke-width' ] ?? '1'
+	PropStrokeWidthC.checked	= _[ 'stroke-width' ] !== void 0
+	PropStrokeWidthValue.value	= _[ 'stroke-width' ] ?? '1'
 
-	PropLineCapC.checked		= A[ 'stroke-linecap' ] !== void 0
-	PropLineCapValue.value		= A[ 'stroke-linecap' ] ?? 'inherit'
+	PropLineCapC.checked		= _[ 'stroke-linecap' ] !== void 0
+	PropLineCapValue.value		= _[ 'stroke-linecap' ] ?? 'inherit'
 
-	PropLineJoinC.checked		= A[ 'stroke-linejoin' ] !== void 0
-	PropLineJoinValue.value		= A[ 'stroke-linejoin' ] ?? 'inherit'
+	PropLineJoinC.checked		= _[ 'stroke-linejoin' ] !== void 0
+	PropLineJoinValue.value		= _[ 'stroke-linejoin' ] ?? 'inherit'
 
-	PropMiterLimitC.checked		= A[ 'stroke-miterlimit' ] !== void 0
-	PropMiterLimitValue.value	= A[ 'stroke-miterlimit' ] ?? '1'
+	PropMiterLimitC.checked		= _[ 'stroke-miterlimit' ] !== void 0
+	PropMiterLimitValue.value	= _[ 'stroke-miterlimit' ] ?? '1'
 
-	PropDashArrayC.checked		= A[ 'stroke-dasharray' ] !== void 0
-	PropDashArrayValue.value	= A[ 'stroke-dasharray' ] ?? ''
+	PropDashArrayC.checked		= _[ 'stroke-dasharray' ] !== void 0
+	PropDashArrayValue.value	= _[ 'stroke-dasharray' ] ?? ''
 
-	PropDashOffsetC.checked		= A[ 'stroke-dashoffset' ] !== void 0
-	PropDashOffsetValue.value	= A[ 'stroke-dashoffset' ] ?? '0'
+	PropDashOffsetC.checked		= _[ 'stroke-dashoffset' ] !== void 0
+	PropDashOffsetValue.value	= _[ 'stroke-dashoffset' ] ?? '0'
+}
 
-	const
-	Set = () => AllInclusive( _ ) && (
-		_[ 2 ] = Properties()
+const
+SetProperties = ( _ = svg ) => AllInclusive( _ )
+?	(	_[ 2 ] = Properties()
 	,	Update()
 	)
-	PropFillC.onchange				= Set 
-	PropFillStyle.onchange			= Set
+:	_[ 1 ].forEach( _ => SetProperties( _ ) )
 
-	PropFillRuleC.onchange			= Set
-	PropFillRuleValue.onchange		= Set
+PropFillC.onchange				= () => SetProperties()
+PropFillStyle.onchange			= () => SetProperties()
 
-	PropStrokeC.onchange			= Set
-	PropStrokeStyle.onchange		= Set
+PropFillRuleC.onchange			= () => SetProperties()
+PropFillRuleValue.onchange		= () => SetProperties()
 
-	PropOpacityC.onchange			= Set
-	PropOpacityValue.onchange		= Set
+PropStrokeC.onchange			= () => SetProperties()
+PropStrokeStyle.onchange		= () => SetProperties()
 
-	PropStrokeWidthC.onchange		= Set
-	PropStrokeWidthValue.onchange	= Set
+PropOpacityC.onchange			= () => SetProperties()
+PropOpacityValue.onchange		= () => SetProperties()
 
-	PropLineCapC.onchange			= Set
-	PropLineCapValue.onchange		= Set
+PropStrokeWidthC.onchange		= () => SetProperties()
+PropStrokeWidthValue.onchange	= () => SetProperties()
 
-	PropLineJoinC.onchange			= Set
-	PropLineJoinValue.onchange		= Set
+PropLineCapC.onchange			= () => SetProperties()
+PropLineCapValue.onchange		= () => SetProperties()
 
-	PropMiterLimitC.onchange		= Set
-	PropMiterLimitValue.onchange	= Set
+PropLineJoinC.onchange			= () => SetProperties()
+PropLineJoinValue.onchange		= () => SetProperties()
 
-	PropDashArrayC.onchange			= Set
-	PropDashArrayValue.onchange		= Set
+PropMiterLimitC.onchange		= () => SetProperties()
+PropMiterLimitValue.onchange	= () => SetProperties()
 
-	PropDashOffsetC.onchange		= Set
-	PropDashOffsetValue.onchange	= Set
+PropDashArrayC.onchange			= () => SetProperties()
+PropDashArrayValue.onchange		= () => SetProperties()
 
-}
+PropDashOffsetC.onchange		= () => SetProperties()
+PropDashOffsetValue.onchange	= () => SetProperties()
 
 let
 selectedLayer
@@ -835,7 +834,7 @@ VETree extends HTMLElement {
 		const $ = this.appendChild( document.createElement( 'span' ) )
 		$.textContent = _[ 0 ]
 		$.onclick = ev => (
-			SpreadAttributes( _ )
+			SpreadProperties( _[ 2 ] )
 		,	selectedLayer && ( selectedLayer.style.backgroundColor = 'white' )
 		,	selectedLayer = $
 		,	$.style.backgroundColor = 'red'
