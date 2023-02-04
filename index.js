@@ -333,6 +333,8 @@ const
 DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
 	if ( A.display === 'none' ) return
 
+	cPrev.save()
+
 	_ = { ..._, ...A }
 
 	if ( A.style ) {
@@ -407,6 +409,8 @@ DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
 		break
 	}
 	D.forEach( $ => DrawPreview( $, _ ) )
+
+	cPrev.restore()
 }
 
 const
@@ -753,7 +757,7 @@ Properties = () => {
 const
 SpreadAttributes = _ => {
 	const A = _[ 2 ]
-
+console.log( A )
 	PropFillC.checked			= A[ 'fill' ] !== void 0
 	PropFillStyle.value			= A[ 'fill' ] ?? 'black'
 
@@ -1072,6 +1076,9 @@ nearSize2		= controlSize * controlSize * 2
 const
 gripSize		= controlSize * 2
 
+const
+toolColor		= 'blue'
+
 C_MAIN.onmousedown = md => {
 
 	const
@@ -1308,7 +1315,7 @@ C_MAIN.onmousedown = md => {
 	case RectB:
 		C_MAIN.onmousemove = mv => {
 			DrawMain()
-			cMain.strokeStyle = ToolC.value
+			cMain.strokeStyle = toolColor
 			cMain.strokeRect( ...MouseRectWH( mv ) )
 		}
 		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
@@ -1343,7 +1350,7 @@ C_MAIN.onmousedown = md => {
 			,	Math.abs( h / 2 )
 			,	0, 0, 2 * Math.PI
 			)
-			cMain.strokeStyle = ToolC.value
+			cMain.strokeStyle = toolColor
 			cMain.stroke()
 		}
 		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
@@ -1376,7 +1383,7 @@ C_MAIN.onmousedown = md => {
 			cMain.beginPath()
 			cMain.moveTo( ...mdXY )
 			cMain.lineTo( mv.offsetX, mv.offsetY )
-			cMain.strokeStyle = ToolC.value
+			cMain.strokeStyle = toolColor
 			cMain.stroke()
 		}
 		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
@@ -1406,7 +1413,7 @@ C_MAIN.onmousedown = md => {
 				cMain.beginPath()
 				cMain.moveTo( ...prev )
 				cMain.lineTo( ...mvXY )
-				cMain.strokeStyle = ToolC.value
+				cMain.strokeStyle = toolColor
 				cMain.stroke()
 				prev = mvXY
 			}

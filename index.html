@@ -37,6 +37,8 @@
 	<a href=_blank		id=AsEPSB								>.eps</a><br>
 
 	<div class=headline>Edit</div>
+	<input type=button	id=InfoB		value=Info				><br>
+	<hr>
 	<input type=button	id=UndoB		value=Undo				><br>
 	<input type=button	id=RedoB		value=Redo				><br>
 	<input type=button	id=CutB			value=Cut				><br>
@@ -67,11 +69,20 @@
 	<input type=button	id=UniteB		value=Unite				><br>
 	<input type=button	id=CombineB		value=Combine			><br>
 
-	<div class=headline>Layer selector</div>
-	<ve-tree id=Layer></ve-tree>
+	<div class=headline id=DisplayParametersT>Display parameters</div>
+	<br>
+	<label>Preview</label><br>
+	<input type=range id=PreviewR max=1 step=0.1><br>
+	<label>Skelton</label><br>
+	<input type=range id=SkeltonR max=1 step=0.1><br>
+	<br>
+
+	<div class=lr><span>Horizontal margin	</span><input type=text id=MarginH	class=w80></div>
+	<div class=lr><span>Vertical margin		</span><input type=text id=MarginV	class=w80></div>
+	<div class=lr><span>Width				</span><input type=text id=Width	class=w80></div>
+	<div class=lr><span>Height				</span><input type=text id=Height	class=w80></div>
 
 	<div class=headline>Debug</div>
-	<input type=button	id=InfoB		value=Info				><br>
 	<input type=button	id=TigerB		value="Load Tiger"		><br>
 	<input type=button	id=IkyuB		value="Load Ikyu"		><br>
 	<input type=button	id=QuatroArcB	value="Load QuatroArc"	><br>
@@ -144,7 +155,7 @@
 		</div>
 	</div>
 
-	<div class=headline>Properties(UNDER CONSTRUCTION)</div>
+	<div class=headline>Properties</div>
 	<div>
 		<div class=lr>
 			<label><input		id=PropFillC			type=checkbox			> fill				</label>
@@ -201,53 +212,9 @@
 		</div>
 	</div>
 
-	<div class=headline id=DisplayParametersT>Display parameters</div>
-	<br>
-	<label>Preview</label><br>
-	<input type=range id=PreviewR max=1 step=0.1><br>
-	<label>Skelton</label><br>
-	<input type=range id=SkeltonR max=1 step=0.1><br>
-	<br>
-
-	<label>Clockwise contour color</label>
-	<jp-color-picker id=ClockwiseC	value='black'	class=redraw></jp-color-picker>
-
-	<label>Counter clockwise contour color</label>
-	<jp-color-picker id=CounterCWC	value='black'	class=redraw></jp-color-picker>
-
-	<label>Line color</label>
-	<jp-color-picker id=LineC		value='black'	class=redraw></jp-color-picker>
-
-	<label>Joint color		</label>
-	<jp-color-picker id=JointC		value='black'	class=redraw></jp-color-picker>
-
-	<label>2D control color	</label>
-	<jp-color-picker id=Control2DC	value='green'	class=redraw></jp-color-picker>
-
-	<label>3D control color	</label>
-	<jp-color-picker id=Control3DC	value='purple'	class=redraw></jp-color-picker>
-
-	<label>Selection color	</label>
-	<jp-color-picker id=SelectionC	value='red'		class=redraw></jp-color-picker>
-
-	<label>Tool color		</label>
-	<jp-color-picker id=ToolC		value='blue'	class=redraw></jp-color-picker>
-
-	<div class=headline id=ViewportT>Viewport</div>
-	<div class=lr><span>Horizontal margin	</span><input type=text id=MarginH	class=w80></div>
-	<div class=lr><span>Vertical margin		</span><input type=text id=MarginV	class=w80></div>
-	<div class=lr><span>Width				</span><input type=text id=Width	class=w80></div>
-	<div class=lr><span>Height				</span><input type=text id=Height	class=w80></div>
-
-	<div class=headline>Gathering parameters</div>
-	<div class=lr>
-		<span>Fill rule</span>
-		<select id=GatheringFillRule>
-			<option value=nonzero	>nonzero	</option>
-			<option value=evenodd	>evenodd	</option>
-		</select>
-	</div>
-	<div class=lr><span>Scale	</span><input type=text id=ScaleValue	value=8 class=w80		></div>
+	<div class=headline>Layer selector</div>
+	<ve-tree id=Layer></ve-tree>
+	<hr>
 
 </aside>
 
