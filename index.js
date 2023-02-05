@@ -334,6 +334,7 @@ DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
 	if ( A.display === 'none' ) return
 
 	cPrev.save()
+console.log( 'cPrev.save' )
 
 	_ = { ..._, ...A }
 
@@ -343,7 +344,7 @@ DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
 	}
 
 	const
-	Assign = ( canvasKey, attrKey ) => _[ attrKey ] && ( cPrev[ canvasKey ] = _[ attrKey ] )
+	Assign = ( canvasKey, attrKey ) => _[ attrKey ] && ( cPrev[ canvasKey ] = _[ attrKey ], console.log( canvasKey, attrKey ) )
 
 	switch ( TagGroup( T ) ) {
 	case 'path'	:
@@ -410,6 +411,7 @@ DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
 	}
 	D.forEach( $ => DrawPreview( $, _ ) )
 
+console.log( 'cPrev.restore' )
 	cPrev.restore()
 }
 
@@ -469,7 +471,7 @@ const
 CLIPBOARD_ID = 'vecedit.828.tyoko'
 
 const
-AllInclusive = ( [ T, D, A, G ] ) => D.every( E => AllInclusive( E ) ) && G.every(
+AllInclusive = ( [ T, D, A, G ] ) => D.every( E => AllInclusive( E ) ) && G && G.every(
 	( [ MT, LC ] ) => ( MT ? sels.includes( MT ) : true ) && LC.flat().every( P => sels.includes( P ) )
 )
 
@@ -788,11 +790,32 @@ SpreadProperties = _ => {
 }
 
 const
-SetProperties = ( _ = svg ) => AllInclusive( _ )
-?	(	_[ 2 ] = Properties()
-	,	Update()
-	)
-:	_[ 1 ].forEach( _ => SetProperties( _ ) )
+Wide = ( _ = svg ) => AllInclusive( _ )
+?	_
+:	_[ 1 ].find( _ => AllInclusive( _ ) )
+
+const
+SetProperties = ( _ = svg ) => {
+	const properties = Properties()
+console.log( properties )
+	const wide = Wide( _ )
+	const $ = [ ...sels ]
+	if ( wide ) {
+		wide[ 2 ] = properties
+		PathForAll(
+			P => {
+				const _ = $.indexOf( P )
+				if ( _ < 0 ) debugger
+				$.splice( _, 1 )
+			}
+		,	wide
+		)
+	}
+	const
+	Es = Array.from( new Set( $.map( _ => _.E ) ) )
+	Es.forEach( E => E[ 2 ] = properties )
+	Update()
+}
 
 PropFillC.onchange				= () => SetProperties()
 PropFillStyle.onchange			= () => SetProperties()
@@ -1098,11 +1121,8 @@ C_MAIN.onmousedown = md => {
 				)
 			}
 		)
-		return $
+		return $.sort( ( p, q ) => p.D - q.D )
 	}
-
-	const
-	Hit = () => Hits().sort( ( p, q ) => p.D - q.D )[ 0 ]
 
 	const
 	GridHit = ( [ T, D, A, G ], $ = null ) => {
@@ -1147,7 +1167,7 @@ C_MAIN.onmousedown = md => {
 		)
 		break
 	case ChangeB:
-		If( Hit(), _ => Change( _ ) )
+		If( Hits()[ 0 ], _ => Change( _ ) )
 		break
 	case SelectB:
 		{	let
@@ -1200,6 +1220,7 @@ C_MAIN.onmousedown = md => {
 				default:
 					break
 				}
+				SpreadProperties( hits[ 0 ].E[ 2 ] )
 				DrawMain()
 
 				//	Selection clicked
@@ -1208,14 +1229,15 @@ C_MAIN.onmousedown = md => {
 				,	vMover = defaultVMover
 				)
 			} else if ( sels.length > 1 ) {
+
 				const [ [ minX, maxX ], [ minY, maxY ] ] = BBox( ...sels )
-				const Index = ( $, _1, _2 ) => {
-					if ( $ < _1 - gripSize ) return null
-					if ( $ < _1 ) return -1
-					if ( $ <= _2 ) return 0
-					if ( $ <= _2 + gripSize ) return 1
-					return null
-				}
+
+				const Index = ( $, _1, _2 ) => ( _1 < $ && $ < _2 )
+				?	0
+				:	$ < _1
+					?	$ < _1 - gripSize ? null : -1
+					:	_2 + gripSize < $ ? null : 1
+
 				let hIndex = Index( mdXY[ 0 ], ProjectX( minX ), ProjectX( maxX ) )
 				hIndex !== null && minX === maxX && ( hIndex = 0 )
 
@@ -1565,7 +1587,7 @@ console.log( found, $.length )
 		break
 	case ScissorsB:
 		{	const
-			$ = Hit()
+			$ = Hits()[ 0 ]
 
 			if ( $ ) {
 				if (
