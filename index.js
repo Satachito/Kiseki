@@ -2375,10 +2375,11 @@ OfSVGB		.onchange = ev => {
 
 PreviewR	.oninput = () => ( C_PREV.style.opacity = PreviewR.value, C_MAIN.focus() )
 PreviewR	.value = 1
+C_PREV.style.opacity = PreviewR.value
+
 SkeltonR	.oninput = () => ( C_MAIN.style.opacity = SkeltonR.value, C_MAIN.focus() )
 SkeltonR	.value = 0.3
-SkeltonR	.oninput()
-PreviewR	.oninput()
+C_MAIN.style.opacity = SkeltonR.value
 
 const
 Refresh = () => (

@@ -44,34 +44,39 @@ header	> *	{
 ;	vertical-align			: middle
 }
 
+hr {
+;	margin					: 2px 0
+}
+
 main {
 ;	position				: relative
 ;	background-color		: #eee
+}
+
+#C_PREV {
+;	background-color		: white
 }
 
 canvas {
 ;	position				: absolute
 }
 
-#C_PREVIEW {
-;	opacity					: 0.5
-}
-
 .lr {
 ;	display					: flex
 ;	justify-content			: space-between
 ;	align-items				: center
-;	height					: 28px
+;	height					: 23px
 }
 
 .padded {
-;	margin					: 8px
+;	padding					: 3px
 }
 
 .headline {
 ;	font-size				: 16px
 ;	background				: grey
 ;	color					: white
+;	padding					: 2px 4px
 }
 
 jp-color-picker {
