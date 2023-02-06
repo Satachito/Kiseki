@@ -19,10 +19,7 @@ nav			{ overflow		: scroll }
 aside		{ overflow		: scroll }
 main		{ overflow		: scroll }
 
-nav		> *	{ padding		: 1px 5px }
-aside	> *	{ padding		: 1px 5px }
-
-nav > input[ type=text ] { width: 32px }
+nav input[ type=text ] { width: 32px }
 
 body {
 ;	margin					: 0
@@ -67,12 +64,9 @@ canvas {
 ;	height					: 28px
 }
 
-/*
-.tool {
-;	margin					: 1px
-;	border					: 1px solid black
+.padded {
+;	margin					: 8px
 }
-*/
 
 .headline {
 ;	font-size				: 16px

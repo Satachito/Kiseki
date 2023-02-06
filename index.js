@@ -334,7 +334,6 @@ DrawPreview	= ( [ T, D, A, G ] = svg, _ = {} ) => {
 	if ( A.display === 'none' ) return
 
 	cPrev.save()
-console.log( 'cPrev.save' )
 
 	_ = { ..._, ...A }
 
@@ -344,7 +343,7 @@ console.log( 'cPrev.save' )
 	}
 
 	const
-	Assign = ( canvasKey, attrKey ) => _[ attrKey ] && ( cPrev[ canvasKey ] = _[ attrKey ], console.log( canvasKey, attrKey ) )
+	Assign = ( canvasKey, attrKey ) => _[ attrKey ] && ( cPrev[ canvasKey ] = _[ attrKey ] )
 
 	switch ( TagGroup( T ) ) {
 	case 'path'	:
@@ -411,7 +410,6 @@ console.log( 'cPrev.save' )
 	}
 	D.forEach( $ => DrawPreview( $, _ ) )
 
-console.log( 'cPrev.restore' )
 	cPrev.restore()
 }
 
@@ -1101,13 +1099,21 @@ gripSize		= controlSize * 2
 const
 toolColor		= 'blue'
 
+let
+mdXY = [ marginH, marginV ]
+
+C_MAIN.addEventListener(
+	'mousemove'
+,	mm => {
+		const invD = Invert( mdXY )
+		const invM = Invert( MouseXY( mm ) )
+		COORDINATE.textContent = `(${invD})-(${invM})-(${Sub(invM,invD)})`
+	}
+)
+
 C_MAIN.onmousedown = md => {
 
-	const
 	mdXY = MouseXY( md )
-
-	const
-	MouseRectWH = _ => [ ...mdXY, ...Sub( MouseXY( _ ), mdXY ) ]
 
 	const
 	Hits = () => {
@@ -1337,7 +1343,7 @@ C_MAIN.onmousedown = md => {
 		C_MAIN.onmousemove = mv => {
 			DrawMain()
 			cMain.strokeStyle = toolColor
-			cMain.strokeRect( ...MouseRectWH( mv ) )
+			cMain.strokeRect( ...mdXY, ...Sub( MouseXY( mv ), mdXY ) )
 		}
 		C_MAIN.onmouseup = C_MAIN.onmouseleave = mu => {
 			C_MAIN.onmousemove = null
@@ -1362,11 +1368,11 @@ C_MAIN.onmousedown = md => {
 	case OvalB:
 		C_MAIN.onmousemove = mv => {
 			DrawMain()
-			const [ x, y, w, h ] = MouseRectWH( mv )
+			const [ w, h ] = Sub( MouseXY( mv ), mdXY )
 			cMain.beginPath()
 			cMain.ellipse(
-				x + w / 2
-			,	y + h / 2
+				mdXY[ 0 ] + w / 2
+			,	mdXY[ 1 ] + h / 2
 			,	Math.abs( w / 2 )
 			,	Math.abs( h / 2 )
 			,	0, 0, 2 * Math.PI
@@ -1716,14 +1722,10 @@ console.log( found, $.length )
 }
 
 const
-Unite = () => {
+TieAndUnite = () => {
 
 	const
 	Fs = Array.from( new Set( sels.map( _ => _.F ) ) )
-	if ( Fs.some( _ => !_[ 0 ] ) ) {
-		Toast( 'green', 'Lines only' )
-		return
-	}
 	if ( !Fs.length ) {
 		alert( 'No lines' )
 		return
@@ -1732,7 +1734,14 @@ Unite = () => {
 	const
 	newSVG = CloneJSONable( svg )
 
-	new Set( sels.map( _ => FindF( _, newSVG ) ) ).forEach( F => F[ 0 ] = null )
+	new Set( sels.map( _ => FindF( _, newSVG ) ) ).forEach(
+		F => F[ 0 ]
+	//	?	(	EQ( F[ 0 ], F[ 1 ][ 0 ][ 0 ] ) || F[ 1 ].unshift( [ F[ 0 ] ] )
+		?	(	F[ 1 ].unshift( [ F[ 0 ] ] )
+			,	F[ 0 ] = null
+			)
+		:	F[ 0 ] = [ ...F[ 1 ][ 0 ][ 0 ] ]
+	)
 
 	SVGJob( newSVG )
 }
@@ -2330,7 +2339,7 @@ ResizeB		.onclick = () => ( Resize()			, C_MAIN.focus() )
 ReverseB	.onclick = () => ( Reverse()		, C_MAIN.focus() )
 ForwardB	.onclick = () => ( Forward()		, C_MAIN.focus() )
 BackwardB	.onclick = () => ( Backward()		, C_MAIN.focus() )
-UniteB		.onclick = () => ( Unite()			, C_MAIN.focus() )
+TieAndUniteB.onclick = () => ( TieAndUnite()	, C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()			, C_MAIN.focus() )
 AsVEJB		.onclick = () => ( AsVEJ()			, C_MAIN.focus() )
