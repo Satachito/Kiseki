@@ -494,7 +494,7 @@ Crawl = ( _, mat = [ 1, 0, 0, 1, 0, 0 ] ) => {
 		if ( D.length === 0 ) return
 		if ( D.length === 1 ) {
 			const $ = D[ 0 ]
-			return [ $[ 0 ], $[ 1 ], Object.assign( A, $[ 2 ] ), $[ 3 ] ]
+			return [ $[ 0 ], $[ 1 ], { ...A, ...$[ 2 ] }, $[ 3 ] ]
 		}
 	//	if ( Object.keys( A ).length == 0 && D.length == 1 ) return D[ 0 ]
 	}

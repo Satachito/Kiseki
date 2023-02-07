@@ -910,18 +910,18 @@ SVGJob = ( newSVG, newSels = [] ) => {
 
 const
 Template = () => {
-	const _ = {}
-	TempFillC		.checked && ( _[ 'fill'				] = TempFillStyle		.value )
-	TempFillRuleC	.checked && ( _[ 'fill-rule'		] = TempFillRuleValue	.value )
-	TempStrokeC		.checked && ( _[ 'stroke'			] = TempStrokeStyle		.value )
-	TempOpacityC	.checked && ( _[ 'opacity'			] = TempOpacityValue	.value )
-	TempStrokeWidthC.checked && ( _[ 'stroke-width'		] = TempStrokeWidthValue.value )
-	TempLineCapC	.checked && ( _[ 'stroke-linecap'	] = TempLineCapValue	.value )
-	TempLineJoinC	.checked && ( _[ 'stroke-linejoin'	] = TempLineJoinValue	.value )
-	TempMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
-	TempDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
-	TempDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
-	return _
+	const $ = {}
+	TempFillC		.checked && ( $[ 'fill'				] = TempFillStyle		.value )
+	TempFillRuleC	.checked && ( $[ 'fill-rule'		] = TempFillRuleValue	.value )
+	TempStrokeC		.checked && ( $[ 'stroke'			] = TempStrokeStyle		.value )
+	TempOpacityC	.checked && ( $[ 'opacity'			] = TempOpacityValue	.value )
+	TempStrokeWidthC.checked && ( $[ 'stroke-width'		] = TempStrokeWidthValue.value )
+	TempLineCapC	.checked && ( $[ 'stroke-linecap'	] = TempLineCapValue	.value )
+	TempLineJoinC	.checked && ( $[ 'stroke-linejoin'	] = TempLineJoinValue	.value )
+	TempMiterLimitC	.checked && ( $[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
+	TempDashOffsetC	.checked && ( $[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
+	TempDashArrayC	.checked && ( $[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
+	return $
 }
 
 const
