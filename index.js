@@ -853,7 +853,7 @@ VETree extends HTMLElement {
 		while ( this.firstChild ) this.removeChild( this.firstChild )
 		this.style.paddingLeft = cur_dep + 'em'
 		const $ = this.appendChild( document.createElement( 'span' ) )
-		$.textContent = _[ 0 ]
+		$.textContent = _[ 0 ] + ':' + ( _[ 2 ].id ?? '' )
 		$.onclick = ev => (
 			SpreadProperties( _[ 2 ] )
 		,	selectedLayer && ( selectedLayer.style.backgroundColor = 'white' )
