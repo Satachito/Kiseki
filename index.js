@@ -147,53 +147,6 @@ DrawMain		= mdmv => {
 	const
 	data = $.data
 	const
-	Plot = ( [ x, y ] ) => data[ ( ( y + marginV ) * W + x + marginH ) * 4 + 3 ] = 0xff
-
-	const
-	Circle = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff						; _ += W * 4
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
-	}
-	const
-	Eye = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-
-		data[ _ +  0 ] = 0xff; data[ _ + 24 ] = 0xff;
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
-
-		data[ _ +  4 ] = 0xff; data[ _ + 20 ] = 0xff						; _ += W * 4
-		data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
-	}
-	const
-	Square = ( [ x, y ], rgb ) => {
-		let _ = ( ( y + marginV - 4 ) * W + x + marginH - 4 ) * 4 + rgb
-		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
-		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff	; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ + 32 ] = 0xff												; _ += W * 4
-		data[ _ +  0 ] = 0xff; data[ _ +  4 ] = 0xff; data[ _ +  8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff;
-		data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff; data[ _ + 28 ] = 0xff; data[ _ + 32 ] = 0xff
-	}
-	const
 	HLine = ( y, x, w ) => {
 		let
 		_ = ( ( y + marginV ) * W + x + marginH ) * 4
@@ -213,64 +166,7 @@ DrawMain		= mdmv => {
 			_ += W * 4
 		}
 	}
-	const
-	Rect = ( x, y, w, h ) => (
-		HLine( y		, x, w )
-	,	HLine( y + h - 1, x, w )
-	,	VLine( x		, y + 1, h - 2 )
-	,	VLine( x + w - 1, y + 1, h - 2 )
-	)
 
-	const
-	Joint		= _ => Circle( _, 3 )
-	const
-	Control		= _ => Circle( _, 3 )
-	const
-	EyeJoint	= _ => Eye( _, 3 )
-	const
-	EyeControl	= _ => Eye( _, 3 )
-	const
-	StartEnd	= _ => Square( _, 3 )
-
-	const
-	DrawPoint = _ => (
-		TagGroup( _[ 0 ] ) === 'path' && (
-			_[ 3 ].forEach(
-				( [ MT, LC ] ) => {
-					if ( MT ) {
-						const rMT = Round( MT )
-						Joint( rMT )
-//						StartEnd( rMT )
-					}
-					StartEnd( Round( LC[ 0 ][ 0 ] ) )
-
-					let cp = MT ?? LC[ 0 ][ 0 ]
-					let iS = LC.length
-					while ( iS-- ) {
-						const S = LC[ iS ]
-						Grids( cp, S ).forEach( _ => Plot( _ ) )
-						Joint( Round( S[ 0 ] ) )
-						S.length > 1 && Control( Round( S[ 1 ] ) )
-						S.length > 2 && Control( Round( S[ 2 ] ) )
-						cp = S[ 0 ]
-					}
-				}
-			)
-		)
-	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
-	)
-	DrawPoint( svg )
-
-//console.log( 'sels.length', sels.length )
-	sels.forEach(
-		P => {
-			P.iP
-			?	P.S.length === 2
-				?	EyeControl( Round( P ) )
-				:	EyeControl( Round( P ) )
-			:	EyeJoint( Round( P ) )	// 0 or void 0, EndPoint or Joint
-		}
-	)
 	if ( sels.length > 1 ) {
 		const bbox = BBox( ...sels )
 		const x = Math.floor( bbox[ 0 ][ 0 ] )
@@ -291,6 +187,80 @@ DrawMain		= mdmv => {
 		VLine( X + 3, y - 2, h + 6 )
 	}
 
+	const
+	Circle = ( [ x, y ], rgb = 3 ) => {
+		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
+		data[ _ + 8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff	; _ += W * 4
+		data[ _ + 4 ] = 0xff; data[ _ + 20 ] = 0xff							; _ += W * 4
+		data[ _ + 0 ] = 0xff; data[ _ + 24 ] = 0xff							; _ += W * 4
+		data[ _ + 0 ] = 0xff; data[ _ + 24 ] = 0xff							; _ += W * 4
+		data[ _ + 0 ] = 0xff; data[ _ + 24 ] = 0xff							; _ += W * 4
+		data[ _ + 4 ] = 0xff; data[ _ + 20 ] = 0xff							; _ += W * 4
+		data[ _ + 8 ] = 0xff; data[ _ + 12 ] = 0xff; data[ _ + 16 ] = 0xff
+	}
+	const
+	Square = ( [ x, y ], rgb = 3 ) => {
+		let _ = ( ( y + marginV - 3 ) * W + x + marginH - 3 ) * 4 + rgb
+
+		data[ _ ] = 0xff; data[ _ + 4 ] = 0xff; data[ _ + 8 ] = 0xff; data[ _ + 12 ] = 0xff
+		data[ _ + 16 ] = 0xff; data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff
+		_ += W * 4
+		data[ _ ] = 0xff; data[ _ + 24 ] = 0xff; _ += W * 4
+		data[ _ ] = 0xff; data[ _ + 24 ] = 0xff; _ += W * 4
+		data[ _ ] = 0xff; data[ _ + 24 ] = 0xff; _ += W * 4
+		data[ _ ] = 0xff; data[ _ + 24 ] = 0xff; _ += W * 4
+		data[ _ ] = 0xff; data[ _ + 24 ] = 0xff; _ += W * 4
+
+		data[ _ ] = 0xff; data[ _ + 4 ] = 0xff; data[ _ + 8 ] = 0xff; data[ _ + 12 ] = 0xff
+		data[ _ + 16 ] = 0xff; data[ _ + 20 ] = 0xff; data[ _ + 24 ] = 0xff
+	}
+	const
+	Eye = ( [ x, y ], rgb = 3 ) => {
+		let _ = ( ( y + marginV - 1 ) * W + x + marginH - 1 ) * 4 + rgb
+		data[ _ ] = 0xff; data[ _ + 4 ] = 0xff; data[ _ + 8 ] = 0xff		; _ += W * 4
+		data[ _ ] = 0xff; data[ _ + 4 ] = 0xff; data[ _ + 8 ] = 0xff		; _ += W * 4
+		data[ _ ] = 0xff; data[ _ + 4 ] = 0xff; data[ _ + 8 ] = 0xff
+	}
+
+	const
+	DrawPoint = _ => (
+		TagGroup( _[ 0 ] ) === 'path' && (
+			_[ 3 ].forEach(
+				( [ MT, LC ] ) => {
+					if ( MT ) {
+						const rMT = Round( MT )
+						Square( rMT )
+					}
+
+					let cp = MT ?? LC[ 0 ][ 0 ]
+					let iS = LC.length
+					while ( iS-- ) {
+						const S = LC[ iS ]
+						Grids( cp, S ).forEach(
+							( [ x, y ] ) => data[ ( ( y + marginV ) * W + x + marginH ) * 4 + 3 ] = 0xff
+						)
+						Square( Round( S[ 0 ] ) )
+						S.length > 1 && Circle( Round( S[ 1 ] ) )
+						S.length > 2 && Circle( Round( S[ 2 ] ) )
+						cp = S[ 0 ]
+					}
+				}
+			)
+		)
+	,	_[ 1 ].forEach( _ => DrawPoint( _ ) )
+	)
+	DrawPoint( svg )
+
+//console.log( 'sels.length', sels.length )
+	sels.forEach(
+		P => {
+			P.iP
+			?	P.S.length === 2
+				?	Eye( Round( P ) )
+				:	Eye( Round( P ) )
+			:	Eye( Round( P ) )	// 0 or void 0, EndPoint or Joint
+		}
+	)
 	if ( mdmv ) {
 		const [ [ x, X ], [ y, Y ] ] = BBox( ...mdmv )
 		{	let _1 = ( y * W - W	+ x - 1 ) * 4
@@ -740,22 +710,26 @@ Points = ( _ = svg ) => {
 
 const
 Properties = () => {
-	const _ = {}
-	PropFillC		.checked && ( _[ 'fill'				] = PropFillStyle		.value )
-	PropFillRuleC	.checked && ( _[ 'fill-rule'		] = PropFillRuleValue	.value )
-	PropStrokeC		.checked && ( _[ 'stroke'			] = PropStrokeStyle		.value )
-	PropOpacityC	.checked && ( _[ 'opacity'			] = PropOpacityValue	.value )
-	PropStrokeWidthC.checked && ( _[ 'stroke-width'		] = PropStrokeWidthValue.value )
-	PropLineCapC	.checked && ( _[ 'stroke-linecap'	] = PropLineCapValue	.value )
-	PropLineJoinC	.checked && ( _[ 'stroke-linejoin'	] = PropLineJoinValue	.value )
-	PropMiterLimitC	.checked && ( _[ 'stroke-miterlimit'] = PropMiterLimitValue	.value )
-	PropDashOffsetC	.checked && ( _[ 'stroke-dashoffset'] = PropDashOffsetValue	.value )
-	PropDashArrayC	.checked && ( _[ 'stroke-dasharray'	] = PropDashArrayValue	.value )
-	return _
+	const $ = {}
+	PropIDC			.checked && ( $[ 'id'				] = PropIDValue			.value )
+	PropFillC		.checked && ( $[ 'fill'				] = PropFillStyle		.value )
+	PropFillRuleC	.checked && ( $[ 'fill-rule'		] = PropFillRuleValue	.value )
+	PropStrokeC		.checked && ( $[ 'stroke'			] = PropStrokeStyle		.value )
+	PropOpacityC	.checked && ( $[ 'opacity'			] = PropOpacityValue	.value )
+	PropStrokeWidthC.checked && ( $[ 'stroke-width'		] = PropStrokeWidthValue.value )
+	PropLineCapC	.checked && ( $[ 'stroke-linecap'	] = PropLineCapValue	.value )
+	PropLineJoinC	.checked && ( $[ 'stroke-linejoin'	] = PropLineJoinValue	.value )
+	PropMiterLimitC	.checked && ( $[ 'stroke-miterlimit'] = PropMiterLimitValue	.value )
+	PropDashOffsetC	.checked && ( $[ 'stroke-dashoffset'] = PropDashOffsetValue	.value )
+	PropDashArrayC	.checked && ( $[ 'stroke-dasharray'	] = PropDashArrayValue	.value )
+	return $
 }
 
 const
 SpreadProperties = _ => {
+	PropIDC.checked				= _[ 'id' ] !== void 0
+	PropIDValue.value			= _[ 'id' ] ?? ''
+
 	PropFillC.checked			= _[ 'fill' ] !== void 0
 	PropFillStyle.value			= _[ 'fill' ] ?? 'black'
 
@@ -795,7 +769,6 @@ Wide = ( _ = svg ) => AllInclusive( _ )
 const
 SetProperties = ( _ = svg ) => {
 	const properties = Properties()
-console.log( properties )
 	const wide = Wide( _ )
 	const $ = [ ...sels ]
 	if ( wide ) {
@@ -909,27 +882,11 @@ SVGJob = ( newSVG, newSels = [] ) => {
 }
 
 const
-Template = () => {
-	const $ = {}
-	TempFillC		.checked && ( $[ 'fill'				] = TempFillStyle		.value )
-	TempFillRuleC	.checked && ( $[ 'fill-rule'		] = TempFillRuleValue	.value )
-	TempStrokeC		.checked && ( $[ 'stroke'			] = TempStrokeStyle		.value )
-	TempOpacityC	.checked && ( $[ 'opacity'			] = TempOpacityValue	.value )
-	TempStrokeWidthC.checked && ( $[ 'stroke-width'		] = TempStrokeWidthValue.value )
-	TempLineCapC	.checked && ( $[ 'stroke-linecap'	] = TempLineCapValue	.value )
-	TempLineJoinC	.checked && ( $[ 'stroke-linejoin'	] = TempLineJoinValue	.value )
-	TempMiterLimitC	.checked && ( $[ 'stroke-miterlimit'] = TempMiterLimitValue	.value )
-	TempDashOffsetC	.checked && ( $[ 'stroke-dashoffset'] = TempDashOffsetValue	.value )
-	TempDashArrayC	.checked && ( $[ 'stroke-dasharray'	] = DasTemphArrayValue	.value )
-	return $
-}
-
-const
 NewFigureJob = ( T, F ) => {
 	const E = [
 		T
 	,	[]
-	,	Template()
+	,	Properties()
 	,	[ F ]
 	]
 	Job(
@@ -1199,14 +1156,13 @@ C_MAIN.onmousedown = md => {
 			const
 			hits = Hits()
 			if ( hits.length ) {
-				sels = md.shiftKey
-				?	[	...sels.filter( _ => !hits.includes( _ ) )
-					,	...hits.filter( _ => !sels.includes( _ ) )
-					]
-				:	hits.slice( 0, 1 )
-
 				switch ( md.detail ) {
 				case 1:
+					sels = md.shiftKey
+					?	[	...sels.filter( _ => !hits.includes( _ ) )
+						,	...hits.filter( _ => !sels.includes( _ ) )
+						]
+					:	hits.slice( 0, 1 )
 					break
 				case 2:
 					{	const
@@ -2021,7 +1977,7 @@ console.log( newCs )
 	newSVG[ 1 ].push(
 		[	'path'
 		,	[]
-		,	Template()
+		,	Properties()
 		,	newCs.map( C => [ null, C ] )
 		]
 	)
@@ -2373,13 +2329,17 @@ OfSVGB		.onchange = ev => {
 	fr.readAsText( ev.target.files[ 0 ] )
 }
 
-PreviewR	.oninput = () => ( C_PREV.style.opacity = PreviewR.value, C_MAIN.focus() )
-PreviewR	.value = 1
 C_PREV.style.opacity = PreviewR.value
+PreviewR	.oninput = () => ( C_PREV.style.opacity = PreviewR.value, C_MAIN.focus() )
 
-SkeltonR	.oninput = () => ( C_MAIN.style.opacity = SkeltonR.value, C_MAIN.focus() )
-SkeltonR	.value = 0.3
 C_MAIN.style.opacity = SkeltonR.value
+SkeltonR	.oninput = () => ( C_MAIN.style.opacity = SkeltonR.value, C_MAIN.focus() )
+
+C_PREV.style.backgroundColor = PrevCanvasBG.value
+PrevCanvasBG.onchange = () => C_PREV.style.backgroundColor = PrevCanvasBG.value
+
+MAIN.style.backgroundColor = ScrollPaneBG.value
+ScrollPaneBG.onchange = () => MAIN.style.backgroundColor = ScrollPaneBG.value
 
 const
 Refresh = () => (

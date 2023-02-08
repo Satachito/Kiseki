@@ -19,7 +19,11 @@ nav			{ overflow		: scroll }
 aside		{ overflow		: scroll }
 main		{ overflow		: scroll }
 
-nav input[ type=text ] { width: 32px }
+nav input[ type=text ] { width		: 32px	}
+nav input[ type=file ] { display	: none	}
+.fileLabel {
+;	border					: 1px solid black
+}
 
 body {
 ;	margin					: 0
@@ -50,11 +54,6 @@ hr {
 
 main {
 ;	position				: relative
-;	background-color		: #eee
-}
-
-#C_PREV {
-;	background-color		: white
 }
 
 canvas {
@@ -86,6 +85,9 @@ jp-color-picker {
 }
 jp-color-picker > input[ type=color ] {
 ;	border					: none
+}
+jp-color-picker > input[ list=Colors ] {
+;	width					: 80px
 }
 
 

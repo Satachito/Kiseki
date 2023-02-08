@@ -5,7 +5,6 @@
 <link rel=stylesheet href=index.css>
 
 <header>
-	<input type=image	id=NavB			alt=Nav		src=./res/Hamburger.svg	>
 	<input type=image	id=SelectB		alt=Select	src=./res/Select.png	class=selected >
 	<input type=image	id=RectB		alt=Rect	src=./res/Rect.png		>
 	<input type=image	id=OvalB		alt=Oval	src=./res/Oval.png		>
@@ -17,18 +16,16 @@
 	<input type=image	id=ChangeB		alt=Change	src=./res/Change.png	>
 	<input type=image	id=HandB		alt=Hand	src=./res/Hand.png		>
 
-	<span class=right>
-		<span class="cursive">VecEdit</span>
-		<input type=image id=AsideB		alt=Aside	src=./res/Hamburger.svg>
-	</span>
+	<span class="right cursive" style="font-size: 19px">VecEdit</span>
 </header>
 
 <nav id=NAV class=open>
 
 	<div class=headline>Upload</div>
 	<div class=padded>
-		<input type=file	id=OfVEJB accept=.vej style="display: none"><label for=OfVEJB style="border: 1px solid black">VEJ File</label><br>
-		<input type=file	id=OfSVGB accept=.svg style="display: none"><label for=OfSVGB style="border: 1px solid black">SVG File</label><br>
+		<input type=file	id=OfVEJB accept=.vej><label for=OfVEJB class=fileLabel>Upload .vej</label><br>
+		<div style="height: 4px"></div>
+		<input type=file	id=OfSVGB accept=.svg><label for=OfSVGB class=fileLabel>Upload .svg</label><br>
 	</div>
 
 	<div class=headline>Downloads</div>
@@ -56,8 +53,8 @@
 		<input type=button	id=AlignRB		value="Align right"			><br>
 		<input type=button	id=AlignTB		value="Align top"			><br>
 		<input type=button	id=AlignBB		value="Align bottom"		><br>
-		<input type=button	id=MirrorHB		value="Mirrot horizontal"	><br>
-		<input type=button	id=MirrorVB		value="Mirrot vertical"		><br>
+		<input type=button	id=MirrorHB		value="Mirror horizontal"	><br>
+		<input type=button	id=MirrorVB		value="Mirror vertical"		><br>
 		<input type=button	id=Rotate90RB	value="Rotate right"		><br>
 		<input type=button	id=Rotate90LB	value="Rotate left"			><br>
 		<hr>
@@ -82,10 +79,19 @@
 	<div class=padded>
 		<br>
 		<label>Preview</label><br>
-		<input type=range id=PreviewR max=1 step=0.1><br>
+		<input type=range id=PreviewR max=1 step=0.1 value=1><br>
 		<label>Skelton</label><br>
-		<input type=range id=SkeltonR max=1 step=0.1><br>
+		<input type=range id=SkeltonR max=1 step=0.1 value=0.3><br>
 		<br>
+
+		<hr>
+
+		<div>Preview pane background</div>
+		<jp-color-picker	id=PrevCanvasBG	value=white	></jp-color-picker>
+		<div>Scroller pane background</div>
+		<jp-color-picker	id=ScrollPaneBG	value=#eee	></jp-color-picker>
+
+		<hr>
 
 		<div class=lr><span>Horizontal margin	</span><input type=text id=MarginH	class=w80></div>
 		<div class=lr><span>Vertical margin		</span><input type=text id=MarginV	class=w80></div>
@@ -111,65 +117,12 @@
 </main>
 
 <aside id=ASIDE class=open>
-	<div class=headline>Template</div>
-	<div class=padded>
-		<div class=lr>
-			<label><input		id=TempFillC			type=checkbox			> fill				</label>
-			<jp-color-picker	id=TempFillStyle		value=black	></jp-color-picker>
-		</div>
-		<div class=lr>
-			<label><input		id=TempFillRuleC		type=checkbox			> fill-rule			</label>
-			<select				id=TempFillRuleValue>
-				<option value=nonzero	>nonzero	</option>
-				<option value=evenodd	>evenodd	</option>
-			</select>
-		</div>
-		<div class=lr>
-			<label><input		id=TempStrokeC			type=checkbox	checked	> stroke			</label>
-			<jp-color-picker	id=TempStrokeStyle		value=black	></jp-color-picker>
-		</div>
-		<div class=lr>
-			<label><input		id=TempOpacityC			type=checkbox			> opacity			</label>
-			<input				id=TempOpacityValue		type=text		value=1 class=w80>
-		</div>
-		<div class=lr>
-			<label><input		id=TempStrokeWidthC		type=checkbox			> stroke-width		</label>
-			<input				id=TempStrokeWidthValue	type=text		value=1 class=w80>
-		</div>
-		<div class=lr>
-			<label><input		id=TempLineCapC			type=checkbox			> stroke-linecap	</label>
-			<select				id=TempLineCapValue>
-				<option value=butt					>butt	</option>
-				<option value=round					>round	</option>
-				<option value=square				>square	</option>
-				<option value=inherit selected		>inherit</option>
-			</select>
-		</div>
-		<div class=lr>
-			<label><input		id=TempLineJoinC		type=checkbox			> stroke-linejoin	</label>
-			<select				id=TempLineJoinValue>
-				<option value=miter					>miter	</option>
-				<option value=round					>round	</option>
-				<option value=bevel					>bevel	</option>
-				<option value=inherit selected		>inherit</option>
-			</select>
-		</div>
-		<div class=lr>
-			<label><input		id=TempMiterLimitC		type=checkbox			> stroke-miterlimit	</label>
-			<input				id=TempMiterLimitValue	type=text		value=1 class=w80>
-		</div>
-		<div class=lr>
-			<label><input		id=TempDashOffsetC		type=checkbox			> stroke-dashoffset	</label>
-			<input				id=TempDashOffsetValue	type=text		value=0 class=w80>
-		</div>
-		<div class=lr>
-			<label><input		id=TempDashArrayC		type=checkbox			> stroke-dasharray	</label>
-			<input				id=TempDashArrayValue	type=text			 	class=w80>
-		</div>
-	</div>
-
 	<div class=headline>Properties</div>
 	<div class=padded>
+		<div class=lr>
+			<label><input		id=PropIDC				type=checkbox			> id				</label>
+			<input				id=PropIDValue			type=text				class=w80>
+		</div>
 		<div class=lr>
 			<label><input		id=PropFillC			type=checkbox			> fill				</label>
 			<jp-color-picker	id=PropFillStyle		value=black	></jp-color-picker>
