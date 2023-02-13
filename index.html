@@ -71,11 +71,11 @@
 		<input type=button	id=ReverseB		value=Reverse				><br>
 		<input type=button	id=ForwardB		value=Forward				><br>
 		<input type=button	id=BackwardB	value=Backward				><br>
-		<input type=button	id=TieAndUniteB	value="Tie and unite"		><br>
+		<input type=button	id=TieOrUniteB	value="Tie or unite"		><br>
 		<input type=button	id=CombineB		value=Combine				><br>
 	</div>
 
-	<div class=headline id=DisplayParametersT>Display parameters</div>
+	<div class=headline>Display parameters</div>
 	<div class=padded>
 		<br>
 		<label>Preview</label><br>
@@ -98,6 +98,9 @@
 		<div class=lr><span>Width				</span><input type=text id=Width	class=w80></div>
 		<div class=lr><span>Height				</span><input type=text id=Height	class=w80></div>
 	</div>
+
+	<div class=headline>Job List</div>
+	<job-list id=JOB_LIST></job-list>
 
 	<div class=headline>Debug</div>
 	<div class=padded>
@@ -180,7 +183,7 @@
 
 	<div class=headline>Layer selector</div>
 	<div class=padded>
-		<ve-tree id=Layer></ve-tree>
+		<layer-tree id=LAYER></layer-tree>
 	</div>
 	<hr>
 
