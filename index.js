@@ -395,29 +395,29 @@ Update = () => (
 
 
 const
-undos	= []
+dones	= []
 
 const
-redos	= []
+todos	= []
 
 const
 Push	= ( array, $ ) => ( array.push( $ ), $ )
 
 const
 Job		= ( Undo, Redo ) => (
-	redos.length = 0
-,	Push( undos, { Undo, Redo } )
+	todos.length = 0
+,	Push( dones, { Undo, Redo } )
 )
 
 const
-Undo	= () => undos.length && (
-	Push( redos, undos.pop() ).Undo()
+Undo	= () => dones.length && (
+	Push( todos, dones.pop() ).Undo()
 ,	Update()
 )
 
 const
-Redo	= () => redos.length && (
-	Push( undos, redos.pop() ).Redo()
+Redo	= () => todos.length && (
+	Push( dones, todos.pop() ).Redo()
 ,	Update()
 )
 
@@ -2260,10 +2260,10 @@ Download = ( button, ext, _ ) => (
 ,	button.href = URL.createObjectURL( new Blob( [ _ ], { type: 'text/plain' } ) )
 )
 const
-AsVEJ = () => Download( AsVEJB, '.vej', JSON.stringify( svg, null, '\t' ) )
+AsVEJ = () => Download( AsVEJA, '.vej', JSON.stringify( svg, null, '\t' ) )
 const
 AsEPS = () => Download(
-	AsEPSB
+	AsEPSA
 ,	'.eps'
 ,	`%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${ width } ${ height }\n${ EPS( svg ) }`
 )
@@ -2272,7 +2272,7 @@ AsSVG = () => (
 	svg[ 2 ].xmlns = 'http://www.w3.org/2000/svg'
 ,	svg[ 2 ].width = width
 ,	svg[ 2 ].height = height
-,	Download( AsSVGB, '.svg', SVG( svg ) )
+,	Download( AsSVGA, '.svg', SVG( svg ) )
 )
 
 UndoB		.onclick = () => ( Undo()			, C_MAIN.focus() )
@@ -2298,9 +2298,9 @@ BackwardB	.onclick = () => ( Backward()		, C_MAIN.focus() )
 TieAndUniteB.onclick = () => ( TieAndUnite()	, C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()		, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()			, C_MAIN.focus() )
-AsVEJB		.onclick = () => ( AsVEJ()			, C_MAIN.focus() )
-AsSVGB		.onclick = () => ( AsSVG()			, C_MAIN.focus() )
-AsEPSB		.onclick = () => ( AsEPS()			, C_MAIN.focus() )
+AsVEJA		.onclick = () => ( AsVEJ()			, C_MAIN.focus() )
+AsSVGA		.onclick = () => ( AsSVG()			, C_MAIN.focus() )
+AsEPSA		.onclick = () => ( AsEPS()			, C_MAIN.focus() )
 
 OfVEJB		.onchange = ev => {
 	console.log( ev.target.files )
@@ -2308,8 +2308,8 @@ OfVEJB		.onchange = ev => {
 	fr.onload = () => (
 		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
 	,	svg = JSON.parse( fr.result )
-	,	undos.length = 0
-	,	redos.length = 0
+	,	dones.length = 0
+	,	todos.length = 0
 	,	Update()
 	)
 	fr.readAsText( ev.target.files[ 0 ] )
@@ -2322,8 +2322,8 @@ OfSVGB		.onchange = ev => {
 	fr.onload = () => (
 		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
 	,	svg = ParseSVG( fr.result )[ 0 ]
-	,	undos.length = 0
-	,	redos.length = 0
+	,	dones.length = 0
+	,	todos.length = 0
 	,	Update()
 	)
 	fr.readAsText( ev.target.files[ 0 ] )
