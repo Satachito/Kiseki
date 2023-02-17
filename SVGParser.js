@@ -1,3 +1,15 @@
+/*
+https://www.w3.org/TR/SVG/implnote.html#ArcImplementationNotes
+https://www.w3.org/TR/SVG/paths.html#ArcOutOfRangeParameters
+https://www.w3.org/TR/SVG/paths.html#PathDataEllipticalArcCommands
+https://developer.mozilla.org/ja/docs/Web/SVG/Tutorial/Paths
+https://developer.mozilla.org/ja/docs/Web/SVG/Attribute/d
+
+https://stackoverflow.com/questions/59290235/express-svg-arc-as-series-of-curves
+https://github.com/rustyoz/svg/blob/master/bezier.go
+https://stackoverflow.com/questions/41537950/converting-an-svg-arc-to-lines/41544540#41544540
+*/
+
 import { Round, EQ, CF, Add, Sub, Mid, Mul, Div } from './JP/JS/G.js'
 
 const

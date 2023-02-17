@@ -479,7 +479,11 @@ Paste = async () => {
 		const $ = JSON.parse( _.slice( CLIPBOARD_ID.length ) )
 		const newSVG = CloneJSONable( svg )
 		newSVG[ 1 ].push( ...$ )
-		SVGJob( 'Paste', newSVG, sels.map( _ => FindP( _, newSVG ) ) )
+		SVGJob(
+			'Paste'
+		,	newSVG
+		,	Points( [ '', $, {}, [] ] )
+		)
 	}
 }
 
@@ -906,29 +910,35 @@ SVGJob = ( title, newSVG, newSels = [] ) => {
 }
 
 const
-NewFigureJob = ( title, T, F ) => {
-	const E = [
-		T
+NewElementJob = ( title, E ) => {
+	const
+	oldSels = sels
+	const
+	newSels = Points( E )
+	DoJob(
+		title
+	,	() => ( sels = oldSels, svg[ 1 ].pop() )
+	,	() => ( sels = newSels, svg[ 1 ].push( E ) )
+	)
+}
+const
+NewFigureJob = ( title, T, F ) => NewElementJob(
+	title
+,	[	T
 	,	[]
 	,	Properties()
 	,	[ F ]
 	]
-	DoJob(
-		title
-	,	() => ( sels = [], svg[ 1 ].pop() )
-	,	() => ( sels = Points( E ), svg[ 1 ].push( E ) )
-	)
-}
+)
 
 const
 MoveJob = ( title, oldXYs ) => {
-	const
-	oldSels = sels
+if ( !oldXYs ) debugger
 	const
 	newXYs = sels.map( _ => [ ..._ ] )
 	DoneJob(
 		title
-	,	() => ( sels = oldSels, sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
+	,	() => sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] )
 	,	() => sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] )
 	)
 }
@@ -2342,6 +2352,8 @@ InfoB		.onclick = () => ( Info()		, C_MAIN.focus() )
 AsVEJA		.onclick = () => ( AsVEJ()		, C_MAIN.focus() )
 AsSVGA		.onclick = () => ( AsSVG()		, C_MAIN.focus() )
 AsEPSA		.onclick = () => ( AsEPS()		, C_MAIN.focus() )
+
+LoadLSB		.onclick = () => SVGJob( 'Load', JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) ) )
 
 OfVEJB		.onchange = ev => {
 	console.log( ev.target.files )
