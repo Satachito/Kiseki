@@ -394,7 +394,6 @@ Update = () => (
 ,	DrawMain()
 )
 
-
 const
 dones	= []
 
@@ -412,11 +411,9 @@ DoneJob	= ( title, Undo, Redo ) => (
 )
 
 const
-DoJob	= ( title, Undo, Do ) => (
-	todos.length = 0
-,	dones.push( { title, Undo, Redo: Do } )
-,	Do()
-,	Update()
+Job	= ( title, Undo, Do ) => (
+	Do()
+,	DoneJob( title, Undo, Do )
 )
 
 const
@@ -902,7 +899,7 @@ SVGJob = ( title, newSVG, newSels = [] ) => {
 	oldSVG = svg
 	const
 	oldSels = sels
-	DoJob(
+	Job(
 		title
 	,	() => ( sels = oldSels, svg = oldSVG )
 	,	() => ( sels = newSels, svg = newSVG )
@@ -915,7 +912,7 @@ NewElementJob = ( title, E ) => {
 	oldSels = sels
 	const
 	newSels = Points( E )
-	DoJob(
+	Job(
 		title
 	,	() => ( sels = oldSels, svg[ 1 ].pop() )
 	,	() => ( sels = newSels, svg[ 1 ].push( E ) )
@@ -933,13 +930,14 @@ NewFigureJob = ( title, T, F ) => NewElementJob(
 
 const
 MoveJob = ( title, oldXYs ) => {
-if ( !oldXYs ) debugger
 	const
 	newXYs = sels.map( _ => [ ..._ ] )
+	const
+	$ = [ ...sels ]
 	DoneJob(
 		title
-	,	() => sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] )
-	,	() => sels.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] )
+	,	() => ( sels = $, $.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = oldXYs[ _ ] ) )
+	,	() => ( sels = $, $.forEach( ( $, _ ) => [ $[ 0 ], $[ 1 ] ] = newXYs[ _ ] ) )
 	)
 }
 
@@ -1716,7 +1714,9 @@ console.log( found, $.length )
 }
 
 const
-TieOrUnite = () => {
+UniteDivide = () => {
+
+	PathForAll( () => {} )
 
 	const
 	Fs = Array.from( new Set( sels.map( _ => _.F ) ) )
@@ -1737,7 +1737,7 @@ TieOrUnite = () => {
 		:	F[ 0 ] = [ ...F[ 1 ][ 0 ][ 0 ] ]
 	)
 
-	SVGJob( 'Tie/Unite', newSVG )
+	SVGJob( 'Unite/Divide', newSVG )
 }
 
 const
@@ -2346,7 +2346,7 @@ ResizeB		.onclick = () => ( Resize()		, C_MAIN.focus() )
 ReverseB	.onclick = () => ( Reverse()	, C_MAIN.focus() )
 ForwardB	.onclick = () => ( Forward()	, C_MAIN.focus() )
 BackwardB	.onclick = () => ( Backward()	, C_MAIN.focus() )
-TieOrUnite	.onclick = () => ( TieOrUnite()	, C_MAIN.focus() )
+UniteDivideB.onclick = () => ( UniteDivide(), C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()	, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()		, C_MAIN.focus() )
 AsVEJA		.onclick = () => ( AsVEJ()		, C_MAIN.focus() )
@@ -2354,6 +2354,12 @@ AsSVGA		.onclick = () => ( AsSVG()		, C_MAIN.focus() )
 AsEPSA		.onclick = () => ( AsEPS()		, C_MAIN.focus() )
 
 LoadLSB		.onclick = () => SVGJob( 'Load', JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) ) )
+
+LoadLSB		.disabled = !JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) )
+RemoveLSB	.onclick = () => (
+	localStorage.removeItem( 'vej.828.tokyo' )
+,	LoadLSB.disabled = !JSON.parse( localStorage.getItem( 'vej.828.tokyo' ) )
+)
 
 OfVEJB		.onchange = ev => {
 	console.log( ev.target.files )
