@@ -14,6 +14,10 @@
 	<input type=image	id=PenB			alt=Pen		src=./res/Pen.png		>
 	<input type=image	id=ScissorsB	alt=Scissor	src=./res/Scissors.png	>
 	<input type=image	id=ChangeB		alt=Change	src=./res/Change.png	>
+	<input type=button	id=ReverseB		value=Reverse						>
+	<input type=button	id=ForwardB		value=Forward						>
+	<input type=button	id=BackwardB	value=Backward						>
+	<input type=button	id=TieB			value=Tie							>
 	<input type=image	id=HandB		alt=Hand	src=./res/Hand.png		>
 
 	<span class="right cursive" style="font-size: 19px">VecEdit</span>
@@ -69,10 +73,6 @@
 		<input type=text	id=ResizeV		value=100					><br>
 		<input type=button	id=ResizeB		value=Resize				><br>
 		<hr>
-		<input type=button	id=ReverseB		value=Reverse				><br>
-		<input type=button	id=ForwardB		value=Forward				><br>
-		<input type=button	id=BackwardB	value=Backward				><br>
-		<input type=button	id=UniteDivideB	value="Unite/Divide"		><br>
 		<input type=button	id=CombineB		value=Combine				><br>
 	</div>
 
@@ -80,9 +80,9 @@
 	<div class=padded>
 		<br>
 		<label>Preview</label><br>
-		<input type=range id=PreviewR max=1 step=0.1 value=1><br>
+		<input type=range id=PreviewR max=1 step=0.1 value=0.5	><br>
 		<label>Skelton</label><br>
-		<input type=range id=SkeltonR max=1 step=0.1 value=0.3><br>
+		<input type=range id=SkeltonR max=1 step=0.1 value=1	><br>
 		<br>
 
 		<hr>

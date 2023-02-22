@@ -33,12 +33,12 @@ import {
 } from './JP/JS/JP.js'
 
 const
-CircluatingSlice = ( _, b, e ) => b > e
-?	[ ..._.slice( b ), ..._.slice( 0, e ) ]
-:	_.slice( b, e )
+CirculatingSlice = ( _, b, e ) => b < e
+?	_.slice( b, e )
+:	[ ..._.slice( b ), ..._.slice( 0, e ) ]
 
 const
-CircluatingShift = ( _, $ ) => [ ..._.slice( $ ), ..._.slice( 0, $ ) ]
+CirculatingShift = ( _, $ ) => [ ..._.slice( $ ), ..._.slice( 0, $ ) ]
 
 import {
 	CF
@@ -227,12 +227,9 @@ DrawMain		= mdmv => {
 		TagGroup( _[ 0 ] ) === 'path' && (
 			_[ 3 ].forEach(
 				( [ MT, LC ] ) => {
-					if ( MT ) {
-						const rMT = Round( MT )
-						Square( rMT )
-					}
-
 					let cp = MT ?? LC[ 0 ][ 0 ]
+					Square( Round( cp ), 2 )
+					Square( Round( cp ) )
 					let iS = LC.length
 					while ( iS-- ) {
 						const S = LC[ iS ]
@@ -1592,7 +1589,7 @@ console.log( found, $.length )
 					$.iP !== 0	//	MT(void 0), 1, 2
 				||	( $.F[ 0 ] !== null && $.iP === 0 && $.iS === 0 )	//	End point
 				) {
-					alert( 'Cannot split here.' )
+					Toast( 'yellow', 'Cannot split here.' )
 					return
 				}
 				const
@@ -1612,7 +1609,7 @@ console.log( found, $.length )
 					newSels.push( b[ 0 ], a[ 1 ][ 0 ][ 0 ] )
 				} else {
 					F[ 0 ] = [ ...$ ]
-					F[ 1 ] = [ ...CircluatingSlice( LC, $.iS, $.iS ) ]
+					F[ 1 ] = [ ...CirculatingSlice( LC, $.iS, $.iS ) ]
 					newSels.push( F[ 0 ], F[ 1 ][ 0 ][ 0 ] )
 				}
 				SVGJob( 'Scissors', newSVG, newSels )
@@ -1680,7 +1677,7 @@ console.log( found, $.length )
 					switch ( S.length ) {
 					case 1:
 						F[ 0 ] = newSels[ 0 ]
-						F[ 1 ] = [ [ newSels[ 1 ] ], ...CircluatingShift( LC, iS + 1 ) ]
+						F[ 1 ] = [ [ newSels[ 1 ] ], ...CirculatingShift( LC, iS + 1 ) ]
 						break
 					case 2:
 						{	const _ = DivideQuadBezier(
@@ -1689,7 +1686,7 @@ console.log( found, $.length )
 							)
 							S[ 1 ] = _[ 2 ]
 							F[ 0 ] = newSels[ 0 ]
-							F[ 1 ] = [ [ newSels[ 1 ], _[ 0 ] ], ...CircluatingShift( LC, iS + 1 ) ]
+							F[ 1 ] = [ [ newSels[ 1 ], _[ 0 ] ], ...CirculatingShift( LC, iS + 1 ) ]
 						}
 						break
 					case 3:
@@ -1700,7 +1697,7 @@ console.log( found, $.length )
 							S[ 2 ] = _[ 3 ]
 							S[ 1 ] = _[ 4 ]
 							F[ 0 ] = newSels[ 0 ]
-							F[ 1 ] = [ [ newSels[ 1 ], _[ 1 ], _[ 0 ] ], ...CircluatingShift( LC, iS + 1 ) ]
+							F[ 1 ] = [ [ newSels[ 1 ], _[ 1 ], _[ 0 ] ], ...CirculatingShift( LC, iS + 1 ) ]
 						}
 						break
 					}
@@ -1710,34 +1707,95 @@ console.log( found, $.length )
 			}
 		}
 		break
+	case ReverseB:
+		{	const $ = GridHit( svg )
+
+			if ( $ ) {
+				const
+				[ d2, iF, iS, grid, cp ] = $
+				const
+				newSVG = CloneJSONable( svg )
+				PathForAll( () => {} )
+				const
+				F = FindF( cp, newSVG )
+				const
+				[ MT, LC ] = F
+				if ( MT ) {	//	Line
+					F[ 0 ] = LC[ 0 ][ 0 ]
+					F[ 1 ] = [ [ MT, ...LC.at( -1 ).slice( 1 ).reverse() ] ]
+					let iS = LC.length
+					while ( --iS ) F[ 1 ].push( [ LC[ iS ][ 0 ], ...LC[ iS - 1 ].slice( 1 ).reverse() ] )
+				} else {	//	Contour
+					F[ 1 ] = [ [ LC[ 0 ][ 0 ], ...LC.at( -1 ).slice( 1 ).reverse() ] ]
+					let iS = LC.length
+					while ( --iS ) F[ 1 ].push( [ LC[ iS ][ 0 ], ...LC[ iS - 1 ].slice( 1 ).reverse() ] )
+				}
+				SVGJob( 'Reverse', newSVG )
+			}
+		}
+		break
+	case ForwardB:
+		{	const $ = GridHit( svg )
+
+			if ( $ ) {
+				const
+				[ d2, iF, iS, grid, cp ] = $
+				const
+				newSVG = CloneJSONable( svg )
+				PathForAll( () => {} )
+				const
+				[ MT, LC ] = FindF( cp, newSVG )
+				if ( MT ) {
+					Toast( 'yellow', 'Contour only' )
+				} else {
+					LC.unshift( LC.pop() )
+				}
+				SVGJob( 'Forward', newSVG )
+			}
+		}
+		break
+	case BackwardB:
+		{	const $ = GridHit( svg )
+
+			if ( $ ) {
+				const
+				[ d2, iF, iS, grid, cp ] = $
+				const
+				newSVG = CloneJSONable( svg )
+				PathForAll( () => {} )
+				const
+				[ MT, LC ] = FindF( cp, newSVG )
+				if ( MT ) {
+					Toast( 'yellow', 'Contour only' )
+				} else {
+					LC.push( LC.shift( 1 ) )
+				}
+				SVGJob( 'Backward', newSVG )
+			}
+		}
+		break
+	case TieB:
+		{	const $ = GridHit( svg )
+
+			if ( $ ) {
+				const
+				[ d2, iF, iS, grid, cp ] = $
+				const
+				newSVG = CloneJSONable( svg )
+				PathForAll( () => {} )
+				const
+				F = FindF( cp, newSVG )
+				if ( F[ 0 ] ) {
+					F[ 1 ].unshift( [ F[ 0 ] ] )
+					F[ 0 ] = null
+					SVGJob( 'Tie', newSVG )
+				} else {
+					Toast( 'yellow', 'Line only' )
+				}
+			}
+		}
+		break
 	}
-}
-
-const
-UniteDivide = () => {
-
-	PathForAll( () => {} )
-
-	const
-	Fs = Array.from( new Set( sels.map( _ => _.F ) ) )
-	if ( !Fs.length ) {
-		alert( 'No lines' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-
-	new Set( sels.map( _ => FindF( _, newSVG ) ) ).forEach(
-		F => F[ 0 ]
-	//	?	(	EQ( F[ 0 ], F[ 1 ][ 0 ][ 0 ] ) || F[ 1 ].unshift( [ F[ 0 ] ] )
-		?	(	F[ 1 ].unshift( [ F[ 0 ] ] )
-			,	F[ 0 ] = null
-			)
-		:	F[ 0 ] = [ ...F[ 1 ][ 0 ][ 0 ] ]
-	)
-
-	SVGJob( 'Unite/Divide', newSVG )
 }
 
 const
@@ -2022,67 +2080,6 @@ console.log( newCs )
 	SVGJob( 'Combine', newSVG, newCs.flat().flat() )
 }
 
-const
-Reverse = () => {
-
-	if ( !sels.length ) {
-		Toast( 'yellow', 'No contours' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-	new Set( sels.map( _ => FindF( _, newSVG ) ) ).forEach(
-		F => {
-			const
-			[ MT, LC ] = F
-			if ( MT ) {	//	Line
-			//	const _ = LC.map( ( $, _ ) => [ $[ 0 ], ...LC[ ++_ === LC.length ? 0 : _ ].slice( 1 ).reverse() ] )
-			//	F[ 1 ] = [ _[ 0 ], ..._.slice( 1 ).reverse() ]
-
-				F[ 0 ] = LC[ 0 ][ 0 ]
-				F[ 1 ] = [ [ MT, ...LC.at( -1 ).slice( 1 ).reverse() ] ]
-				let iS = LC.length
-				while ( --iS ) F[ 1 ].push( [ LC[ iS ][ 0 ], ...LC[ iS - 1 ].slice( 1 ).reverse() ] )
-			} else {	//	Contour
-				F[ 1 ] = [ [ LC[ 0 ][ 0 ], ...LC.at( -1 ).slice( 1 ).reverse() ] ]
-				let iS = LC.length
-				while ( --iS ) F[ 1 ].push( [ LC[ iS ][ 0 ], ...LC[ iS - 1 ].slice( 1 ).reverse() ] )
-			}
-		}
-	)
-	SVGJob( 'Reverse', newSVG )
-}
-
-const
-Forward = () => {
-
-	const _ = sels.filter( _ => _.F[ 0 ] === null )
-	if ( !_.length ) {
-		Toast( 'yellow', 'No contours' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.unshift( C.pop() ) )
-	SVGJob( 'Forward', newSVG )
-}
-
-const
-Backward = () => {
-
-	const _ = sels.filter( _ => _.F[ 0 ] === null )
-	if ( !_.length ) {
-		Toast( 'yellow', 'No contours' )
-		return
-	}
-
-	const
-	newSVG = CloneJSONable( svg )
-	new Set( _.map( _ => FindF( _, newSVG )[ 1 ] ) ).forEach( C => C.push( C.shift( 1 ) ) )
-	SVGJob( 'Backward', newSVG )
-}
 
 const
 Info = () => {
@@ -2343,10 +2340,6 @@ Rotate90RB	.onclick = () => ( Rotate90R()	, C_MAIN.focus() )
 Rotate90LB	.onclick = () => ( Rotate90L()	, C_MAIN.focus() )
 RotateB		.onclick = () => ( Rotate()		, C_MAIN.focus() )
 ResizeB		.onclick = () => ( Resize()		, C_MAIN.focus() )
-ReverseB	.onclick = () => ( Reverse()	, C_MAIN.focus() )
-ForwardB	.onclick = () => ( Forward()	, C_MAIN.focus() )
-BackwardB	.onclick = () => ( Backward()	, C_MAIN.focus() )
-UniteDivideB.onclick = () => ( UniteDivide(), C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()	, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()		, C_MAIN.focus() )
 AsVEJA		.onclick = () => ( AsVEJ()		, C_MAIN.focus() )
@@ -2430,7 +2423,21 @@ SetMode = _ => (
 ,	C_MAIN.focus()
 )
 
-;[ SelectB, RectB, OvalB, LineB, CurveB, EraserB, PenB, ScissorsB, ChangeB, HandB ].forEach(
+;[	SelectB
+,	RectB
+,	OvalB
+,	LineB
+,	CurveB
+,	EraserB
+,	PenB
+,	ScissorsB
+,	ChangeB
+,	ReverseB
+,	ForwardB
+,	BackwardB
+,	TieB
+,	HandB
+].forEach(
 	_ => _.onclick = () => (
 		SetMode( _ )
 	,	sels = []
