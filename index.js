@@ -1091,9 +1091,13 @@ mdXY = [ marginH, marginV ]
 C_MAIN.addEventListener(
 	'mousemove'
 ,	mm => {
+		const MM = MouseXY( mm )
+		CIE.style.left = MM[ 0 ] + 10 + 'px'
+		CIE.style.top = MM[ 1 ] + 10 + 'px'
+		const invM = Invert( MM )
 		const invD = Invert( mdXY )
-		const invM = Invert( MouseXY( mm ) )
-		COORDINATE.textContent = `(${invD})-(${invM})-(${Sub(invM,invD)})`
+		CIE.textContent = `${invM}\n${Sub(invM,invD)}`
+		CIE_FOOTER.textContent = `${invM}-(${Sub(invM,invD)})`
 	}
 )
 
@@ -2194,7 +2198,7 @@ const
 SVG = ( [ T, D, A, G ] ) => {
 	const tagGroup = TagGroup( T )
 	let $ = '<' + tagGroup + '\n'
-	Object.entries( A ).forEach( ( [ k, v ] ) => $ += ' ' + k + '="' + v + '"\n' )
+	Object.entries( A ).forEach( ( [ k, v ] ) => k ==='d' || ( $ += ' ' + k + '="' + v + '"\n' ) )
 	switch ( tagGroup ) {
 	case 'path':
 		A.fill || ( $ += ' fill="none"\n' )

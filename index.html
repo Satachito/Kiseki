@@ -15,10 +15,10 @@
 	<input type=image	id=PenB			alt=Pen			src=./res/Pen.svg		>
 	<input type=image	id=ScissorsB	alt=Scissor		src=./res/Scissors.svg	>
 	<input type=image	id=ChangeB		alt=Change		src=./res/Change.svg	>
-	<input type=image	id=ReverseB		alt=Reverse		src=./res/Reverse.svg	>
+	<input type=image	id=TieB			alt=Tie			src=./res/Tie.svg		>
 	<input type=image	id=ForwardB		alt=Forward		src=./res/Forward.svg	>
 	<input type=image	id=BackwardB	alt=Backward	src=./res/Backward.svg	>
-	<input type=image	id=TieB			alt=Tie			src=./res/Tie.svg		>
+	<input type=image	id=ReverseB		alt=Reverse		src=./res/Reverse.svg	>
 	<input type=image	id=HandB		alt=Hand		src=./res/Hand.svg		>
 
 	<span class="right cursive" style="font-size: 19px">VecEdit</span>
@@ -100,7 +100,9 @@
 	</div>
 
 	<div class=headline>Job List</div>
-	<job-list id=JOB_LIST></job-list>
+	<div class=padded>
+		<job-list id=JOB_LIST></job-list>
+	</div>
 
 	<div class=headline>Debug</div>
 	<div class=padded>
@@ -120,7 +122,8 @@
 <main id=MAIN>
 	<canvas id=C_DEBUG	></canvas>
 	<canvas id=C_PREV	></canvas>
-	<canvas id=C_MAIN	tabindex=0></canvas>
+	<canvas id=C_MAIN	style="z-index: 1" tabindex=0></canvas>
+	<label id=CIE style="position: relative; white-space: pre-wrap"></label>
 </main>
 
 <aside id=ASIDE class=open>
@@ -194,7 +197,7 @@
 </aside>
 
 <footer>
-	<span id=COORDINATE></span>
+	<span id=CIE_FOOTER></span>
 	<span class="cursive right">©2021- SliP LLC, Tokyo. Written by Satoru Ogura.</span>
 </footer>
 
