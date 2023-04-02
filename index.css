@@ -19,10 +19,15 @@ nav			{ overflow		: scroll }
 aside		{ overflow		: scroll }
 main		{ overflow		: scroll }
 
-nav input[ type=text ] { width		: 32px	}
+nav input[ type=text ] { width		: 37px	}
 nav input[ type=file ] { display	: none	}
 .fileLabel {
-;	border					: 1px solid black
+;	border-radius			: 12px
+;	color					: white
+;	display					: block
+;	background-color		: blue
+;	padding					: 6px
+;	text-align				: center
 }
 
 body {
@@ -35,17 +40,25 @@ body {
 
 header, footer {
 ;	grid-column				: 1 / 4
-;	padding					: 0 5px
+;	padding					: 2px 5px
 }
 
-header input[ type=image ] {
-;	border					: 2px solid grey
-}
-header input[ type=image ].selected {
-;	border					: 2px solid red
-}
 header	> *	{
 ;	vertical-align			: middle
+}
+
+img {
+;	width					: 32px
+;	height					: 32px
+}
+
+input[ type=image ] {
+;	width					: 27px
+;	height					: 27px
+;	border					: 2px solid grey
+}
+input[ type=image ].selected {
+;	border					: 2px solid red
 }
 
 hr {
@@ -64,7 +77,12 @@ canvas {
 ;	display					: flex
 ;	justify-content			: space-between
 ;	align-items				: center
-;	height					: 23px
+}
+nav .lr {
+;	height					: 32px
+}
+aside .lr {
+;	height					: 28px
 }
 
 .padded {

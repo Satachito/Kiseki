@@ -106,9 +106,9 @@ let
 sels			= []
 
 let
-marginH			= 200
+marginH			= 0
 let
-marginV			= 200
+marginV			= 0
 let
 width			= 1000
 let
@@ -2303,16 +2303,16 @@ EPS = ( [ T, D, A, G ] = svg ) => {
 }
 
 const
-Download = ( button, ext, _ ) => (
-	button.setAttribute( 'download', BaseName.value + ext )
+Download = ( button, filename, _ ) => (
+	button.setAttribute( 'download', filename)
 ,	button.href = URL.createObjectURL( new Blob( [ _ ], { type: 'text/plain' } ) )
 )
 const
-AsVEJ = () => Download( AsVEJA, '.vej', JSON.stringify( svg, null, '\t' ) )
+AsVEJ = () => Download( AsVEJA, VEJBaseName.value + '.vej', JSON.stringify( svg, null, '\t' ) )
 const
 AsEPS = () => Download(
 	AsEPSA
-,	'.eps'
+,	EPSBaseName.value + '.eps'
 ,	`%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${ width } ${ height }\n${ EPS( svg ) }`
 )
 const
@@ -2320,7 +2320,7 @@ AsSVG = () => (
 	svg[ 2 ].xmlns = 'http://www.w3.org/2000/svg'
 ,	svg[ 2 ].width = width
 ,	svg[ 2 ].height = height
-,	Download( AsSVGA, '.svg', SVG( svg ) )
+,	Download( AsSVGA, SVGBaseName.value + '.svg', SVG( svg ) )
 )
 
 UndoB		.onclick = () => ( Undo()		, C_MAIN.focus() )
