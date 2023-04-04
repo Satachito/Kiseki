@@ -83,20 +83,29 @@
 
 	<div class=headline>Display parameters</div>
 	<div class=padded>
+		<div class=lr><img alt=Width				src=./res/Width.svg>	<input type=text id=Width	></div>
+		<div class=lr><img alt=Height				src=./res/Height.svg>	<input type=text id=Height	></div>
+		<div class=lr><img alt="Horizontal Margin"	src=./res/MarginH.svg>	<input type=text id=MarginH	></div>
+		<div class=lr><img alt="Vertical Margin"	src=./res/MarginV.svg>	<input type=text id=MarginV	></div>
+		<hr>
+		<jp-color-picker	id=ScrollPaneBG	value=#eee	></jp-color-picker>
+		<hr>
 		<img alt=PreviewPaneBackground src=./res/PreviewPaneBackground.svg>
 		<input type=range id=PreviewR max=1 step=0.1 value=0.5	><br>
 		<jp-color-picker	id=PrevCanvasBG	value=white	></jp-color-picker>
 		<hr>
 		<img alt=ScrollPaneBackground src=./res/ScrollPaneBackground.svg>
 		<input type=range id=SkeltonR max=1 step=0.1 value=1	><br>
-		<hr>
-		<jp-color-picker	id=ScrollPaneBG	value=#eee	></jp-color-picker>
-		<hr>
+	</div>
 
-		<div class=lr><img alt=Width				src=./res/Width.svg>	<input type=text id=Width	></div>
-		<div class=lr><img alt=Height				src=./res/Height.svg>	<input type=text id=Height	></div>
-		<div class=lr><img alt="Horizontal Margin"	src=./res/MarginH.svg>	<input type=text id=MarginH	></div>
-		<div class=lr><img alt="Vertical Margin"	src=./res/MarginV.svg>	<input type=text id=MarginV	></div>
+	<div class=headline>Combine</div>
+	<div class=padded>
+		<input type=image	id=CombineB		alt=Combine		src=./res/Combine.svg			> Combine contours.<br>
+	</div>
+
+	<div class=headline>Recovery</div>
+	<div class=padded>
+		<input type=image	id=LoadLSB		alt=Recovery	src=./res/LoadLocalStorage.svg	> Recover last session.<br>
 	</div>
 
 	<div class=headline>Job List</div>
@@ -114,13 +123,10 @@
 		<input type=button	id=DebugB		value=Debug				><br>
 		<hr>
 		<input type=button	id=RemoveLSB	value="X web storage"	><br>
-		<input type=image	id=LoadLSB		alt="Load web storage"	src=./res/LoadLocalStorage.svg	><br>
-		<input type=image	id=CombineB		alt=Combine				src=./res/Combine.svg			><br>
 	</div>
 </nav>
 
 <main id=MAIN>
-	<canvas id=C_DEBUG	></canvas>
 	<canvas id=C_PREV	></canvas>
 	<canvas id=C_MAIN	style="z-index: 1" tabindex=0></canvas>
 	<label id=CIE style="position: relative; white-space: pre-wrap"></label>

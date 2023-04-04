@@ -497,6 +497,7 @@ Crawl = ( _, mat = [ 1, 0, 0, 1, 0, 0 ] ) => {
 				}
 			}
 		)
+		delete A.transform
 	}
 	CTMCat( mat )
 

@@ -147,25 +147,30 @@ DrawMain		= mdmv => {
 	const
 	data = $.data
 	const
-	HLine = ( y, x, w ) => {
+	HLine = ( y, x, w, rgb = 0 ) => {
 		let
 		_ = ( ( y + marginV ) * W + x + marginH ) * 4
 		for ( let h = 0; h < w; h++ ) {
-			data[ _ ] = 0xff
+			data[ _ + rgb ] = 0xff
 			data[ _ + 3 ] = 0xff
 			_ += 4
 		}
 	}
 	const
-	VLine = ( x, y, h ) => {
+	VLine = ( x, y, h, rgb = 0 ) => {
 		let
 		_ = ( ( y + marginV ) * W + x + marginH ) * 4
 		for ( let v = 0; v < h; v++ ) {
-			data[ _ ] = 0xff
+			data[ _ + rgb] = 0xff
 			data[ _ + 3 ] = 0xff
 			_ += W * 4
 		}
 	}
+
+	HLine( 0		, 0, width	, 1 )
+	HLine( height -1, 0, width	, 1 )
+	VLine( 0		, 0, height	, 1 )
+	VLine( width -1	, 0, height	, 1 )
 
 	if ( sels.length > 1 ) {
 		const bbox = BBox( ...sels )
@@ -2322,8 +2327,7 @@ AsEPS = () => Download(
 const
 AsSVG = () => (
 	svg[ 2 ].xmlns = 'http://www.w3.org/2000/svg'
-,	svg[ 2 ].width = width
-,	svg[ 2 ].height = height
+,	svg[ 2 ].viewBox = `0 0 ${width} ${height}`
 ,	Download( AsSVGA, SVGBaseName.value + '.svg', SVG( svg ) )
 )
 
@@ -2375,13 +2379,16 @@ import ParseSVG from './SVGParser.js'
 OfSVGB		.onchange = ev => {
 	console.log( ev.target.files )
 	const fr = new FileReader()
-	fr.onload = () => (
+	fr.onload = () => {
+		svg = ParseSVG( fr.result )[ 0 ]
+		dones.length = 0
+		todos.length = 0
+		const [ x, y, w, h ] = ( svg[ 2 ].viewBox ?? "0 0 1000 1000" ).split( ' ' )
+		Width.value = width = w
+		Height.value = height = h
+		Refresh()
 		Toast( 'green', ev.target.files[ 0 ].name + ' uploaded' )
-	,	svg = ParseSVG( fr.result )[ 0 ]
-	,	dones.length = 0
-	,	todos.length = 0
-	,	Update()
-	)
+	}
 	fr.readAsText( ev.target.files[ 0 ] )
 }
 
@@ -2506,7 +2513,7 @@ Array.from( document.body.getElementsByClassName( 'redraw' ) ).forEach(
 	,	_.palette.addEventListener( 'input', ev => console.log( 'palette', _, _.value ) )
 	)
 )
-
+/*
 const
 cDebug		= C_DEBUG.getContext( '2d' )
 
@@ -2559,6 +2566,7 @@ DrawDebug	= ( _, N ) => {
 	C_DEBUG.height = $.height
 	cDebug.putImageData( $, 0, 0 )
 }
+*/
 
 const
 Load = async file => {
