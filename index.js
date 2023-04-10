@@ -2112,34 +2112,49 @@ Info = () => {
 }
 
 const
-XYJob = ( title, _ ) => {
-	const
-	oldXYs = sels.map( _ => [ ..._ ] )
-	_()
-	MoveJob( title, oldXYs )
-}
-
-const
 AlignJob = ( title, ax, minmax ) => {
 	const
 	$ = BBox( ...sels )[ ax ][ minmax ]
-	XYJob( title, _ => sels.forEach( _ => _[ ax ] = $ ) )
+	const
+	oldXYs = sels.map( _ => [ ..._ ] )
+	sels.forEach( _ => _[ ax ] = $ )
+	MoveJob( title, oldXYs )
 }
 const
-AlignL = () => AlignJob( 'AlignL', 0, 0 )
+AlignL = () => sels.length && AlignJob( 'AlignL', 0, 0 )
 const
-AlignR = () => AlignJob( 'AlignR', 0, 1 )
+AlignR = () => sels.length && AlignJob( 'AlignR', 0, 1 )
 const
-AlignT = () => AlignJob( 'AlignT', 1, 0 )
+AlignT = () => sels.length && AlignJob( 'AlignT', 1, 0 )
 const
-AlignB = () => AlignJob( 'AlignB', 1, 1 )
+AlignB = () => sels.length && AlignJob( 'AlignB', 1, 1 )
+
+const
+ScaleJob = ( title, h, v ) => {
+	const
+	oldXYs = sels.map( _ => [ ..._ ] )
+	const bbox = BBox( ...sels )
+	const X = bbox[ 0 ][ h ]
+	const Y = bbox[ 1 ][ v ]
+	sels.forEach(
+		_ => [ _[ 0 ], _[ 1 ] ] = [
+			X + ( _[ 0 ] - X ) * ScaleH.value / 100
+		,	Y + ( _[ 1 ] - Y ) * ScaleV.value / 100
+		]
+	)
+	MoveJob( title, oldXYs )
+}
+const
+ScaleLT = () => sels.length && ScaleJob( 'ScaleLT', 0, 0 )
+const
+ScaleLB = () => sels.length && ScaleJob( 'ScaleLB', 0, 1 )
+const
+ScaleRT = () => sels.length && ScaleJob( 'ScaleRT', 1, 0 )
+const
+ScaleRB = () => sels.length && ScaleJob( 'ScaleRB', 1, 1 )
 
 const
 MidXYJob = ( title, _ ) => {
-	if ( !sels.length ) {
-		Toast( 'yellow', 'No selection' )
-		return
-	}
 	const
 	oldXYs = sels.map( _ => [ ..._ ] )
 	const [ [ x, X ], [ y, Y ] ] = BBox( ...sels )
@@ -2187,12 +2202,12 @@ Rotate = () => sels.length && MidXYJob(
 	}
 )
 const
-Resize = () => sels.length && MidXYJob(
-	'Resize'
+Scale = () => sels.length && MidXYJob(
+	'Scale'
 ,	( midX, midY ) => sels.forEach(
 		_ => [ _[ 0 ], _[ 1 ] ] = [
-			midX + ( _[ 0 ] - midX ) * ResizeH.value / 100
-		,	midY + ( _[ 1 ] - midY ) * ResizeV.value / 100
+			midX + ( _[ 0 ] - midX ) * ScaleH.value / 100
+		,	midY + ( _[ 1 ] - midY ) * ScaleV.value / 100
 		]
 	)
 )
@@ -2347,7 +2362,11 @@ MirrorVB	.onclick = () => ( MirrorV()	, C_MAIN.focus() )
 Rotate90RB	.onclick = () => ( Rotate90R()	, C_MAIN.focus() )
 Rotate90LB	.onclick = () => ( Rotate90L()	, C_MAIN.focus() )
 RotateB		.onclick = () => ( Rotate()		, C_MAIN.focus() )
-ResizeB		.onclick = () => ( Resize()		, C_MAIN.focus() )
+ScaleB		.onclick = () => ( Scale()		, C_MAIN.focus() )
+ScaleLTB	.onclick = () => ( ScaleLT()	, C_MAIN.focus() )
+ScaleLBB	.onclick = () => ( ScaleLB()	, C_MAIN.focus() )
+ScaleRTB	.onclick = () => ( ScaleRT()	, C_MAIN.focus() )
+ScaleRBB	.onclick = () => ( ScaleRB()	, C_MAIN.focus() )
 CombineB	.onclick = () => ( Combine()	, C_MAIN.focus() )
 InfoB		.onclick = () => ( Info()		, C_MAIN.focus() )
 AsVEJA		.onclick = () => ( AsVEJ()		, C_MAIN.focus() )

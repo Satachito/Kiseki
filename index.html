@@ -69,24 +69,33 @@
 			<span>
 				Angle:<input type=text	id=RotateAngle	value=0>
 			</span>
-			<input type=image	id=RotateB		alt=Rotate				src=./res/Rotate.svg	>
+			<input type=image	id=RotateB		alt=Rotate			src=./res/Rotate.svg	>
 		</div>
 		<hr>
-		<div class=lr>
-			<span>
-				H:<input type=text	id=ResizeH		value=100>
-				V:<input type=text	id=ResizeV		value=100>
-			</span>
-			<input type=image	id=ResizeB		alt=Resize				src=./res/Resize.svg	>
+		<div>
+			<div style="margin-bottom: 4px">
+				Scale:
+				H:<input type=text	id=ScaleH	value=100>
+				V:<input type=text	id=ScaleV	value=100>
+			</div>
+			<input type=image	id=ScaleLTB	alt=ScaleLT				src=./res/ScaleLT.svg	>
+			<input type=image	id=ScaleLBB	alt=ScaleLB				src=./res/ScaleLB.svg	>
+			<input type=image	id=ScaleRTB	alt=ScaleRT				src=./res/ScaleRT.svg	>
+			<input type=image	id=ScaleRBB	alt=ScaleRB				src=./res/ScaleRB.svg	>
+			<input type=image	id=ScaleB	alt=Scale				src=./res/Scale.svg		>
 		</div>
 	</div>
 
 	<div class=headline>Display parameters</div>
 	<div class=padded>
-		<div class=lr><img alt=Width				src=./res/Width.svg>	<input type=text id=Width	></div>
-		<div class=lr><img alt=Height				src=./res/Height.svg>	<input type=text id=Height	></div>
-		<div class=lr><img alt="Horizontal Margin"	src=./res/MarginH.svg>	<input type=text id=MarginH	></div>
-		<div class=lr><img alt="Vertical Margin"	src=./res/MarginV.svg>	<input type=text id=MarginV	></div>
+		<div class=lr>
+			<div><img alt=Width src=./res/Width.svg	><img alt=Height src=./res/Height.svg	></div>
+			<div><input type=text id=Width			><input type=text id=Height				></div>
+		</div>
+		<div class=lr>
+			<div><img alt="Horizontal Margin" src=./res/MarginH.svg	><img alt="Vertical Margin"	src=./res/MarginV.svg	></div>
+			<div><input type=text id=MarginH						><input type=text id=MarginV						></div>
+		</div>
 		<hr>
 		<jp-color-picker	id=ScrollPaneBG	value=#eee	></jp-color-picker>
 		<hr>
@@ -206,27 +215,6 @@
 	<span id=CIE_FOOTER></span>
 	<span class="cursive right">©2021- SliP LLC, Tokyo. Written by Satoru Ogura.</span>
 </footer>
-
-<dialog id=RotateDialog>
-	<div class=dialogBlocker>
-		<label>Degree:</label><input id=RotateDialogDegree><br>
-		<br>
-		<br>
-		<input id=RotateDialogOK		type=button value='OK'		class=default>
-		<input id=RotateDialogCancel	type=button value='Cancel'>
-	</div>
-</dialog>
-
-<dialog id=ResizeDialog>
-	<div class=dialogBlocker>
-		<label>X:</label><input id=ResizeDialogX><br>
-		<label>Y:</label><input id=ResizeDialogY><br>
-		<br>
-		<br>
-		<input id=ResizeDialogOK		type=button value='OK'		class=default>
-		<input id=ResizeDialogCancel	type=button value='Cancel'>
-	</div>
-</dialog>
 
 <script type=module src=JPColorPicker.js></script>
 <script type=module src=index.js></script>
