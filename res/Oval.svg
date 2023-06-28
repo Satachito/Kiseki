@@ -3,12 +3,13 @@
 <svg version="1.1" id="レイヤー_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
 	 y="0px" viewBox="0 0 283.5 283.5" style="enable-background:new 0 0 283.5 283.5;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#00B9A7;}
+	.st0{fill:#718186;}
+	.st1{fill:#FFA4A7;}
 </style>
-<g id="レイヤー_2_00000133493657717951946780000001265725096853609089_">
+<g id="レイヤー_2_00000069399452389382195490000016231383293646319796_">
 </g>
-<g id="レイヤー_1_00000047053489257006398980000003634904970904597633_">
-	<ellipse cx="141.7" cy="141.7" rx="132.4" ry="111.1"/>
-	<ellipse class="st0" cx="141.7" cy="141.7" rx="122.8" ry="101.5"/>
+<g id="レイヤー_1_00000145044879106398353360000015936875816108107192_">
+	<ellipse class="st0" cx="141.7" cy="141.7" rx="132.4" ry="111.1"/>
+	<ellipse class="st1" cx="141.7" cy="141.7" rx="122.8" ry="101.5"/>
 </g>
 </svg>

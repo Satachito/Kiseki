@@ -55,7 +55,7 @@ img {
 input[ type=image ] {
 ;	width					: 27px
 ;	height					: 27px
-;	border					: 2px solid grey
+;	border					: 2px solid lightgrey
 }
 input[ type=image ].selected {
 ;	border					: 2px solid red
