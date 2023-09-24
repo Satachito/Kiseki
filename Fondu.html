@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang=zxx>
+<meta charset="utf-8">
+<title>Fondu, the Font Editor</title>
+
+<link rel=stylesheet href=Fondu.css>
+
+<header>
+	<input type=image	id=SelectB		alt=Select		src=./res/Select.svg	class=selected >
+	<input type=image	id=RectB		alt=Rect		src=./res/Rect.svg		>
+	<input type=image	id=OvalB		alt=Oval		src=./res/Oval.svg		>
+	<input type=image	id=LineB		alt=Line		src=./res/Line.svg		>
+	<input type=image	id=CurveB		alt=Curve		src=./res/Curve.svg		>
+	<input type=image	id=EraserB		alt=Eraser		src=./res/Eraser.svg	>
+	<input type=image	id=PenB			alt=Pen			src=./res/Pen.svg		>
+	<input type=image	id=ScissorsB	alt=Scissor		src=./res/Scissors.svg	>
+	<input type=image	id=ChangeB		alt=Change		src=./res/Change.svg	>
+	<input type=image	id=TieB			alt=Tie			src=./res/Tie.svg		>
+	<input type=image	id=ForwardB		alt=Forward		src=./res/Forward.svg	>
+	<input type=image	id=BackwardB	alt=Backward	src=./res/Backward.svg	>
+	<input type=image	id=ReverseB		alt=Reverse		src=./res/Reverse.svg	>
+	<input type=image	id=HandB		alt=Hand		src=./res/Hand.svg		>
+
+	<span class="right cursive" style="font-size: 19px">Fondu</span>
+</header>
+
+<nav id=NAV class=open>
+
+	<div class=headline>Upload</div>
+	<div class=padded>
+		<input type=file	id=OfVEJB accept=.vej><label for=OfVEJB class=fileLabel>.vej</label>
+		<div style="height: 4px"></div>
+		<input type=file	id=OfSVGB accept=.svg><label for=OfSVGB class=fileLabel>.svg</label>
+	</div>
+
+	<div class=headline>Download</div>
+	<div class=padded>
+		<input type=text	id=VEJBaseName		value=VEJ>
+		<a href=_blank		id=AsVEJA									>.vej</a><br>
+		<input type=text	id=SVGBaseName		value=VEJ>
+		<a href=_blank		id=AsSVGA									>.svg</a><br>
+		<input type=text	id=EPSBaseName		value=VEJ>
+		<a href=_blank		id=AsEPSA									>.eps</a><br>
+	</div>
+
+	<div class=headline>Edit</div>
+	<div class=padded>
+		<input type=image	id=InfoB		alt=Info				src=./res/Info.svg		>
+		<input type=image	id=UndoB		alt=Undo				src=./res/Undo.svg		>
+		<input type=image	id=RedoB		alt=Redo				src=./res/Redo.svg		>
+		<hr>
+		<input type=image	id=CutB			alt=Cut					src=./res/Cut.svg		>
+		<input type=image	id=CopyB		alt=Copy				src=./res/Copy.svg		>
+		<input type=image	id=PasteB		alt=Paste				src=./res/Paste.svg		>
+		<input type=image	id=DeleteB		alt=Delete				src=./res/Delete.svg	>
+		<input type=image	id=SelectAllB	alt="Select all"		src=./res/SelectAll.svg	>
+		<hr>
+		<input type=image	id=AlignLB		alt="Align left"		src=./res/AlignL.svg	>
+		<input type=image	id=AlignRB		alt="Align right"		src=./res/AlignR.svg	>
+		<input type=image	id=AlignTB		alt="Align top"			src=./res/AlignT.svg	>
+		<input type=image	id=AlignBB		alt="Align bottom"		src=./res/AlignB.svg	>
+		<br>
+		<input type=image	id=MirrorHB		alt="Mirror horizontal"	src=./res/MirrorH.svg	>
+		<input type=image	id=MirrorVB		alt="Mirror vertical"	src=./res/MirrorV.svg	>
+		<input type=image	id=Rotate90RB	alt="Rotate right"		src=./res/RotateR.svg	>
+		<input type=image	id=Rotate90LB	alt="Rotate left"		src=./res/RotateL.svg	>
+		<hr>
+		<div class=lr>
+			<span>
+				Angle:<input type=text	id=RotateAngle	value=0>
+			</span>
+			<input type=image	id=RotateB		alt=Rotate			src=./res/Rotate.svg	>
+		</div>
+		<hr>
+		<div>
+			<div style="margin-bottom: 4px">
+				Scale:
+				H:<input type=text	id=ScaleH	value=100>
+				V:<input type=text	id=ScaleV	value=100>
+			</div>
+			<input type=image	id=ScaleLTB	alt=ScaleLT				src=./res/ScaleLT.svg	>
+			<input type=image	id=ScaleLBB	alt=ScaleLB				src=./res/ScaleLB.svg	>
+			<input type=image	id=ScaleRTB	alt=ScaleRT				src=./res/ScaleRT.svg	>
+			<input type=image	id=ScaleRBB	alt=ScaleRB				src=./res/ScaleRB.svg	>
+			<input type=image	id=ScaleB	alt=Scale				src=./res/Scale.svg		>
+		</div>
+	</div>
+
+	<div class=headline>Display parameters</div>
+	<div class=padded>
+		<div class=lr>
+			<div><img alt=Width src=./res/Width.svg	><img alt=Height src=./res/Height.svg	></div>
+			<div><input type=text id=Width			><input type=text id=Height				></div>
+		</div>
+		<div class=lr>
+			<div><img alt="Horizontal Margin" src=./res/MarginH.svg	><img alt="Vertical Margin"	src=./res/MarginV.svg	></div>
+			<div><input type=text id=MarginH						><input type=text id=MarginV						></div>
+		</div>
+		<hr>
+		<jp-color-picker	id=ScrollPaneBG	value=#eee	></jp-color-picker>
+		<hr>
+		<img alt=PreviewPaneBackground src=./res/PreviewPaneBackground.svg>
+		<input type=range id=PreviewR max=1 step=0.1 value=0.5	><br>
+		<jp-color-picker	id=PrevCanvasBG	value=white	></jp-color-picker>
+		<hr>
+		<img alt=ScrollPaneBackground src=./res/ScrollPaneBackground.svg>
+		<input type=range id=SkeltonR max=1 step=0.1 value=1	><br>
+	</div>
+
+	<div class=headline>Combine</div>
+	<div class=padded>
+		<input type=image	id=CombineB		alt=Combine		src=./res/Combine.svg			> Combine contours.<br>
+	</div>
+
+	<div class=headline>Recovery</div>
+	<div class=padded>
+		<input type=image	id=LoadLSB		alt=Recovery	src=./res/LoadLocalStorage.svg	> Recover last session.<br>
+	</div>
+
+	<div class=headline>Job List</div>
+	<div class=padded>
+		<job-list id=JOB_LIST></job-list>
+	</div>
+
+	<div class=headline>Debug</div>
+	<div class=padded>
+		<input type=button	id=TigerB		value="Load Tiger"		><br>
+		<input type=button	id=IkyuB		value="Load Ikyu"		><br>
+		<input type=button	id=QuatroArcB	value="Load QuatroArc"	><br>
+		<input type=button	id=SVGLogoB		value="Load SVGLogo"	><br>
+		<input type=button	id=TransformB	value="Load Transform"	><br>
+		<input type=button	id=DebugB		value=Debug				><br>
+		<hr>
+		<input type=button	id=RemoveLSB	value="X web storage"	><br>
+	</div>
+</nav>
+
+<main id=MAIN>
+	<canvas id=C_PREV	></canvas>
+	<canvas id=C_MAIN	style="z-index: 1" tabindex=0></canvas>
+	<label id=CIE style="position: relative; white-space: pre-wrap"></label>
+</main>
+
+<aside id=ASIDE class=open>
+	<div class=headline>Properties</div>
+	<div class=padded>
+		<div class=lr>
+			<label><input		id=PropIDC				type=checkbox			> id				</label>
+			<input				id=PropIDValue			type=text				class=w80>
+		</div>
+		<div class=lr>
+			<label><input		id=PropFillC			type=checkbox			> fill				</label>
+			<jp-color-picker	id=PropFillStyle		value=black	></jp-color-picker>
+		</div>
+		<div class=lr>
+			<label><input		id=PropFillRuleC		type=checkbox			> fill-rule			</label>
+			<select				id=PropFillRuleValue>
+				<option value=nonzero	>nonzero	</option>
+				<option value=evenodd	>evenodd	</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=PropStrokeC			type=checkbox	checked	> stroke			</label>
+			<jp-color-picker	id=PropStrokeStyle		value=black	></jp-color-picker>
+		</div>
+		<div class=lr>
+			<label><input		id=PropOpacityC			type=checkbox			> opacity			</label>
+			<input				id=PropOpacityValue		type=text		value=1	class=w80>
+		</div>
+		<div class=lr>
+			<label><input		id=PropStrokeWidthC		type=checkbox			> stroke-width		</label>
+			<input				id=PropStrokeWidthValue	type=text		value=1	class=w80>
+		</div>
+		<div class=lr>
+			<label><input		id=PropLineCapC			type=checkbox			> stroke-linecap	</label>
+			<select				id=PropLineCapValue>
+				<option value=butt					>butt	</option>
+				<option value=round					>round	</option>
+				<option value=square				>square	</option>
+				<option value=inherit selected		>inherit</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=PropLineJoinC		type=checkbox			> stroke-linejoin	</label>
+			<select				id=PropLineJoinValue>
+				<option value=miter					>miter	</option>
+				<option value=round					>round	</option>
+				<option value=bevel					>bevel	</option>
+				<option value=inherit selected		>inherit</option>
+			</select>
+		</div>
+		<div class=lr>
+			<label><input		id=PropMiterLimitC		type=checkbox			> stroke-miterlimit	</label>
+			<input				id=PropMiterLimitValue	type=text		value=1	class=w80>
+		</div>
+		<div class=lr>
+			<label><input		id=PropDashArrayC		type=checkbox			> stroke-dasharray	</label>
+			<input				id=PropDashArrayValue	type=text				class=w80>
+		</div>
+		<div class=lr>
+			<label><input		id=PropDashOffsetC		type=checkbox			> stroke-dashoffset	</label>
+			<input				id=PropDashOffsetValue	type=text		value=0	class=w80>
+		</div>
+	</div>
+
+	<div class=headline>Layer selector</div>
+	<div class=padded>
+		<layer-tree id=LAYER></layer-tree>
+	</div>
+	<hr>
+
+</aside>
+
+<footer>
+	<span id=CIE_FOOTER></span>
+	<span class="cursive right">©2021- SliP LLC, Tokyo. Written by Satoru Ogura.</span>
+</footer>
+
+<script type=module src=JPColorPicker.js></script>
+<script type=module src=index.js></script>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAd1ebYuIBuXXhT5puOaEX9_zKS5RcwLQw",
+    authDomain: "vecedit-b5a34.firebaseapp.com",
+    projectId: "vecedit-b5a34",
+    storageBucket: "vecedit-b5a34.appspot.com",
+    messagingSenderId: "154135651616",
+    appId: "1:154135651616:web:995b1f12b41ded7786e345",
+    measurementId: "G-MRM84JWJGZ"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+

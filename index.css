@@ -1,4 +1,7 @@
 *			{ font-family	: monospace }
+header, nav {
+;	background	: black
+}
 
 .cursive	{ font-family	: cursive	}
 .fantasy	{ font-family	: fantasy	}
