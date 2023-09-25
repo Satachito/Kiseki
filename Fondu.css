@@ -1,37 +1,4 @@
-*			{ font-family	: monospace }
-header, nav {
-;	background	: grey
-}
-
-.cursive	{ font-family	: cursive	}
-.fantasy	{ font-family	: fantasy	}
-.right		{ float			: right		}
-.RectB		{ cursor		: crosshair	}
-.OvalB		{ cursor		: crosshair	}
-.HandB		{ cursor		: move		}
-.PenB		{ cursor		: url( 'res/grippingArrow.cur' ), auto	}
-
-.w80		{ width			: 80px		}
-
-header		{ border-bottom	: 1px solid black }
-footer		{ border-top	: 1px solid black }
-nav			{ border-right	: 1px solid black }
-aside		{ border-left	: 1px solid black }
-
-nav			{ overflow		: scroll }
-aside		{ overflow		: scroll }
-main		{ overflow		: scroll }
-
-nav input[ type=text ] { width		: 37px	}
-nav input[ type=file ] { display	: none	}
-.fileLabel {
-;	border-radius			: 12px
-;	color					: white
-;	display					: block
-;	background-color		: blue
-;	padding					: 6px
-;	text-align				: center
-}
+/*	全体構成	*/
 
 body {
 ;	margin					: 0
@@ -46,27 +13,14 @@ header, footer {
 ;	padding					: 2px 5px
 }
 
-header	> *	{
-;	vertical-align			: middle
-}
+header		{ border-bottom	: 1px solid black }
+footer		{ border-top	: 1px solid black }
+nav			{ border-right	: 1px solid black }
+aside		{ border-left	: 1px solid black }
 
-img {
-;	width					: 32px
-;	height					: 32px
-}
-
-input[ type=image ] {
-;	width					: 27px
-;	height					: 27px
-;	border					: 2px solid lightgrey
-}
-input[ type=image ].selected {
-;	border					: 2px solid red
-}
-
-hr {
-;	margin					: 2px 0
-}
+nav			{ overflow		: scroll }
+aside		{ overflow		: scroll }
+main		{ overflow		: scroll }
 
 main {
 ;	position				: relative
@@ -76,24 +30,66 @@ canvas {
 ;	position				: absolute
 }
 
+
+/*	どんなアプリでもきっとやること	*/
+
+input[ type=file ] {
+;	display					: none
+}
+.fileLabel {
+;	border-radius			: 12px
+;	color					: white
+;	display					: block
+;	background-color		: blue
+;	padding					: 6px
+;	text-align				: center
+}
+
+
+/*	アプリドメインの共通項	*/
+
+img {
+;	width					: 32px
+;	height					: 32px
+}
+
+input[ type=image ] {
+;	width					: 28px
+;	height					: 28px
+;	border					: 2px solid lightgrey
+}
+input[ type=image ].selected {
+;	border					: 2px solid red
+}
+
+input[ type=text ] {
+;	width					: 37px
+}
+
+hr {
+;	margin					: 2px 0
+}
+
+.spacer {
+;	height					: 4px
+}
+
 .lr {
 ;	display					: flex
 ;	justify-content			: space-between
 ;	align-items				: center
-}
-nav .lr {
-;	height					: 32px
-}
-aside .lr {
-;	height					: 28px
 }
 
 .padded {
 ;	padding					: 3px
 }
 
+.right {
+;	float					: right
+}
+
 .headline {
-;	font-size				: 16px
+;	font					: 15px Menlo
 ;	background				: grey
 ;	color					: white
 ;	padding					: 2px 4px
@@ -112,16 +108,27 @@ jp-color-picker > input[ list=Colors ] {
 }
 
 
-dialog {
-;	border					: 1px solid black
-;	margin					: auto
-}
-.dialogBlocker {
-;	background				: lightblue
-;	padding					: 8px
-}
-.default {
-;	background				: blue
-;	color					: white
+/*	トップレベルの部品	*/
+
+header > * {
+;	vertical-align			: middle
 }
 
+nav, aside {
+;	font					: 12px Menlo
+}
+
+
+/*	各部品	*/
+
+#LOGO {
+;	font					: 19px cursive
+}
+#COPYRIGHT {
+;	font					: 15px cursive
+}
+
+.RectB		{ cursor		: crosshair	}
+.OvalB		{ cursor		: crosshair	}
+.HandB		{ cursor		: move		}
+.PenB		{ cursor		: url( 'res/grippingArrow.cur' ), auto	}

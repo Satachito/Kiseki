@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 27.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="レイヤー_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
-	 y="0px" viewBox="0 0 283.5 283.5" style="enable-background:new 0 0 283.5 283.5;" xml:space="preserve">
+<!-- Generator: Adobe Illustrator 27.3.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 283.46 283.46" style="enable-background:new 0 0 283.46 283.46;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#6200FF;stroke:#000000;stroke-miterlimit:10;}
-	.st1{fill:#FFFFFF;}
+	.st0{fill:none;}
+	.st1{fill:#666666;}
+	.st2{fill:#E4E6E6;}
+	.st3{fill:#FFFFFF;}
 </style>
-<g id="レイヤー_2_00000015347213175345646220000007106172342993431183_">
+<g id="レイヤー_2">
 </g>
-<rect y="12" class="st0" width="283.5" height="257"/>
-<g id="レイヤー_1_00000027601478512077760500000000537095529459423368_">
-	<path class="st1" d="M165.3,55.2H117l20.2-34.8l-123,50.2l123,50.2L117,86.1h48.3c40.3,0,73.1,32.8,73.1,73.1s-32.8,73.1-73.1,73.1
-		H89.7v30.9h75.6c57.3,0,104-46.6,104-104C269.3,101.8,222.6,55.2,165.3,55.2z"/>
+<g id="レイヤー_1">
+	<path class="st1" d="M165.3,55.15h-48.35l20.21-34.8L14.17,70.6l122.99,50.25l-20.21-34.79h48.35c40.3,0,73.08,32.78,73.08,73.08
+		c0,40.3-32.78,73.08-73.08,73.08H89.74v30.91h75.57c57.34,0,103.99-46.65,103.99-103.99C269.29,101.8,222.64,55.15,165.3,55.15z"/>
 </g>
 </svg>

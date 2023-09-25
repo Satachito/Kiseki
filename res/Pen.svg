@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 27.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="レイヤー_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
-	 y="0px" viewBox="0 0 283.5 283.5" style="enable-background:new 0 0 283.5 283.5;" xml:space="preserve">
+<!-- Generator: Adobe Illustrator 27.4.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 283.46 283.46" style="enable-background:new 0 0 283.46 283.46;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#A145FF;stroke:#000000;stroke-miterlimit:10;}
-	.st1{fill:#A145FF;}
-	.st2{fill:#EBFF45;}
+	.st0{fill:none;}
+	.st1{fill:#666666;}
+	.st2{fill:#E4E6E6;}
 </style>
-<g id="レイヤー_2_00000153670418584129518710000013194224111226752134_">
+<g id="レイヤー_2">
 </g>
-<g id="レイヤー_1_00000052096704015683356280000004271241919976282506_">
-	<rect x="5" y="12" class="st0" width="272" height="258"/>
+<g id="レイヤー_1">
 	<g>
-		<path class="st1" d="M158,102.9H19v139h139V102.9z M119.8,203.7H57.2v-62.6h62.6V203.7z"/>
-		<polygon class="st2" points="219.7,112 238.9,112 238.9,81.6 269.3,81.6 269.3,62.4 238.9,62.4 238.9,32 219.7,32 219.7,62.4 
-			189.2,62.4 189.2,81.6 219.7,81.6 		"/>
-		<path class="st2" d="M14.2,251.5h148.6c2.6,0,4.8-2.1,4.8-4.8V98.1c0-2.7-2.1-4.8-4.8-4.8H14.2c-2.6,0-4.8,2.2-4.8,4.8v148.6
-			C9.4,249.4,11.5,251.5,14.2,251.5z M19,102.9h139v139H19V102.9z"/>
-		<rect x="57.2" y="141.1" class="st2" width="62.6" height="62.6"/>
+		<path class="st0" d="M157.96,102.93H18.97v138.99h138.99V102.93z M119.76,203.72h-62.6v-62.6h62.6V203.72z"/>
+		<polygon class="st1" points="219.68,112.01 238.85,112.01 238.85,81.57 269.29,81.57 269.29,62.4 238.85,62.4 238.85,31.96 
+			219.68,31.96 219.68,62.4 189.24,62.4 189.24,81.57 219.68,81.57 		"/>
+		<path class="st1" d="M14.17,251.51h148.58c2.65,0,4.79-2.15,4.79-4.79V98.14c0-2.65-2.15-4.79-4.79-4.79H14.17
+			c-2.65,0-4.79,2.15-4.79,4.79v148.58C9.38,249.36,11.53,251.51,14.17,251.51z M18.97,102.93h138.99v138.99H18.97V102.93z"/>
+		<rect x="57.16" y="141.13" class="st1" width="62.6" height="62.6"/>
 	</g>
 </g>
 </svg>
