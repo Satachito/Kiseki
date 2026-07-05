@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "kiseki": {
+      "type": "stdio",
+      "command": "/bin/bash",
+      "args": ["tools/ve-mcp-run.sh"],
+      "env": {
+        "VE_PORT": "8282"
+      }
+    }
+  }
+}

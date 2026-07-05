@@ -70,6 +70,7 @@ cd ../tools && npm install   # MCP (one-time)
 
 Open `http://localhost:8282/?ve=Samples/Demo.ve`. Enable the **`kiseki`**
 MCP server in Cursor (**Settings → Tools & MCP**) or use [.mcp.json](.mcp.json).
+See **[USAGE.md](USAGE.md)** for Phase 2 / 3 / 4 workflow and client setup.
 
 Tools: `ve_status` · `ve_get_model` · `ve_get_text` · `ve_validate` ·
 `ve_apply` (same ops as `window.VE.apply`) · `ve_load_file` · `ve_save_file` ·
@@ -99,6 +100,7 @@ Kiseki/
 ├── tools/            ve-server, ve-mcp, svg2ve, ve-validate
 ├── .mcp.json         Cursor MCP config
 ├── README.md         This file
+├── USAGE.md          AI & dev workflow guide
 └── AI.md             AI contract + window.VE ops
 ```
 
