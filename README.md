@@ -1,4 +1,4 @@
-# VE — The Vector Editor
+# Kiseki — The Vector Editor
 
 Canvas-based vector editor for **path-only SVG**.
 
@@ -70,7 +70,7 @@ generate the bundled samples from their original SVGs.
 ## Project layout
 
 ```
-ve/
+Kiseki/
 ├── Web/              App ( HTML + ES modules, ai-api.js )
 │   ├── PathData.js   Path-data parse / serialize / transform ( pure, shared )
 │   ├── VE.js         .ve read / write, .svg flattening import

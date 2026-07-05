@@ -1,5 +1,5 @@
 {
-  "name": "ve",
+  "name": "kiseki",
   "version": "1.0.0",
   "description": "Vector editor for path-only SVG ( .ve ).",
   "main": "Application.js",

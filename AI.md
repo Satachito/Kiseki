@@ -1,6 +1,6 @@
-# VE AI contract — `.ve` and live editing
+# Kiseki AI contract — `.ve` and live editing
 
-Implementation-accurate contract for agents and scripts working on VE.
+Implementation-accurate contract for agents and scripts working on Kiseki.
 
 **Early-development policy:** no legacy normalization or compatibility shims.
 Invalid files fail at load or validation so drift is visible.
