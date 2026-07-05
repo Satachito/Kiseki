@@ -6,6 +6,12 @@
 			"runtimeExecutable": "node",
 			"runtimeArgs": [ "tools/ve-server.mjs" ],
 			"port": 8282
+		},
+		{
+			"name": "ezusvg",
+			"runtimeExecutable": "node",
+			"runtimeArgs": [ "../EzuSVG/tools/ezu-server.mjs" ],
+			"port": 8283
 		}
 	]
 }

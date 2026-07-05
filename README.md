@@ -20,6 +20,10 @@ by any SVG viewer as-is.
 - **Import** — any plain `.svg`: groups, transforms, and basic shapes
   ( rect / circle / ellipse / line / polyline / polygon ) are flattened into paths
 - **Export** — `.ve`, `.svg`, and copy-to-clipboard ( paste into Figma / Illustrator / editors )
+- **EzuSVG interchange** — paste elements copied in
+  [EzuSVG](https://satachito.github.io/EzuSVG/) ( ⌘C there → ⌘V here, flattened
+  to paths ) and open its `.svg` files; EzuSVG opens `.ve` files and accepts
+  this app's clipboard in return
 - **Session restore** — last document is kept in `localStorage`
 - **Light / dark mode** — follows system preference
 - **AI editing** — `window.VE` command API ( see **[AI.md](AI.md)** )

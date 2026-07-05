@@ -220,10 +220,17 @@ Paste		= async _ => {	//	ClipboardData
 	}
 
 	if	( !paths.length ) {
-		//	pasted SVG markup ( from this app, an editor, Figma, … ): flatten it
+		//	pasted SVG markup, flattened to paths: a whole document ( this app,
+		//	Figma, … ) or a bare element fragment ( EzuSVG's ⌘C, hand-written )
 		const
-		text = _.getData( 'image/svg+xml' ) || _.getData( 'text/plain' )
-		if	( text && /<svg[\s>]/.test( text ) ) try {
+		raw = ( _.getData( 'image/svg+xml' ) || _.getData( 'text/plain' ) || '' ).trim()
+		const
+		text = /<svg[\s>]/.test( raw )
+		?	raw
+		:	/^<[a-zA-Z]/.test( raw )
+			?	`<svg xmlns="http://www.w3.org/2000/svg">${ raw }</svg>`
+			:	null
+		if	( text ) try {
 			paths.push( ...ImportSVG( text ).paths )
 		} catch ( er ) {
 			console.error( er )
