@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+	<path id="p1" d="M0 100 L200 100 M100 0 L100 200" fill="none" stroke="black" stroke-width="1"/>
+	<path id="p2" d="M60 100 A60 40 10 1 0 140 100" fill="none" stroke="red" stroke-width="10"/>
+	<path id="p3" d="M60 100 A60 40 10 1 1 140 100" fill="none" stroke="lime" stroke-width="10"/>
+	<path id="p4" d="M60 100 A60 40 10 0 1 140 100" fill="none" stroke="purple" stroke-width="10"/>
+	<path id="p5" d="M60 100 A60 40 10 0 0 140 100" fill="none" stroke="pink" stroke-width="10"/>
+</svg>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang=en>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width, initial-scale=1">
+<meta name=description content="VE — vector editor for path-only SVG. The .ve format is plain SVG with nothing but <path> elements.">
+<meta property=og:title content=VE>
+<meta property=og:description content="Vector editor for path-only SVG ( .ve ).">
+<meta property=og:type content=website>
+<meta property=og:site_name content=VE>
+<meta property=og:locale content=en_US>
+<title>VE — The Vector Editor</title>
+<style>
+:root {
+;	color-scheme			: light dark
+;	--color-bg				: light-dark( #ffffff, #000000 )
+;	--color-fg				: light-dark( #000000, #ffffff )
+;	--color-popup-bg		: light-dark( rgba( 245, 245, 245, .95 ), rgba( 32, 32, 32, .95 ) )
+;	--color-popup-border	: light-dark( #999, #666 )
+;	--color-popup-fg		: light-dark( #111, #eee )
+;	--color-popup-hover		: light-dark( #ddd, #444 )
+;	--color-shadow			: light-dark( rgba( 0, 0, 0, .15 ), rgba( 0, 0, 0, .4 ) )
+;	--color-checker-a		: light-dark( #d4d4d4, #2a2a2a )
+;	--color-checker-b		: light-dark( #b0b0b0, #161616 )
+;	--topbar-h				: 70px
+}
+html {
+;	background				: var( --color-bg )
+;	color					: var( --color-fg )
+;	height					: 100%
+;	font-family				: courier
+}
+body {
+;	margin					: 0
+;	height					: 100vh
+;	display					: grid
+;	grid-template-rows		: auto 1fr auto
+;	grid-template-columns	: var( --nav-w, 200px ) 1fr var( --aside-w, 256px )
+;	position				: relative
+;	overflow				: hidden
+}
+body.nav-collapsed		{ --nav-w	: 0 }
+body.aside-collapsed	{ --aside-w	: 0 }
+body.nav-collapsed		> nav	{ display: none }
+body.aside-collapsed	> aside	{ display: none }
+
+.panel-toggle {
+;	flex-shrink		: 0
+;	align-self		: stretch
+;	width			: 28px
+;	display			: flex
+;	align-items		: center
+;	justify-content	: center
+;	padding			: 0
+;	border			: none
+;	background		: var( --color-popup-bg )
+;	color			: var( --color-popup-fg )
+;	cursor			: pointer
+;	font-size		: 16px
+;	font-weight		: 700
+;	opacity			: .85
+}
+.panel-toggle:hover		{ opacity: 1; background: var( --color-popup-hover ) }
+#NAV_TOGGLE				{ border-right	: 1px solid gray }
+#ASIDE_TOGGLE			{ border-left	: 1px solid gray }
+
+/* full-width header bar: independent of the nav / aside columns so collapsing
+   a side panel never shifts the header */
+.topbar {
+;	grid-row		: 1
+;	grid-column		: 1 / 4
+;	display			: flex
+;	align-items		: stretch
+;	flex-wrap		: wrap
+;	min-height		: var( --topbar-h )
+;	box-sizing		: border-box
+;	overflow-x		: auto
+;	overflow-y		: visible
+;	border-bottom	: 1px solid gray
+}
+.topbar > header {
+;	box-sizing		: border-box
+;	min-height		: 0
+;	padding			: 5px 8px
+;	border-bottom	: none
+}
+.topbar > header.controls {
+;	flex			: 1 1 280px
+;	min-width		: 0
+;	overflow		: visible
+}
+.topbar > header.brand {
+;	flex-shrink		: 0
+;	display			: flex
+;	flex-direction	: column
+;	justify-content	: center
+}
+.topbar > header.sample-panel {
+;	flex-shrink		: 0
+;	box-sizing		: border-box
+;	padding			: 4px 6px
+;	display			: flex
+;	align-items		: stretch
+}
+.mode-bar label {
+;	display			: inline-flex
+;	align-items		: center
+;	gap				: 4px
+;	font-size		: 12px
+;	margin-right	: 10px
+;	cursor			: pointer
+}
+.sample-list {
+;	display			: grid
+;	grid-template-columns	: repeat( 3, auto )
+;	grid-template-rows		: repeat( 2, 1fr )
+;	gap				: 2px
+;	height			: 100%
+}
+.sample-list button {
+;	min-width		: 0
+;	min-height		: 0
+;	margin			: 0
+;	padding			: 1px 6px
+;	border			: 1px solid var( --color-popup-border )
+;	border-radius	: 4px
+;	background		: var( --color-popup-bg )
+;	color			: inherit
+;	font-family		: inherit
+;	font-size		: 10px
+;	line-height		: 1.2
+;	text-align		: center
+;	cursor			: pointer
+;	white-space		: nowrap
+;	overflow		: hidden
+;	text-overflow	: ellipsis
+}
+.sample-list button:hover {
+;	background		: var( --color-popup-hover )
+}
+main-editor {
+;	overflow				: scroll
+;	position				: relative
+;	grid-row				: 2
+;	grid-column				: 2
+;	background				: repeating-conic-gradient( var( --color-checker-a ) 0% 25%, var( --color-checker-b ) 0% 50% ) 0 0 / 128px 128px
+}
+main-editor > canvas:first-of-type {
+;	background				: var( --color-bg )
+}
+header {
+;	border-bottom			: 1px solid gray
+;	padding					: 8px
+}
+header a
+,	footer a {
+;	color					: inherit
+}
+header a:hover
+,	footer a:hover {
+;	text-decoration			: underline
+}
+footer {
+;	border-top				: 1px solid gray
+;	padding					: 6px 8px
+;	grid-row				: 3
+;	grid-column				: 1 / 4
+;	display					: flex
+;	align-items				: center
+;	justify-content			: flex-end
+;	gap						: 8px
+;	font-size				: 11px
+}
+.debug-bar {
+;	display					: none
+;	align-items				: center
+;	gap						: 4px
+;	margin-right			: auto
+}
+body.local-dev .debug-bar {
+;	display					: flex
+}
+.debug-bar button {
+;	font-size				: 11px
+;	padding					: 2px 6px
+;	cursor					: pointer
+}
+.footer-meta {
+;	display					: flex
+;	align-items				: center
+;	flex-wrap				: wrap
+;	justify-content			: flex-end
+;	gap						: 6px
+;	font-family				: cursive
+}
+.footer-credit {
+;	font-size				: 10px
+;	opacity					: .85
+}
+aside {
+;	grid-row				: 2
+;	grid-column				: 3
+;	border-left				: 1px solid gray
+;	overflow				: scroll
+;	padding					: 5px
+;	min-height				: 0
+;	min-width				: 0
+}
+aside button:not( .file-btn ) {
+;	display					: block
+;	margin-top				: 3px
+;	width					: 100%
+;	padding					: 5px 8px
+;	border					: 1px solid var( --color-popup-border )
+;	border-radius			: 6px
+;	background				: var( --color-popup-bg )
+;	color					: var( --color-popup-fg )
+;	font-family				: inherit
+;	font-size				: 12px
+;	font-weight				: 600
+;	letter-spacing			: .02em
+;	line-height				: 1
+;	cursor					: pointer
+;	box-shadow				: 0 1px 3px var( --color-shadow )
+;	transition				: background .12s, border-color .12s, transform .08s
+}
+aside button:not( .file-btn ):hover {
+;	background				: var( --color-popup-hover )
+;	transform				: translateY( -1px )
+}
+aside button:not( .file-btn ):active {
+;	transform				: translateY( 0 )
+;	box-shadow				: none
+}
+aside details {
+;	margin-top				: 5px
+}
+aside summary {
+;	cursor					: pointer
+;	font-size				: 13px
+;	margin-bottom			: 3px
+}
+nav {
+;	grid-row				: 2
+;	grid-column				: 1
+;	border-right			: 1px solid gray
+;	overflow				: auto
+;	min-height				: 0
+;	min-width				: 0
+;	padding					: 5px
+}
+nav .headline {
+;	font-size				: 12px
+;	border-bottom			: 1px solid gray
+;	padding					: 4px 0
+;	margin-bottom			: 4px
+}
+.path-row {
+;	display					: flex
+;	align-items				: center
+;	gap						: 6px
+;	padding					: 3px 6px
+;	border-radius			: 4px
+;	font-size				: 12px
+;	cursor					: pointer
+;	white-space				: nowrap
+;	overflow				: hidden
+;	text-overflow			: ellipsis
+}
+.path-row:hover			{ background: var( --color-popup-hover ) }
+.path-row.selected		{ background: light-dark( rgba( 37, 99, 235, .18 ), rgba( 37, 99, 235, .4 ) ) }
+.path-chip {
+;	flex-shrink				: 0
+;	width					: 10px
+;	height					: 10px
+;	border					: 2px solid var( --color-popup-border )
+;	border-radius			: 3px
+;	box-sizing				: border-box
+}
+details {
+;	padding-left			: 8px
+}
+summary {
+;	font-size				: 12px
+;	border-bottom			: 1px solid gray
+;	padding-top				: 4px
+;	padding-bottom			: 4px
+}
+
+#PATH_MENU {
+;	display			: none
+;	position		: fixed
+;	z-index			: 2000
+;	min-width		: 120px
+;	padding			: 4px 0
+;	border			: 1px solid var( --color-popup-border )
+;	border-radius	: 4px
+;	background		: var( --color-popup-bg )
+;	color			: var( --color-popup-fg )
+;	font-size		: 13px
+;	box-shadow		: 0 4px 12px var( --color-shadow )
+}
+#PATH_MENU > button {
+;	display			: block
+;	width			: 100%
+;	text-align		: left
+;	padding			: 6px 14px
+;	border			: none
+;	background		: transparent
+;	color			: inherit
+;	font			: inherit
+;	cursor			: pointer
+}
+#PATH_MENU > button:hover {
+;	background		: var( --color-popup-hover )
+}
+#UNDER_HOVER {
+;	display			: none
+;	position		: fixed
+;	left			: 0
+;	top				: 0
+;	z-index			: 1000
+;	pointer-events	: none
+;	max-width		: 240px
+;	padding			: 4px 8px
+;	border			: 1px solid var( --color-popup-border )
+;	border-radius	: 4px
+;	background		: var( --color-popup-bg )
+;	color			: var( --color-popup-fg )
+;	font-size		: 12px
+;	overflow-wrap	: anywhere
+;	white-space		: pre-wrap
+}
+
+path-editor
+,	paint-editor {
+;	display				: block
+}
+paint-editor > div
+,	path-editor > div:not( :has( textarea ) ) {
+;	display				: grid
+;	grid-template-columns	: 1fr 120px
+;	align-items			: center
+;	column-gap			: 6px
+;	margin-bottom		: 3px
+}
+paint-editor > div > span {
+;	font-size			: 12px
+;	opacity				: .75
+;	letter-spacing		: .02em
+}
+path-editor > div:has( textarea ) {
+;	margin-bottom		: 3px
+}
+path-editor > div:has( textarea ) > div:first-child {
+;	font-size			: 12px
+;	opacity				: .75
+;	letter-spacing		: .02em
+;	margin-bottom		: 2px
+}
+path-editor textarea	{ height : 8em; resize : vertical }
+
+.file-name
+,	aside input:not( [type=checkbox] ):not( [type=file] ):not( [type=hidden] )
+,	aside select
+,	aside textarea {
+;	width				: 100%
+;	min-width			: 0
+;	box-sizing			: border-box
+;	padding				: 5px 6px
+;	border				: 1px solid var( --color-popup-border )
+;	border-radius		: 6px
+;	background-color	: light-dark( #fff, #141414 )
+;	color				: inherit
+;	font-family			: inherit
+;	font-size			: 12px
+;	line-height			: 1.2
+}
+aside select {
+;	cursor				: pointer
+;	appearance			: none
+;	background-image	: linear-gradient( 45deg, transparent 50%, currentColor 50% )
+,	linear-gradient( 135deg, currentColor 50%, transparent 50% )
+;	background-position	: calc( 100% - 12px ) calc( 50% - 2px ), calc( 100% - 8px ) calc( 50% - 2px )
+;	background-size		: 4px 4px, 4px 4px
+;	background-repeat	: no-repeat
+;	padding-right		: 22px
+}
+.file-name:focus
+,	aside input:not( [type=checkbox] ):not( [type=file] ):not( [type=hidden] ):focus
+,	aside select:focus
+,	aside textarea:focus {
+;	outline				: 2px solid light-dark( #60a5fa, #2563eb )
+;	outline-offset		: 0
+}
+
+.path-id-row {
+;	margin-bottom		: 3px
+}
+
+.file-bar {
+;	display				: grid
+;	grid-template-columns	: auto 1fr
+;	gap					: 4px
+;	align-items			: stretch
+}
+.file-bar .file-btn-upload {
+;	width				: auto
+;	flex-shrink			: 0
+;	justify-self		: start
+;	padding				: 5px
+}
+.export-bar {
+;	display				: grid
+;	grid-template-columns	: 1fr 1fr
+;	gap					: 4px
+;	align-items			: stretch
+;	margin-top			: 4px
+}
+.file-section {
+;	margin-bottom		: 4px
+}
+.file-btn {
+;	display				: inline-flex
+;	align-items			: center
+;	justify-content		: center
+;	gap					: 5px
+;	width				: 100%
+;	margin-top			: 0
+;	padding				: 5px 8px
+;	border				: 1px solid var( --color-popup-border )
+;	border-radius		: 6px
+;	background			: var( --color-popup-bg )
+;	color				: var( --color-popup-fg )
+;	font-family			: inherit
+;	font-size			: 12px
+;	font-weight			: 600
+;	letter-spacing		: .02em
+;	line-height			: 1
+;	cursor				: pointer
+;	box-shadow			: 0 1px 3px var( --color-shadow )
+;	transition			: background .12s, border-color .12s, transform .08s
+}
+.file-btn:hover {
+;	background			: var( --color-popup-hover )
+;	transform			: translateY( -1px )
+}
+.file-btn:active {
+;	transform			: translateY( 0 )
+;	box-shadow			: none
+}
+.file-btn svg {
+;	width				: 15px
+;	height				: 15px
+;	flex-shrink			: 0
+}
+.file-btn-upload {
+;	border-color		: light-dark( #60a5fa, #1d4ed8 )
+;	background			: light-dark( rgba( 37, 99, 235, .1 ), rgba( 30, 64, 175, .38 ) )
+;	color				: light-dark( #1d4ed8, #bfdbfe )
+}
+.file-btn-upload:hover {
+;	background			: light-dark( rgba( 37, 99, 235, .18 ), rgba( 37, 99, 235, .48 ) )
+}
+.file-btn-download {
+;	border-color		: light-dark( #34d399, #047857 )
+;	background			: light-dark( rgba( 16, 185, 129, .1 ), rgba( 6, 95, 70, .38 ) )
+;	color				: light-dark( #047857, #a7f3d0 )
+}
+.file-btn-download:hover {
+;	background			: light-dark( rgba( 16, 185, 129, .18 ), rgba( 5, 150, 105, .48 ) )
+}
+.file-btn-export {
+;	border-color		: light-dark( #c4b5fd, #6d28d9 )
+;	background			: light-dark( rgba( 139, 92, 246, .1 ), rgba( 91, 33, 182, .38 ) )
+;	color				: light-dark( #6d28d9, #ddd6fe )
+}
+.file-btn-export:hover {
+;	background			: light-dark( rgba( 139, 92, 246, .18 ), rgba( 124, 58, 237, .48 ) )
+}
+</style>
+
+<div class=topbar>
+<button id=NAV_TOGGLE	class=panel-toggle title="Toggle left panel (paths)">‹</button>
+<header class=brand style="font-family: fantasy; margin-right: 16px; font-size: 22px; line-height: 1.1">
+	VE
+	<div style="font-family: courier; font-size: 10px; font-weight: normal; margin-top: 2px">
+		The Vector Editor · path-only SVG · .ve
+	</div>
+</header>
+<header class=controls>
+	<span class=mode-bar>
+		<label><input type=radio name=MODE value=select checked>Select</label>
+		<label><input type=radio name=MODE value=rect	>Rect	</label>
+		<label><input type=radio name=MODE value=ellipse>Ellipse</label>
+		<label><input type=radio name=MODE value=line	>Line	</label>
+		<label><input type=radio name=MODE value=pen	>Pen	</label>
+	</span>
+	<label style="display:inline-flex; align-items:center; gap:4px;font-size:12px; margin-left:12px">
+		W
+		<input id=VIEW_W type=number min=1 step=64 value=1024 style="width:64px">
+	</label>
+	<label style="display:inline-flex; align-items:center; gap:4px;font-size:12px">
+		H
+		<input id=VIEW_H type=number min=1 step=64 value=1024 style="width:64px">
+	</label>
+	<button id=VIEW_APPLY style="margin-left:4px">Apply</button>
+	<label style="display:inline-flex; align-items:center; gap:4px;font-size:12px; margin-left:12px">
+		Zoom
+		<select id=ZOOM>
+			<option value=0.25	>25%	</option>
+			<option value=0.5	>50%	</option>
+			<option value=1 selected>100%</option>
+			<option value=2		>200%	</option>
+			<option value=4		>400%	</option>
+		</select>
+	</label>
+	<div style="font-size:10px; opacity:.65; margin-top:2px; line-height:1.35">
+		<b>click</b> select · <b>drag</b> move · <b>⇧click</b> add · <b>⌘A</b> all · <b>⌫</b> delete · <b>⌘Z</b> undo · <b>space</b>+drag pan<br>
+		<b>pen</b>: click points · <b>Enter</b>/<b>double-click</b> commit · click the first point to close · <b>Esc</b> cancel
+	</div>
+</header>
+<header class=sample-panel>
+	<div class=sample-list>
+		<button id=SAMPLE_TIGER		>Tiger		</button>
+		<button id=SAMPLE_IKYU		>Ikyu		</button>
+		<button id=SAMPLE_SVGLOGO	>SVGLogo	</button>
+		<button id=SAMPLE_QUATROARC	>QuatroArc	</button>
+		<button id=SAMPLE_TRANSFORM	>Transform	</button>
+		<button id=SAMPLE_DEMO		>Demo		</button>
+	</div>
+</header>
+<button id=ASIDE_TOGGLE	class=panel-toggle title="Toggle right panel (editors)">›</button>
+</div>
+
+<nav>
+	<div class=headline>Paths ( front on top )</div>
+	<path-list id=PATH_LIST></path-list>
+</nav>
+
+<main-editor id=MAIN_EDITOR></main-editor>
+<div id=EMPTY_HINT style="grid-row:2; grid-column:2; place-self:center; pointer-events:none; z-index:5; max-width:430px; text-align:center; font-size:13px; opacity:.6; line-height:1.8">
+	Pick <b>Rect / Ellipse / Line</b> and drag on the canvas,<br>
+	or pick <b>Pen</b> and click point by point.<br>
+	Or load a <b>Sample</b> from the list at top right ↑
+</div>
+
+<aside>
+	<div class=file-section>
+		<div class=file-bar>
+			<label class="file-btn file-btn-upload" title="Open .ve / .svg file" aria-label="Open .ve / .svg file">
+				<svg viewBox="0 0 16 16" aria-hidden=true fill=none stroke=currentColor stroke-width=1.5 stroke-linecap=round stroke-linejoin=round><path d="M8 12V4M5 7l3-3 3 3"/><path d="M3 13h10"/></svg>
+				<input id=UPLOAD type=file accept=.ve,.svg,image/svg+xml hidden>
+			</label>
+			<input id=FILE_NAME class=file-name placeholder=Untitled spellcheck=false>
+		</div>
+		<div class=export-bar>
+			<button id=DOWNLOAD class="file-btn file-btn-download" title="Download .ve">
+				<svg viewBox="0 0 16 16" aria-hidden=true fill=none stroke=currentColor stroke-width=1.5 stroke-linecap=round stroke-linejoin=round><path d="M8 4v8M5 9l3 3 3-3"/><path d="M3 13h10"/></svg>
+				<span>Save .ve</span>
+			</button>
+			<button id=EXPORT_SVG class="file-btn file-btn-export" title="Export SVG">
+				<svg viewBox="0 0 16 16" aria-hidden=true fill=none stroke=currentColor stroke-width=1.5 stroke-linecap=round stroke-linejoin=round><path d="M4 2.5h5.5L13 6v7.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M9 2.5V6H12.5"/><path d="M5.5 9.5h5M5.5 11.5h3"/></svg>
+				<span>Export SVG</span>
+			</button>
+			<button id=COPY_SVG class="file-btn file-btn-export" style="grid-column: 1 / 3" title="Copy SVG to clipboard (paste into Figma / Illustrator / editors)">
+				<svg viewBox="0 0 16 16" aria-hidden=true fill=none stroke=currentColor stroke-width=1.5 stroke-linecap=round stroke-linejoin=round><rect x="5" y="5" width="8" height="9" rx="1"/><path d="M3 11V3a1 1 0 0 1 1-1h6"/></svg>
+				<span>Copy SVG</span>
+			</button>
+		</div>
+	</div>
+	<hr>
+	<details open>
+		<summary>Path editor</summary>
+		<div class=path-id-row>
+			<input id=PATH_ID placeholder=id spellcheck=false>
+		</div>
+		<path-editor	id=PATH_EDITOR></path-editor>
+		<button			id=PATH			>Apply/Create Path</button>
+	</details>
+</aside>
+
+<footer>
+	<div class=debug-bar>
+		<button		id=DUMP_VE		>Dump VE	</button>
+		<button		id=DUMP_JOBS	>Dump Jobs	</button>
+		<button		id=FORCE_DRAW	>Force Draw	</button>
+	</div>
+	<div class=footer-meta>
+		<a href=https://github.com/Satachito/Kiseki target=_blank rel=noopener>GitHub</a>
+		<span aria-hidden=true>·</span>
+		<a href=https://satachito.github.io/Zukai/ target=_blank rel=noopener>Zukai</a>
+		<span class=footer-credit>Written by Satoru Ogura, and AIs.</span>
+	</div>
+	<div		id=UNDER_HOVER	></div>
+	<div		id=PATH_MENU	>
+		<button	id=PATH_MENU_EDIT	>Edit</button>
+		<button	id=PATH_MENU_FRONT	>Bring to front</button>
+		<button	id=PATH_MENU_BACK	>Bring to back</button>
+		<button	id=PATH_MENU_COPY_D	>Copy d</button>
+		<button	id=PATH_MENU_DELETE	>Delete</button>
+	</div>
+</footer>
+
+<script type=module>
+
+import {
+	Report
+,	Load
+,	VEText
+,	FindPath
+,	Selected
+,	ApplyPath
+,	EditPath
+,	NewID
+,	SetViewBox
+,	STORAGE_KEY
+}	from './Application.js'
+
+import	{ DumpJobs } from './Jobs.js'
+import './main-editor.js'
+import './path-editor.js'
+import './path-list.js'
+import './ai-api.js'
+import { saveVE, saveSVG, copySVG } from './Export.js'
+
+const
+isLocalDev = /^(localhost|127\.0\.0\.1|\[::1\])$/.test( location.hostname )
+	|| location.protocol === 'file:'
+if	( isLocalDev ) document.body.classList.add( 'local-dev' )
+
+const
+SyncViewInputs = () => {
+	const
+	[ , , w, h ] = app.model.viewBox
+	VIEW_W.value	= w
+	VIEW_H.value	= h
+	ZOOM.value		= String( MAIN_EDITOR.zoom )
+}
+
+//	the aside editors follow the ( single ) selection
+window.SyncPathEditor = () => {
+	const
+	[ _ ] = Selected()
+	if	( !_ || Selected().length !== 1 ) return
+	PATH_ID.value	= _[ 0 ]
+	PATH_EDITOR.$	= [ _[ 1 ], _[ 2 ] ]
+}
+
+const
+LoadSample = async name => {
+	const
+	path = `Samples/${ name }.ve`
+	const
+	res = await fetch( path )
+	if	( !res.ok ) throw new Error( `${ path }: ${ res.status }` )
+	await Load( await res.text() )
+	FILE_NAME.value = `${ name }.ve`
+	SyncViewInputs()
+}
+
+VIEW_APPLY		.onclick = async () => {
+	const
+	w = Math.round( Number( VIEW_W.value ) )
+,	h = Math.round( Number( VIEW_H.value ) )
+	if	( !( w >= 1 && h >= 1 ) )	return Report( 'viewBox width and height must be at least 1.' )
+	const
+	[ x, y ] = app.model.viewBox
+	SetViewBox( [ x, y, w, h ] ).catch( Report )
+}
+
+ZOOM			.onchange = () => MAIN_EDITOR.setZoom( Number( ZOOM.value ) )
+
+for ( const _ of document.querySelectorAll( 'input[name=MODE]' ) )
+	_.onchange = () => ( MAIN_EDITOR.clearInteraction(), MAIN_EDITOR.Draw() )
+
+const
+ApplyPanel = ( cls, btn, collapsed, glyphOpen, glyphClosed ) => {
+	document.body.classList.toggle( cls, collapsed )
+	btn.textContent = collapsed ? glyphClosed : glyphOpen
+	localStorage.setItem( cls, collapsed ? '1' : '' )
+}
+NAV_TOGGLE		.onclick = () => ApplyPanel( 'nav-collapsed',	NAV_TOGGLE,		!document.body.classList.contains( 'nav-collapsed'	), '‹', '›' )
+ASIDE_TOGGLE	.onclick = () => ApplyPanel( 'aside-collapsed',	ASIDE_TOGGLE,	!document.body.classList.contains( 'aside-collapsed'	), '›', '‹' )
+ApplyPanel( 'nav-collapsed',	NAV_TOGGLE,		localStorage.getItem( 'nav-collapsed'	) === '1', '‹', '›' )
+ApplyPanel( 'aside-collapsed',	ASIDE_TOGGLE,	localStorage.getItem( 'aside-collapsed'	) === '1', '›', '‹' )
+
+SAMPLE_TIGER	.onclick = () => LoadSample( 'Tiger'		).catch( Report )
+SAMPLE_IKYU		.onclick = () => LoadSample( 'Ikyu'			).catch( Report )
+SAMPLE_SVGLOGO	.onclick = () => LoadSample( 'SVGLogo'		).catch( Report )
+SAMPLE_QUATROARC.onclick = () => LoadSample( 'QuatroArc'	).catch( Report )
+SAMPLE_TRANSFORM.onclick = () => LoadSample( 'Transform'	).catch( Report )
+SAMPLE_DEMO		.onclick = () => LoadSample( 'Demo'			).catch( Report )
+
+DUMP_VE			.onclick = () => console.log( VEText() )
+DUMP_JOBS		.onclick = DumpJobs
+FORCE_DRAW		.onclick = () => MAIN_EDITOR.Draw()
+
+//	rename when a single selected path's ID differs from the field — otherwise
+//	update-or-create under the given ID
+PATH			.onclick = async () => {
+	const
+	ID = PATH_ID.value.trim() || NewID()
+	const
+	selected = Selected()
+	try {
+		selected.length === 1 && selected[ 0 ][ 0 ] !== ID && !FindPath( ID )
+		?	await EditPath( selected[ 0 ][ 0 ], [ ID, ...PATH_EDITOR.$ ] )
+		:	await ApplyPath( [ ID, ...PATH_EDITOR.$ ] )
+		PATH_ID.value = ID
+	} catch ( er ) {
+		Report( er )
+	}
+}
+
+DOWNLOAD		.onclick = () => saveVE( FILE_NAME.value )
+EXPORT_SVG		.onclick = () => saveSVG( FILE_NAME.value )
+COPY_SVG		.onclick = async () => {
+	const	label = COPY_SVG.querySelector( 'span' )
+	try {
+		await copySVG()
+		const	prev = label.textContent
+		label.textContent = 'Copied!'
+		setTimeout( () => ( label.textContent = prev ), 1200 )
+	} catch ( er ) { Report( er ) }
+}
+
+UPLOAD			.onchange = async ev => {
+	const
+	[ file ] = Array.from( ev.target.files )
+	if	( file ) {
+		try {
+			await Load( await file.text() )
+			FILE_NAME.value = file.name
+			SyncViewInputs()
+		} catch ( er ) {
+			Report( er )
+		} finally {
+			ev.target.value = ''
+		}
+	}
+}
+
+onload = async () => {
+	const
+	fromUrl = new URLSearchParams( location.search ).get( 've' )
+	if	( fromUrl ) {
+		try {
+			const
+			res = await fetch( fromUrl )
+			if	( !res.ok ) throw new Error( `${ fromUrl }: ${ res.status }` )
+			await Load( await res.text() )
+			FILE_NAME.value = fromUrl.split( '/' ).pop()
+		} catch ( er ) {
+			Report( er )
+		}
+		SyncViewInputs()
+		return
+	}
+	const
+	_ = localStorage.getItem( STORAGE_KEY )
+	_	? await Load( _ ).catch( Report )	//	Load() draws on success
+		: MAIN_EDITOR.Draw()
+	SyncViewInputs()
+}
+
+</script>

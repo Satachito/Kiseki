@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<path id="frame" d="M16 16L496 16L496 496L16 496Z" fill="none" stroke="gray" stroke-width="2" stroke-dasharray="8 4"/>
+	<path id="sun" d="M96 128A64 64 0 1 0 224 128A64 64 0 1 0 96 128Z" fill="gold" stroke="orange" stroke-width="4"/>
+	<path id="ring" d="M288 96A72 72 0 1 0 432 96A72 72 0 1 0 288 96ZM320 96A40 40 0 1 0 400 96A40 40 0 1 0 320 96Z" fill="steelblue" fill-rule="evenodd" opacity="0.85"/>
+	<path id="wave" d="M32 320C96 256 160 384 224 320S352 256 416 320S480 352 496 336" fill="none" stroke="teal" stroke-width="6" stroke-linecap="round"/>
+	<path id="bolt" d="M256 368L224 448L272 448L240 496L336 416L288 416L320 368Z" fill="crimson" stroke="maroon" stroke-width="3" stroke-linejoin="round"/>
+	<path id="leaf" d="M96 464Q96 368 192 368Q192 464 96 464Z" fill="yellowgreen" stroke="green" stroke-width="3"/>
+</svg>

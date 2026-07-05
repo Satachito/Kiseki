@@ -1,0 +1,19 @@
+{
+  "name": "ve",
+  "version": "1.0.0",
+  "description": "Vector editor for path-only SVG ( .ve ).",
+  "main": "Application.js",
+  "scripts": {
+    "dev": "python3 -m http.server 8080"
+  },
+  "keywords": [
+    "vector",
+    "editor",
+    "svg",
+    "path",
+    "canvas"
+  ],
+  "author": "Satoru Ogura",
+  "license": "ISC",
+  "type": "module"
+}
