@@ -28,7 +28,7 @@ jobs:
         run: |
           rm -rf dist-pages
           mkdir -p dist-pages
-          cp -R Web/. dist-pages/
+          rsync -a --exclude Samples Web/ dist-pages/
           mkdir -p dist-pages/Samples
           cp -R Samples/. dist-pages/Samples/
           touch dist-pages/.nojekyll
