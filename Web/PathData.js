@@ -458,3 +458,236 @@ ShapeD	= ( tag, A ) => {
 	}
 	return null
 }
+
+//	start point of every segment ( the current point before it runs )
+export	const
+SegStarts	= segs => {
+	const
+	$ = []
+	let	x = 0, y = 0
+	let	sx = 0, sy = 0
+	for ( const seg of segs ) {
+		$.push( [ x, y ] )
+		const
+		[ C, ..._ ] = seg
+		switch ( C ) {
+		case 'M':
+			[ x, y ] = _, [ sx, sy ] = _
+			break
+		case 'Z':
+			x = sx, y = sy
+			break
+		default:
+			x = _[ _.length - 2 ], y = _[ _.length - 1 ]
+			break
+		}
+	}
+	return $
+}
+
+//	rewrite shorthand segments ( S → C, T → Q ) so every control point is explicit
+export	const
+NormalizeSegs	= segs => {
+	const
+	starts = SegStarts( segs )
+	const
+	$ = []
+	let	pC = null	//	previous cubic's second control
+	let	pQ = null	//	previous quadratic's control
+	segs.forEach( ( [ C, ..._ ], i ) => {
+		const
+		[ x, y ] = starts[ i ]
+		switch ( C ) {
+		case 'C':
+			$.push( [ 'C', ..._ ] )
+			pC = [ _[ 2 ], _[ 3 ] ], pQ = null
+			break
+		case 'S': {
+			const
+			[ cx, cy ] = pC ? [ 2 * x - pC[ 0 ], 2 * y - pC[ 1 ] ] : [ x, y ]
+			$.push( [ 'C', cx, cy, ..._ ] )
+			pC = [ _[ 0 ], _[ 1 ] ], pQ = null
+			break
+		}
+		case 'Q':
+			$.push( [ 'Q', ..._ ] )
+			pQ = [ _[ 0 ], _[ 1 ] ], pC = null
+			break
+		case 'T': {
+			const
+			[ cx, cy ] = pQ ? [ 2 * x - pQ[ 0 ], 2 * y - pQ[ 1 ] ] : [ x, y ]
+			$.push( [ 'Q', cx, cy, ..._ ] )
+			pQ = [ cx, cy ], pC = null
+			break
+		}
+		default:
+			$.push( [ C, ..._ ] )
+			pC = pQ = null
+			break
+		}
+	} )
+	return $
+}
+
+//	split into subpaths ( each starting at its M; a leading M-less fragment is kept as-is )
+export	const
+SubpathsSegs	= segs => {
+	const
+	$ = []
+	for ( const seg of segs ) {
+		( seg[ 0 ] === 'M' || !$.length ) && $.push( [] )
+		$.at( -1 ).push( seg )
+	}
+	return $
+}
+
+//	reverse the drawing direction of every subpath ( fills are unchanged under
+//	nonzero for a single contour, but winding-sensitive holes flip — the point
+//	of the old Reverse tool )
+export	const
+ReverseSegs	= segs => SubpathsSegs( NormalizeSegs( segs ) ).flatMap(
+	sub => {
+		const
+		closed = sub.at( -1 )[ 0 ] === 'Z'
+		const
+		body = closed ? sub.slice( 0, -1 ) : sub
+		if	( body.length < 2 ) return sub
+
+		const
+		starts = SegStarts( body )
+		const
+		endOf = i => {
+			const
+			_ = body[ i ]
+			return [ _[ _.length - 2 ], _[ _.length - 1 ] ]
+		}
+
+		const
+		[ mx, my ] = starts[ 1 ]			//	subpath start ( M point )
+		const
+		[ ex, ey ] = endOf( body.length - 1 )	//	last endpoint
+
+		const
+		$ = []
+		if	( closed ) {
+			$.push( [ 'M', mx, my ] )
+			;( ex !== mx || ey !== my ) && $.push( [ 'L', ex, ey ] )	//	the implicit Z line, reversed
+		} else {
+			$.push( [ 'M', ex, ey ] )
+		}
+		for ( let i = body.length - 1; i >= 1; --i ) {
+			const
+			[ C, ..._ ] = body[ i ]
+			const
+			[ sx, sy ] = starts[ i ]
+			switch ( C ) {
+			case 'L':
+				$.push( [ 'L', sx, sy ] )
+				break
+			case 'C':
+				$.push( [ 'C', _[ 2 ], _[ 3 ], _[ 0 ], _[ 1 ], sx, sy ] )
+				break
+			case 'Q':
+				$.push( [ 'Q', _[ 0 ], _[ 1 ], sx, sy ] )
+				break
+			case 'A':
+				$.push( [ 'A', _[ 0 ], _[ 1 ], _[ 2 ], _[ 3 ], 1 - _[ 4 ], sx, sy ] )
+				break
+			}
+		}
+		closed && $.push( [ 'Z' ] )
+		return $
+	}
+)
+
+const
+Lerp	= ( [ ax, ay ], [ bx, by ], t ) => [ ax + ( bx - ax ) * t, ay + ( by - ay ) * t ]
+
+//	point on an L / C / Q segment at parameter t ( start = current point before it )
+export	const
+EvalSeg	= ( [ C, ..._ ], start, t ) => {
+	switch ( C ) {
+	case 'L':
+		return Lerp( start, [ _[ 0 ], _[ 1 ] ], t )
+	case 'Q': {
+		const
+		a = Lerp( start, [ _[ 0 ], _[ 1 ] ], t )
+	,	b = Lerp( [ _[ 0 ], _[ 1 ] ], [ _[ 2 ], _[ 3 ] ], t )
+		return Lerp( a, b, t )
+	}
+	case 'C': {
+		const
+		a = Lerp( start, [ _[ 0 ], _[ 1 ] ], t )
+	,	b = Lerp( [ _[ 0 ], _[ 1 ] ], [ _[ 2 ], _[ 3 ] ], t )
+	,	c = Lerp( [ _[ 2 ], _[ 3 ] ], [ _[ 4 ], _[ 5 ] ], t )
+		return Lerp( Lerp( a, b, t ), Lerp( b, c, t ), t )
+	}
+	}
+	return null
+}
+
+//	nearest parameter on an L / C / Q segment to xy ( sampled; L is exact )
+export	const
+NearestOnSeg	= ( seg, start, [ x, y ] ) => {
+	if	( seg[ 0 ] === 'L' ) {
+		const
+		[ ax, ay ] = start
+	,	[ bx, by ] = [ seg[ 1 ], seg[ 2 ] ]
+		const
+		len2 = ( bx - ax ) ** 2 + ( by - ay ) ** 2
+		const
+		t = len2 ? Math.min( 1, Math.max( 0, ( ( x - ax ) * ( bx - ax ) + ( y - ay ) * ( by - ay ) ) / len2 ) ) : 0
+		const
+		[ px, py ] = Lerp( start, [ bx, by ], t )
+		return { t, dist: Math.hypot( x - px, y - py ) }
+	}
+	if	( seg[ 0 ] !== 'C' && seg[ 0 ] !== 'Q' ) return null
+	let	$ = { t: 0, dist: Infinity }
+	for ( let i = 0; i <= 32; ++i ) {
+		const
+		t = i / 32
+		const
+		[ px, py ] = EvalSeg( seg, start, t )
+		const
+		dist = Math.hypot( x - px, y - py )
+		dist < $.dist && ( $ = { t, dist } )
+	}
+	return $
+}
+
+//	split an L / C / Q segment at t → two segments ( de Casteljau for curves )
+export	const
+SplitSegAt	= ( [ C, ..._ ], start, t ) => {
+	switch ( C ) {
+	case 'L': {
+		const
+		p = Lerp( start, [ _[ 0 ], _[ 1 ] ], t )
+		return [ [ 'L', ...p ], [ 'L', _[ 0 ], _[ 1 ] ] ]
+	}
+	case 'Q': {
+		const
+		c = [ _[ 0 ], _[ 1 ] ]
+	,	e = [ _[ 2 ], _[ 3 ] ]
+		const
+		c1 = Lerp( start, c, t )
+	,	c2 = Lerp( c, e, t )
+	,	m = Lerp( c1, c2, t )
+		return [ [ 'Q', ...c1, ...m ], [ 'Q', ...c2, ...e ] ]
+	}
+	case 'C': {
+		const
+		c1 = [ _[ 0 ], _[ 1 ] ]
+	,	c2 = [ _[ 2 ], _[ 3 ] ]
+	,	e = [ _[ 4 ], _[ 5 ] ]
+		const
+		a = Lerp( start, c1, t )
+	,	b = Lerp( c1, c2, t )
+	,	g = Lerp( c2, e, t )
+	,	ab = Lerp( a, b, t )
+	,	bg = Lerp( b, g, t )
+	,	m = Lerp( ab, bg, t )
+		return [ [ 'C', ...a, ...ab, ...m ], [ 'C', ...bg, ...g, ...e ] ]
+	}
+	}
+	return null
+}

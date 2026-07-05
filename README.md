@@ -10,6 +10,10 @@ by any SVG viewer as-is.
 
 - **Canvas editing** with pan ( space + drag ) and zoom
 - **Tools** — select / move, rect, ellipse, line, pen ( polyline, click-to-close )
+- **Node editing** — drag anchors and bezier control points, double-click the
+  outline to insert a point, ⌫ to delete one
+- **Arrange** — align L / C / R / T / M / B, mirror, rotate ( ±90° or any angle ),
+  scale about the center, reverse direction, combine into subpaths, break apart
 - **Path editor** — raw `d` and every SVG presentation attribute, per path
 - **Draw-order list** — front-most on top, restack via context menu
 - **Undo / redo** — every operation is one history step ( ⌘Z / ⇧⌘Z )

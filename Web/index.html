@@ -500,6 +500,26 @@ aside select {
 ;	margin-bottom		: 3px
 }
 
+.arrange-grid {
+;	display				: grid
+;	grid-template-columns	: repeat( 3, 1fr )
+;	gap					: 3px
+;	margin-bottom		: 4px
+}
+.arrange-grid button	{ margin-top: 0 }
+.arrange-row {
+;	display				: grid
+;	grid-template-columns	: 1fr 1fr auto
+;	gap					: 3px
+;	align-items			: center
+;	margin-bottom		: 4px
+}
+.arrange-row button		{ margin-top: 0; width: auto; padding: 5px 10px }
+.arrange-row .unit {
+;	font-size			: 11px
+;	opacity				: .7
+}
+
 .file-bar {
 ;	display				: grid
 ;	grid-template-columns	: auto 1fr
@@ -597,6 +617,7 @@ aside select {
 		<label><input type=radio name=MODE value=ellipse>Ellipse</label>
 		<label><input type=radio name=MODE value=line	>Line	</label>
 		<label><input type=radio name=MODE value=pen	>Pen	</label>
+		<label><input type=radio name=MODE value=node	>Node	</label>
 	</span>
 	<label style="display:inline-flex; align-items:center; gap:4px;font-size:12px; margin-left:12px">
 		W
@@ -619,7 +640,8 @@ aside select {
 	</label>
 	<div style="font-size:10px; opacity:.65; margin-top:2px; line-height:1.35">
 		<b>click</b> select · <b>drag</b> move · <b>⇧click</b> add · <b>⌘A</b> all · <b>⌫</b> delete · <b>⌘Z</b> undo · <b>space</b>+drag pan<br>
-		<b>pen</b>: click points · <b>Enter</b>/<b>double-click</b> commit · click the first point to close · <b>Esc</b> cancel
+		<b>pen</b>: click points · <b>Enter</b>/dblclick commit · click the start to close ·
+		<b>node</b>: drag points · dblclick outline inserts · <b>⌫</b> deletes · <b>Esc</b> cancel
 	</div>
 </header>
 <header class=sample-panel>
@@ -724,6 +746,39 @@ aside select {
 	</details>
 	<hr>
 	<details open>
+		<summary>Arrange</summary>
+		<div class=arrange-grid>
+			<button id=ALIGN_L		title="Align left edges"		>Left</button>
+			<button id=ALIGN_C		title="Align horizontal centers">Center</button>
+			<button id=ALIGN_R		title="Align right edges"		>Right</button>
+			<button id=ALIGN_T		title="Align top edges"			>Top</button>
+			<button id=ALIGN_M		title="Align vertical centers"	>Middle</button>
+			<button id=ALIGN_B		title="Align bottom edges"		>Bottom</button>
+		</div>
+		<div class=arrange-grid>
+			<button id=MIRROR_H		title="Mirror horizontally"		>Mirror H</button>
+			<button id=MIRROR_V		title="Mirror vertically"		>Mirror V</button>
+			<button id=REVERSE		title="Reverse path direction"	>Reverse</button>
+			<button id=ROTATE_L		title="Rotate 90° counter-clockwise">↺ 90°</button>
+			<button id=ROTATE_R		title="Rotate 90° clockwise"	>↻ 90°</button>
+		</div>
+		<div class=arrange-row>
+			<input id=ROTATE_DEG type=number step=5 value=15 title="Degrees, clockwise">
+			<span class=unit>deg ↻</span>
+			<button id=ROTATE		title="Rotate by the given angle">Rotate</button>
+		</div>
+		<div class=arrange-row>
+			<input id=SCALE_W type=number step=10 value=100 title="Width %">
+			<input id=SCALE_H type=number step=10 value=100 title="Height %">
+			<button id=SCALE		title="Scale by W% × H% about the center">Scale %</button>
+		</div>
+		<div class=arrange-grid>
+			<button id=COMBINE		title="Merge the selected paths into one ( subpaths )"	>Combine</button>
+			<button id=BREAK_APART	title="One path per subpath"	>Break apart</button>
+		</div>
+	</details>
+	<hr>
+	<details open>
 		<summary>Path editor</summary>
 		<div class=path-id-row>
 			<input id=PATH_ID placeholder=id spellcheck=false>
@@ -773,6 +828,13 @@ import {
 ,	EditPath
 ,	NewID
 ,	SetViewBox
+,	AlignSelection
+,	MirrorSelection
+,	RotateSelection
+,	ScaleSelection
+,	ReverseSelection
+,	CombineSelection
+,	BreakApartSelection
 ,	STORAGE_KEY
 }	from './Application.js'
 
@@ -831,7 +893,13 @@ VIEW_APPLY		.onclick = async () => {
 ZOOM			.onchange = () => MAIN_EDITOR.setZoom( Number( ZOOM.value ) )
 
 for ( const _ of document.querySelectorAll( 'input[name=MODE]' ) )
-	_.onchange = () => ( MAIN_EDITOR.clearInteraction(), MAIN_EDITOR.Draw() )
+	_.onchange = () => (
+		//	entering node mode picks up the single selected path as its target
+		_.value === 'node' && app.selection.length === 1 && ( MAIN_EDITOR.nodeID = app.selection[ 0 ] )
+	,	MAIN_EDITOR.nodeSel = null
+	,	MAIN_EDITOR.clearInteraction()
+	,	MAIN_EDITOR.Draw()
+	)
 
 const
 ApplyPanel = ( cls, btn, collapsed, glyphOpen, glyphClosed ) => {
@@ -871,6 +939,33 @@ PATH			.onclick = async () => {
 		Report( er )
 	}
 }
+
+//	Arrange — the old manual Edit toolbox, selection-based
+ALIGN_L		.onclick = () => AlignSelection( 'L' ).catch( Report )
+ALIGN_C		.onclick = () => AlignSelection( 'C' ).catch( Report )
+ALIGN_R		.onclick = () => AlignSelection( 'R' ).catch( Report )
+ALIGN_T		.onclick = () => AlignSelection( 'T' ).catch( Report )
+ALIGN_M		.onclick = () => AlignSelection( 'M' ).catch( Report )
+ALIGN_B		.onclick = () => AlignSelection( 'B' ).catch( Report )
+MIRROR_H	.onclick = () => MirrorSelection( true ).catch( Report )
+MIRROR_V	.onclick = () => MirrorSelection( false ).catch( Report )
+ROTATE_L	.onclick = () => RotateSelection( -90 ).catch( Report )
+ROTATE_R	.onclick = () => RotateSelection( 90 ).catch( Report )
+ROTATE		.onclick = () => {
+	const
+	deg = Number( ROTATE_DEG.value )
+	Number.isFinite( deg ) && deg % 360 !== 0 && RotateSelection( deg ).catch( Report )
+}
+SCALE		.onclick = () => {
+	try {
+		ScaleSelection( Number( SCALE_W.value ) / 100, Number( SCALE_H.value ) / 100 ).catch( Report )
+	} catch ( er ) {
+		Report( er )
+	}
+}
+REVERSE		.onclick = () => ReverseSelection().catch( Report )
+COMBINE		.onclick = () => CombineSelection().catch( Report )
+BREAK_APART	.onclick = () => BreakApartSelection().catch( Report )
 
 initAIPanel()
 initOpenAIPanel()

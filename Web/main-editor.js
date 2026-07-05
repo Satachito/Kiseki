@@ -5,7 +5,9 @@ import {
 import {
 	Report
 ,	Selected
+,	FindPath
 ,	ApplyPath
+,	EditPath
 ,	RemovePath
 ,	Restack
 ,	MoveSelection
@@ -34,7 +36,19 @@ import {
 
 import {
 	BBoxD
+,	ParseD
+,	DString
+,	SegStarts
 }	from './PathData.js'
+
+import {
+	BuildNodes
+,	NodeXY
+,	MoveNode
+,	DeleteNode
+,	NearestInsertion
+,	InsertNode
+}	from './PathNodes.js'
 
 //	hit-test context: identity transform, so isPointInPath works in model space
 const
@@ -129,10 +143,12 @@ MainEditor extends HTMLElement {
 		this.reformer.style.touchAction	= 'none'
 
 		this.zoom			= Number( localStorage.getItem( zoomStorageKey() ) ) || 1
-		this.gesture		= null	//	{ pan } | { move } | { band } | { create } — one at a time
+		this.gesture		= null	//	{ pan } | { move } | { band } | { create } | { node } — one at a time
 		this.pen			= null	//	{ points: [ [ x, y ], … ], hover: [ x, y ] | null }
 		this.spaceDown		= false
 		this.menuTarget		= null
+		this.nodeID			= null	//	node mode: target path ( survives commits )
+		this.nodeSel		= null	//	node mode: selected node { si, pi }
 
 		PATH_MENU_EDIT.onclick		= ev => {
 			ev.stopPropagation()
@@ -193,6 +209,31 @@ MainEditor extends HTMLElement {
 	clearInteraction() {
 		this.gesture	= null
 		this.pen		= null
+	}
+
+	//	node mode: parsed segments of the target path, or null when it is gone
+	NodeSegs() {
+		if	( !this.nodeID ) return null
+		const
+		path = FindPath( this.nodeID )
+		if	( !path ) {
+			this.nodeID = this.nodeSel = null
+			return null
+		}
+		try {
+			return ParseD( path[ 1 ] )
+		} catch {
+			return null
+		}
+	}
+
+	//	replace the target path's d as one undo step
+	CommitNodeD( segs ) {
+		const
+		path = FindPath( this.nodeID )
+		return path
+		?	EditPath( this.nodeID, [ this.nodeID, DString( segs ), path[ 2 ] ] ).catch( Report )
+		:	Promise.resolve()
 	}
 
 	setZoom( _ ) {
@@ -264,9 +305,11 @@ MainEditor extends HTMLElement {
 		z = this.zoom
 	,	move = this.gesture?.move
 
+		Mode() === 'node' && this.DrawNodes( c2D )
+
 		const
 		selected = Selected()
-		if	( selected.length ) {
+		if	( selected.length && Mode() !== 'node' ) {
 			c2D.save()
 			const
 			[ dX, dY ] = move ? DeltaXY( move.from, move.to ) : [ 0, 0 ]
@@ -319,6 +362,69 @@ MainEditor extends HTMLElement {
 		,	this.pen.points.forEach( ( [ x, y ] ) => c2D.fillRect( x - 3 / z, y - 3 / z, 6 / z, 6 / z ) )
 		,	c2D.restore()
 		)
+	}
+
+	//	node mode: outline, control-point stems, and handles of the target path
+	DrawNodes( c2D ) {
+		const
+		segs = this.NodeSegs()
+		if	( !segs ) return
+
+		const
+		z = this.zoom
+	,	starts = SegStarts( segs )
+
+		c2D.save()
+
+		c2D.strokeStyle	= '#00aaff'
+		c2D.lineWidth	= 1 / z
+		c2D.stroke( new Path2D( DString( segs ) ) )
+
+		//	stems from anchors to their control points
+		c2D.beginPath()
+		segs.forEach( ( [ C, ..._ ], si ) => {
+			const
+			[ sX, sY ] = starts[ si ]
+			switch ( C ) {
+			case 'C':
+				c2D.moveTo( sX, sY ),			c2D.lineTo( _[ 0 ], _[ 1 ] )
+				c2D.moveTo( _[ 4 ], _[ 5 ] ),	c2D.lineTo( _[ 2 ], _[ 3 ] )
+				break
+			case 'S':
+				c2D.moveTo( _[ 2 ], _[ 3 ] ),	c2D.lineTo( _[ 0 ], _[ 1 ] )
+				break
+			case 'Q':
+				c2D.moveTo( sX, sY ),			c2D.lineTo( _[ 0 ], _[ 1 ] )
+				c2D.moveTo( _[ 2 ], _[ 3 ] ),	c2D.lineTo( _[ 0 ], _[ 1 ] )
+				break
+			}
+		} )
+		c2D.globalAlpha = .5
+		c2D.stroke()
+		c2D.globalAlpha = 1
+
+		const
+		HS = 4 / z
+		for ( const node of BuildNodes( segs ) ) {
+			const
+			[ x, y ] = NodeXY( segs, node )
+			const
+			active = this.nodeSel && this.nodeSel.si === node.si && this.nodeSel.pi === node.pi
+			c2D.fillStyle	= active ? '#ff0000' : node.kind === 'anchor' ? '#00aaff' : '#ffffff'
+			c2D.strokeStyle	= active ? '#ff0000' : '#00aaff'
+			c2D.lineWidth	= 1.5 / z
+			if	( node.kind === 'anchor' ) {
+				c2D.fillRect( x - HS, y - HS, HS * 2, HS * 2 )
+				c2D.strokeRect( x - HS, y - HS, HS * 2, HS * 2 )
+			} else {
+				c2D.beginPath()
+				c2D.arc( x, y, HS * .9, 0, Math.PI * 2 )
+				c2D.fill()
+				c2D.stroke()
+			}
+		}
+
+		c2D.restore()
 	}
 
 	//	topmost hit first ( draw order = z-order )
@@ -415,6 +521,39 @@ MainEditor extends HTMLElement {
 			return this.Draw()
 		}
 
+		if	( mode === 'node' ) {
+			const
+			segs = this.NodeSegs()
+			if	( segs ) {
+				//	grab the nearest handle under the pointer
+				let	best = null
+				,	bestDist = GRAB / this.zoom
+				for ( const node of BuildNodes( segs ) ) {
+					const
+					[ nX, nY ] = NodeXY( segs, node )
+					const
+					dist = Math.hypot( nX - xy[ 0 ], nY - xy[ 1 ] )
+					dist <= bestDist && ( best = node, bestDist = dist )
+				}
+				if	( best ) {
+					this.nodeSel = { si: best.si, pi: best.pi }
+					this.gesture = { node: { d: FindPath( this.nodeID )[ 1 ], segs, node: best, from: xy, to: xy } }
+					this.reformer.setPointerCapture( ev.pointerId )
+					return this.DrawOverlay()
+				}
+			}
+			const
+			hit = this.HitPath( xy )
+			hit
+			?	(	this.nodeID = hit[ 0 ]
+				,	this.nodeSel = null
+				,	SetSelection( [ hit[ 0 ] ] )
+				,	window.SyncPathEditor?.()
+				)
+			:	( this.nodeSel = null, this.DrawOverlay() )
+			return
+		}
+
 		if	( mode !== 'select' ) {
 			this.gesture = { create: { mode, from: xy, to: xy } }
 			this.reformer.setPointerCapture( ev.pointerId )
@@ -454,6 +593,16 @@ MainEditor extends HTMLElement {
 		if	( g?.move		) return ( g.move.to	= xy, this.DrawOverlay() )
 		if	( g?.band		) return ( g.band.to	= xy, this.DrawOverlay() )
 		if	( g?.create		) return ( g.create.to	= xy, this.DrawOverlay() )
+		if	( g?.node		) {
+			//	transient true preview: the model entry is restored before commit
+			g.node.to = xy
+			const
+			path = FindPath( this.nodeID )
+			path && ( path[ 1 ] = DString(
+				MoveNode( g.node.segs, g.node.node, ...DeltaXY( g.node.from, xy ) )
+			) )
+			return this.Draw()
+		}
 		if	( this.pen		) return ( this.pen.hover = xy, this.DrawOverlay() )
 
 		//	idle hover: cursor + id label
@@ -492,6 +641,19 @@ MainEditor extends HTMLElement {
 			return
 		}
 
+		if	( g.node ) {
+			const
+			path = FindPath( this.nodeID )
+			if	( !path ) return
+			path[ 1 ] = g.node.d	//	undo the transient preview, then commit for real
+			const
+			[ dX, dY ] = DeltaXY( g.node.from, xy )
+			dX || dY
+			?	await this.CommitNodeD( MoveNode( g.node.segs, g.node.node, dX, dY ) )
+			:	this.Draw()
+			return
+		}
+
 		if	( g.band ) {
 			const
 			tlbr = TLBR_XYXY( [ g.band.from, xy ] )
@@ -517,6 +679,19 @@ MainEditor extends HTMLElement {
 
 	onDblClick( ev ) {
 		if	( Mode() === 'pen' ) return this.CommitPen( false )
+		if	( Mode() === 'node' ) {
+			//	double-click on the outline inserts a node ( L / C / Q segments )
+			const
+			segs = this.NodeSegs()
+			if	( !segs ) return
+			const
+			ins = NearestInsertion( segs, this.XY_EV( ev ), GRAB / this.zoom )
+			if	( !ins ) return
+			const
+			next = InsertNode( segs, ins )
+			next && ( this.nodeSel = null, this.CommitNodeD( next ) )
+			return
+		}
 		const
 		hit = this.HitPath( this.XY_EV( ev ) )
 		hit && ( SetSelection( [ hit[ 0 ] ] ), window.SyncPathEditor?.() )
@@ -551,19 +726,42 @@ MainEditor extends HTMLElement {
 			if	( ev.metaKey || ev.ctrlKey ) ( ev.preventDefault(), SelectAll() )
 			break
 		case 'Backspace':
-		case 'Delete':
+		case 'Delete': {
 			ev.preventDefault()
-			this.pen
-			?	( this.pen.points.pop(), this.pen.points.length || ( this.pen = null ), this.Draw() )
-			:	app.selection.length && Delete().catch( Report )
+			if	( this.pen ) {
+				this.pen.points.pop(), this.pen.points.length || ( this.pen = null ), this.Draw()
+				break
+			}
+			if	( Mode() === 'node' && this.nodeSel ) {
+				const
+				segs = this.NodeSegs()
+				const
+				node = segs && BuildNodes( segs ).find( _ => _.si === this.nodeSel.si && _.pi === this.nodeSel.pi )
+				if	( node?.kind === 'anchor' ) {
+					const
+					next = DeleteNode( segs, node )
+					next && ( this.nodeSel = null, this.CommitNodeD( next ) )
+				}
+				break
+			}
+			app.selection.length && Delete().catch( Report )
 			break
+		}
 		case 'Enter':
 			this.pen && this.CommitPen( false )
 			break
 		case 'Escape':
-			this.pen
-			?	( this.pen = null, this.Draw() )
-			:	SetSelection( [] )
+			if	( this.pen ) {
+				this.pen = null, this.Draw()
+				break
+			}
+			if	( Mode() === 'node' && ( this.nodeSel || this.nodeID ) ) {
+				//	first Esc drops the node selection, the second the target path
+				this.nodeSel ? this.nodeSel = null : this.nodeID = null
+				this.Draw()
+				break
+			}
+			SetSelection( [] )
 			break
 		case 'ArrowLeft':
 		case 'ArrowRight':

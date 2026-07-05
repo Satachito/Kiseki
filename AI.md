@@ -101,8 +101,9 @@ VE.setModel( { viewBox, paths } )
 |------|------|
 | `Web/Application.js` | Model, `Load`, `ApplyPath`, `EditPath`, selection, undo |
 | `Web/VE.js` | `ParseVE` ( strict ), `ImportSVG` ( flatten ), `VEString` |
-| `Web/PathData.js` | Path-data parse / serialize / affine transform / bbox ( pure ) |
-| `Web/main-editor.js` | Canvas drawing, hit testing, gestures, context menu |
+| `Web/PathData.js` | Path-data parse / serialize / affine transform / reverse / split / bbox ( pure ) |
+| `Web/PathNodes.js` | Node-level editing: anchors, control points, insert / delete ( pure ) |
+| `Web/main-editor.js` | Canvas drawing, hit testing, gestures, node mode, context menu |
 | `Web/ai-api.js` | `window.VE`, `validateModel` |
 | `tools/svg2ve.mjs` | Offline .svg → .ve flattener |
 | `tools/ve-server.mjs` | Dev server + WS bridge `/__ve/ws` |
