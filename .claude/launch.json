@@ -1,0 +1,11 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "ve",
+			"runtimeExecutable": "npx",
+			"runtimeArgs": [ "-y", "http-server", "Web", "-p", "8087", "-c-1", "--silent" ],
+			"port": 8087
+		}
+	]
+}
