@@ -4,14 +4,16 @@
   "description": "Vector editor for path-only SVG ( .ve ).",
   "main": "Application.js",
   "scripts": {
-    "dev": "python3 -m http.server 8080"
+    "dev": "node ../tools/ve-server.mjs",
+    "mcp": "node ../tools/ve-mcp.mjs"
   },
   "keywords": [
     "vector",
     "editor",
     "svg",
     "path",
-    "canvas"
+    "canvas",
+    "kiseki"
   ],
   "author": "Satoru Ogura",
   "license": "ISC",

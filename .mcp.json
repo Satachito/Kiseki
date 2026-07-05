@@ -1,0 +1,11 @@
+{
+	"mcpServers": {
+		"kiseki": {
+			"command": "node",
+			"args": [ "tools/ve-mcp.mjs" ],
+			"env": {
+				"VE_PORT": "8282"
+			}
+		}
+	}
+}

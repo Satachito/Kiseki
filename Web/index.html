@@ -239,6 +239,105 @@ aside summary {
 ;	font-size				: 13px
 ;	margin-bottom			: 3px
 }
+.ai-panel {
+;	display					: flex
+;	flex-direction			: column
+;	gap						: 4px
+}
+.ai-config {
+;	display					: flex
+;	flex-direction			: column
+;	gap						: 4px
+}
+.ai-config > select			{ width: 100%; box-sizing: border-box }
+.ai-key-row {
+;	display					: flex
+;	gap						: 4px
+}
+.ai-key-row input			{ flex: 1 1 auto; min-width: 0; box-sizing: border-box }
+.ai-config .ai-key-btn {
+;	flex					: 0 0 auto
+;	width					: 28px
+;	margin-top				: 0
+;	padding					: 0
+;	font-size				: 13px
+}
+.ai-log {
+;	max-height				: 220px
+;	overflow-y				: auto
+;	display					: flex
+;	flex-direction			: column
+;	gap						: 4px
+;	font-size				: 11px
+;	line-height				: 1.4
+}
+.ai-log:empty				{ display: none }
+.ai-msg {
+;	padding					: 4px 6px
+;	border-radius			: 6px
+;	white-space				: pre-wrap
+;	word-break				: break-word
+}
+.ai-user {
+;	background				: var( --color-popup-hover )
+;	align-self				: flex-end
+;	max-width				: 90%
+}
+.ai-assistant				{ background: var( --color-popup-bg ); border: 1px solid var( --color-popup-border ) }
+.ai-status					{ opacity: .6; font-style: italic }
+.ai-error					{ color: #cf222e }
+.ai-input {
+;	resize					: vertical
+;	font-family				: inherit
+;	font-size				: 12px
+}
+.ai-head {
+;	display					: flex
+;	align-items				: center
+;	gap						: 4px
+}
+.ai-head-title {
+;	display					: none
+;	font-weight				: 600
+;	font-size				: 12px
+;	white-space				: nowrap
+}
+.ai-head .ai-float-btn {
+;	display					: inline-flex
+;	align-items				: center
+;	justify-content			: center
+;	flex					: 0 0 auto
+;	width					: 26px
+;	height					: 24px
+;	margin					: 0 0 0 auto
+;	padding					: 0
+;	font-size				: 14px
+;	line-height				: 1
+;	cursor					: pointer
+}
+.ai-panel.floating {
+;	position				: fixed
+;	top						: 50%
+;	left					: 50%
+;	transform				: translate( -50%, -50% )
+;	width					: min( 480px, 90vw )
+;	height					: min( 70vh, 640px )
+;	min-width				: 280px
+;	min-height				: 220px
+;	resize					: both
+;	overflow				: hidden
+;	z-index					: 1000
+;	box-sizing				: border-box
+;	padding					: 10px
+;	border					: 1px solid var( --color-popup-border )
+;	border-radius			: 8px
+;	background				: var( --color-popup-bg )
+;	color					: var( --color-popup-fg )
+;	box-shadow				: 0 8px 28px var( --color-shadow )
+}
+.ai-panel.floating .ai-head			{ cursor: move }
+.ai-panel.floating .ai-head-title	{ display: block }
+.ai-panel.floating .ai-log			{ max-height: none; flex: 1 1 auto }
 nav {
 ;	grid-row				: 2
 ;	grid-column				: 1
@@ -570,6 +669,57 @@ aside select {
 	</div>
 	<hr>
 	<details open>
+		<summary>Claude assistant</summary>
+		<div class=ai-panel id=AI_PANEL>
+			<div class=ai-head>
+				<span class=ai-head-title>Claude assistant</span>
+				<button id=AI_FLOAT type=button class=ai-float-btn title="Float panel" aria-label="Float / dock panel">⤢</button>
+			</div>
+			<div class=ai-config>
+				<div class=ai-key-row>
+					<input id=AI_KEY type=password placeholder="Anthropic API key (sk-ant-…)" spellcheck=false autocomplete=off>
+					<button id=AI_KEY_TOGGLE type=button class=ai-key-btn title="Show / hide key" aria-label="Show / hide key">👁</button>
+					<button id=AI_KEY_CLEAR type=button class=ai-key-btn title="Clear key" aria-label="Clear key">✕</button>
+				</div>
+				<select id=AI_MODEL>
+					<option value=claude-opus-4-8>Opus 4.8 (best)</option>
+					<option value=claude-sonnet-5>Sonnet 5 (balanced)</option>
+					<option value=claude-haiku-4-5>Haiku 4.5 (cheap)</option>
+				</select>
+			</div>
+			<div id=AI_LOG class=ai-log></div>
+			<textarea id=AI_INPUT class=ai-input rows=2 placeholder="Describe a change… (Enter to send)"></textarea>
+			<button id=AI_SEND>Send</button>
+		</div>
+	</details>
+	<hr>
+	<details open>
+		<summary>OpenAI assistant</summary>
+		<div class=ai-panel id=OAI_PANEL>
+			<div class=ai-head>
+				<span class=ai-head-title>OpenAI assistant</span>
+				<button id=OAI_FLOAT type=button class=ai-float-btn title="Float panel" aria-label="Float / dock panel">⤢</button>
+			</div>
+			<div class=ai-config>
+				<div class=ai-key-row>
+					<input id=OAI_KEY type=password placeholder="OpenAI API key (sk-…)" spellcheck=false autocomplete=off>
+					<button id=OAI_KEY_TOGGLE type=button class=ai-key-btn title="Show / hide key" aria-label="Show / hide key">👁</button>
+					<button id=OAI_KEY_CLEAR type=button class=ai-key-btn title="Clear key" aria-label="Clear key">✕</button>
+				</div>
+				<select id=OAI_MODEL>
+					<option value=gpt-4o>gpt-4o (best)</option>
+					<option value=gpt-4o-mini>gpt-4o-mini (cheap)</option>
+					<option value=gpt-4.1>gpt-4.1</option>
+					<option value=gpt-4.1-mini>gpt-4.1-mini</option>
+				</select>
+			</div>
+			<div id=OAI_LOG class=ai-log></div>
+			<textarea id=OAI_INPUT class=ai-input rows=2 placeholder="Describe a change… (Enter to send)"></textarea>
+			<button id=OAI_SEND>Send</button>
+		</div>
+	</details>
+	<hr>
+	<details open>
 		<summary>Path editor</summary>
 		<div class=path-id-row>
 			<input id=PATH_ID placeholder=id spellcheck=false>
@@ -621,6 +771,9 @@ import './main-editor.js'
 import './path-editor.js'
 import './path-list.js'
 import './ai-api.js'
+import { initAIPanel } from './ai-panel.js'
+import { initOpenAIPanel } from './ai-panel-openai.js'
+import { loadVeFile, initLiveReload, setWatchPath } from './live-reload.js'
 import { saveVE, saveSVG, copySVG } from './Export.js'
 
 const
@@ -648,14 +801,11 @@ window.SyncPathEditor = () => {
 
 const
 LoadSample = async name => {
-	const
-	path = `Samples/${ name }.ve`
-	const
-	res = await fetch( path )
-	if	( !res.ok ) throw new Error( `${ path }: ${ res.status }` )
-	await Load( await res.text() )
-	FILE_NAME.value = `${ name }.ve`
-	SyncViewInputs()
+	try {
+		await loadVeFile( `Samples/${ name }.ve`, { SyncViewInputs, FILE_NAME } )
+	} catch ( er ) {
+		throw new Error( `${ er.message || er }` )
+	}
 }
 
 VIEW_APPLY		.onclick = async () => {
@@ -712,6 +862,49 @@ PATH			.onclick = async () => {
 	}
 }
 
+initAIPanel()
+initOpenAIPanel()
+
+//	Float / dock an AI panel: the docked panel pops out into a larger fixed box
+//	over the canvas, draggable by its header. State persists in localStorage.
+const
+makeFloatable = ( panel, btn, storeKey ) => {
+	const
+	setFloat = on => {
+		panel.classList.toggle( 'floating', on )
+		on || ( panel.style.left = panel.style.top = panel.style.right = panel.style.transform = '' )
+		btn.textContent	= on ? '⤓' : '⤢'
+		btn.title		= on ? 'Dock panel' : 'Float panel'
+		localStorage.setItem( storeKey, on ? '1' : '' )
+	}
+	btn.onclick = () => setFloat( !panel.classList.contains( 'floating' ) )
+
+	const
+	head = panel.querySelector( '.ai-head' )
+	let	drag = null
+	head.onpointerdown = ev => {
+		if	( !panel.classList.contains( 'floating' ) || ev.target === btn ) return
+		const	r = panel.getBoundingClientRect()
+		drag = { dx: ev.clientX - r.left, dy: ev.clientY - r.top }
+		//	switch from the centered transform to absolute left/top for dragging
+		panel.style.transform	= 'none'
+		panel.style.left		= `${ r.left }px`
+		panel.style.top			= `${ r.top }px`
+		panel.style.right		= 'auto'
+		head.setPointerCapture( ev.pointerId )
+	}
+	head.onpointermove = ev => {
+		if	( !drag ) return
+		panel.style.left	= `${ ev.clientX - drag.dx }px`
+		panel.style.top		= `${ ev.clientY - drag.dy }px`
+	}
+	head.onpointerup = ev => { drag = null; head.releasePointerCapture?.( ev.pointerId ) }
+
+	setFloat( localStorage.getItem( storeKey ) === '1' )
+}
+makeFloatable( AI_PANEL,	AI_FLOAT,	've-ai-float'	)
+makeFloatable( OAI_PANEL,	OAI_FLOAT,	've-oai-float'	)
+
 DOWNLOAD		.onclick = () => saveVE( FILE_NAME.value )
 EXPORT_SVG		.onclick = () => saveSVG( FILE_NAME.value )
 COPY_SVG		.onclick = async () => {
@@ -732,6 +925,9 @@ UPLOAD			.onchange = async ev => {
 			await Load( await file.text() )
 			FILE_NAME.value = file.name
 			SyncViewInputs()
+			//	uploaded files are not on-server paths — disable live .ve watch
+			setWatchPath( null )
+			sessionStorage.removeItem( 've-watch' )
 		} catch ( er ) {
 			Report( er )
 		} finally {
@@ -741,21 +937,10 @@ UPLOAD			.onchange = async ev => {
 }
 
 onload = async () => {
+	await initLiveReload( { SyncViewInputs, FILE_NAME }, { Report } )
 	const
 	fromUrl = new URLSearchParams( location.search ).get( 've' )
-	if	( fromUrl ) {
-		try {
-			const
-			res = await fetch( fromUrl )
-			if	( !res.ok ) throw new Error( `${ fromUrl }: ${ res.status }` )
-			await Load( await res.text() )
-			FILE_NAME.value = fromUrl.split( '/' ).pop()
-		} catch ( er ) {
-			Report( er )
-		}
-		SyncViewInputs()
-		return
-	}
+	if	( fromUrl ) return	//	initLiveReload loaded it
 	const
 	_ = localStorage.getItem( STORAGE_KEY )
 	_	? await Load( _ ).catch( Report )	//	Load() draws on success

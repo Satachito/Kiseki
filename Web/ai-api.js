@@ -1,5 +1,9 @@
-//	window.VE — programmatic API for agents and scripts.
-//	One operation = one undo step ( via Application.js ).
+//	AI-facing command surface for the live, in-browser model.
+//
+//	Everything here mutates window.app through Application.js so each command is
+//	a single undo step and triggers a redraw. Exposed as window.VE so the in-app
+//	AI panels, the WebSocket bridge ( live-reload.js ), and external agents can
+//	read, validate and edit the document directly.
 
 import {
 	FindPath
@@ -12,12 +16,16 @@ import {
 ,	VEText
 }	from './Application.js'
 
-import { ParseD } from './PathData.js'
+import {
+	ParseD
+,	TranslateD
+}	from './PathData.js'
 
+//	pure: returns an array of human-readable problems ( empty = valid )
 export	const
-validateModel	= model => {
+validateModel	= ( model = app.model ) => {
 	const
-	$ = []
+	issues = []
 	if	( !model || typeof model !== 'object' )	return [ 'model must be an object' ]
 
 	const
@@ -27,77 +35,91 @@ validateModel	= model => {
 	&&	vb.every( Number.isFinite )
 	&&	vb[ 2 ] > 0
 	&&	vb[ 3 ] > 0
-	) || $.push( `viewBox must be [ x, y, w, h ] with w, h > 0: ${ JSON.stringify( vb ) }` )
+	) || issues.push( `viewBox must be [ x, y, w, h ] with w, h > 0: ${ JSON.stringify( vb ) }` )
 
 	if	( !Array.isArray( model.paths ) ) {
-		$.push( 'model.paths must be an array' )
-		return $
+		issues.push( 'model.paths must be an array' )
+		return issues
 	}
 
 	const
-	seen = new Set()
+	ids = new Set
 	model.paths.forEach( ( _, i ) => {
-		if	( !Array.isArray( _ ) || _.length < 2 ) return $.push( `paths[${ i }] must be [ ID, d, attrs ]` )
+		if	( !Array.isArray( _ ) || _.length < 2 ) return issues.push( `paths[${ i }] must be [ ID, d, attrs ]` )
 		const
 		[ ID, D, A ] = _
-		typeof ID === 'string' && ID.length || $.push( `paths[${ i }]: ID must be a non-empty string` )
-		seen.has( ID ) && $.push( `paths[${ i }]: duplicate ID "${ ID }"` )
-		seen.add( ID )
+		typeof ID === 'string' && ID.length || issues.push( `paths[${ i }] has an empty / non-string ID` )
+		ids.has( ID ) && issues.push( `duplicate path ID "${ ID }"` )
+		ids.add( ID )
 		try {
 			ParseD( D )
 		} catch ( er ) {
-			$.push( `paths[${ i }] "${ ID }": ${ er.message }` )
+			issues.push( `path "${ ID }": ${ er.message }` )
 		}
-		A === undefined || ( A && typeof A === 'object' && !Array.isArray( A ) ) || $.push( `paths[${ i }] "${ ID }": attrs must be an object` )
+		A === undefined || ( A && typeof A === 'object' && !Array.isArray( A ) ) || issues.push( `path "${ ID }": attrs must be an object` )
 	} )
-	return $
+	return issues
 }
 
 const
-apply	= async ops => {
-	if	( !Array.isArray( ops ) ) throw new Error( 'apply expects an array of ops' )
-	for ( const op of ops ) {
-		switch ( op.op ) {
-		case 'addPath':
-			if	( FindPath( op.id ) ) throw new Error( `addPath: ID already exists: ${ op.id }` )
-			await ApplyPath( [ op.id, op.d, op.attrs ?? {} ] )
-			break
-		case 'updatePath': {
-			const
-			path = FindPath( op.id )
-			if	( !path ) throw new Error( `updatePath: no such path: ${ op.id }` )
-			await EditPath( op.id, [
-				op.newId ?? op.id
-			,	op.d ?? path[ 1 ]
-			,	op.attrs ?? path[ 2 ]
-			] )
-			break
-		}
-		case 'removePath':
-			await RemovePath( op.id )
-			break
-		case 'restack':
-			await Restack( op.id, op.toFront ?? true )
-			break
-		case 'setViewBox':
-			await SetViewBox( op.viewBox )
-			break
-		default:
-			throw new Error( `Unknown op: ${ op.op }` )
-		}
-	}
-	return { ok: true, applied: ops.length }
+getModel		= () => structuredClone( app.model )
+
+const
+setModel		= model => {
+	const
+	issues = validateModel( model )
+	if	( issues.length ) throw new Error( issues.join( '\n' ) )
+	return SetModel( structuredClone( model ) )
 }
 
-window.VE	= {
-	getModel	: () => structuredClone( app.model )
-,	getText		: () => VEText()
-,	validate	: model => validateModel( model ?? app.model )
-,	apply
-,	setModel	: async model => {
-		const
-		issues = validateModel( model )
-		if	( issues.length ) throw new Error( issues.join( '\n' ) )
-		await SetModel( model )
+const
+mustFind		= id => {
+	const
+	path = FindPath( id )
+	if	( !path ) throw new Error( `no such path: ${ id }` )
+	return path
+}
+
+//	single op → one of the Application mutators ( each its own undo step )
+const
+OPS				= {
+	addPath			: a => {
+		if	( FindPath( a.id ) ) throw new Error( `addPath: ID already exists: ${ a.id }` )
+		return ApplyPath( [ a.id, a.d, a.attrs ?? {} ] )
 	}
+,	updatePath		: a => {
+		const
+		path = mustFind( a.id )
+		return EditPath( a.id, [ a.newId ?? a.id, a.d ?? path[ 1 ], a.attrs ?? path[ 2 ] ] )
+	}
+,	translatePath	: a => {
+		const
+		path = mustFind( a.id )
+		return EditPath( a.id, [ a.id, TranslateD( path[ 1 ], a.dx ?? 0, a.dy ?? 0 ), path[ 2 ] ] )
+	}
+,	removePath		: a => RemovePath( a.id )
+,	restack			: a => Restack( a.id, a.toFront ?? true )
+,	setViewBox		: a => SetViewBox( a.viewBox )
+}
+
+//	apply a list of ops sequentially: [ { op: 'addPath', ... }, ... ]
+const
+apply			= async ops => {
+	if	( !Array.isArray( ops ) ) throw new Error( 'apply expects an array of ops' )
+	for	( const o of ops ) {
+		const	fn = OPS[ o.op ]
+		if	( !fn )	throw new Error( `unknown op "${ o.op }"` )
+		await fn( o )
+	}
+	return	validateModel()
+}
+
+window.VE = {
+	getModel
+,	setModel
+,	getText		: () => VEText()
+,	validate	: validateModel
+,	apply
+,	...OPS
+,	draw		: () => MAIN_EDITOR.Draw()
 }

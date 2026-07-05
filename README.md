@@ -24,7 +24,7 @@ by any SVG viewer as-is.
 
 ```bash
 cd Web && npm run dev
-# http://localhost:8080/index.html
+# http://localhost:8282/?ve=Samples/Demo.ve
 ```
 
 1. Click a **Sample** button at top right ( Tiger, SVGLogo, … ).
@@ -58,6 +58,25 @@ Rename a `.ve` to `.svg` and it opens anywhere. Going the other way, the app
 Authoring rules for AI and hand edits: **[AI.md](AI.md)** ·
 Sample files: **[Samples/](Samples/)**
 
+## Local development & MCP
+
+Same design as Zukai / EzuSVG: `ve-server` serves `Web/`, watches `Samples/` for
+live reload, and bridges the open browser tab to MCP over HTTP/WebSocket.
+
+```bash
+cd Web && npm run dev
+cd ../tools && npm install   # MCP (one-time)
+```
+
+Open `http://localhost:8282/?ve=Samples/Demo.ve`. Enable the **`kiseki`**
+MCP server in Cursor (**Settings → Tools & MCP**) or use [.mcp.json](.mcp.json).
+
+Tools: `ve_status` · `ve_get_model` · `ve_get_text` · `ve_validate` ·
+`ve_apply` (same ops as `window.VE.apply`) · `ve_load_file` · `ve_save_file` ·
+`ve_read_file`.
+
+Default port is **8282** ( Zukai uses 8281 ). Override with `VE_PORT`; if busy, try **8280**.
+
 ## Tools
 
 ```bash
@@ -77,7 +96,8 @@ Kiseki/
 │   ├── Application.js  Model, undo integration, operations
 │   └── main-editor.js  Canvas drawing, hit testing, gestures
 ├── Samples/          Example .ve files
-├── tools/            svg2ve converter
+├── tools/            ve-server, ve-mcp, svg2ve, ve-validate
+├── .mcp.json         Cursor MCP config
 ├── README.md         This file
 └── AI.md             AI contract + window.VE ops
 ```

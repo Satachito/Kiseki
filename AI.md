@@ -105,3 +105,22 @@ VE.setModel( { viewBox, paths } )
 | `Web/main-editor.js` | Canvas drawing, hit testing, gestures, context menu |
 | `Web/ai-api.js` | `window.VE`, `validateModel` |
 | `tools/svg2ve.mjs` | Offline .svg → .ve flattener |
+| `tools/ve-server.mjs` | Dev server + WS bridge `/__ve/ws` |
+| `tools/ve-mcp.mjs` | stdio MCP ( `ve_status`, `ve_apply`, … ) |
+
+---
+
+## MCP tools ( live browser required unless noted )
+
+| Tool | Purpose |
+|------|---------|
+| `ve_status` | Connection, watch path, path count |
+| `ve_get_model` | Live `{ viewBox, paths }` |
+| `ve_get_text` | Live `.ve` markup |
+| `ve_validate` | Validate model ( live or passed-in ) |
+| `ve_apply` | Apply `window.VE` ops |
+| `ve_load_file` | Load `Web/…/*.ve` into browser |
+| `ve_save_file` | Save live doc to `Web/…/*.ve` |
+| `ve_read_file` | Read `.ve` from disk ( no browser ) |
+
+Run `cd Web && npm run dev` and open a document before using live tools.
