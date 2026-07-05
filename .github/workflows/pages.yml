@@ -26,14 +26,14 @@ jobs:
       - uses: actions/configure-pages@v5
       - name: Build static site
         run: |
-          rm -rf _site
-          mkdir -p _site
-          cp -R Web/. _site/
-          mkdir -p _site/Samples
-          cp -R Samples/. _site/Samples/
-          touch _site/.nojekyll
+          rm -rf dist-pages
+          mkdir -p dist-pages
+          cp -R Web/. dist-pages/
+          mkdir -p dist-pages/Samples
+          cp -R Samples/. dist-pages/Samples/
+          touch dist-pages/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: dist-pages
       - id: deployment
         uses: actions/deploy-pages@v4
