@@ -924,16 +924,20 @@ DUMP_JOBS		.onclick = DumpJobs
 FORCE_DRAW		.onclick = () => MAIN_EDITOR.Draw()
 
 //	rename when a single selected path's ID differs from the field — otherwise
-//	update-or-create under the given ID
+//	update-or-create under the given ID.  Colliding rename must not fall through
+//	to ApplyPath (that would overwrite the other path's geometry).
 PATH			.onclick = async () => {
 	const
 	ID = PATH_ID.value.trim() || NewID()
 	const
 	selected = Selected()
 	try {
-		selected.length === 1 && selected[ 0 ][ 0 ] !== ID && !FindPath( ID )
-		?	await EditPath( selected[ 0 ][ 0 ], [ ID, ...PATH_EDITOR.$ ] )
-		:	await ApplyPath( [ ID, ...PATH_EDITOR.$ ] )
+		if	( selected.length === 1 && selected[ 0 ][ 0 ] !== ID ) {
+			if	( FindPath( ID ) ) throw new Error( `ID already exists: ${ ID }` )
+			await EditPath( selected[ 0 ][ 0 ], [ ID, ...PATH_EDITOR.$ ] )
+		} else {
+			await ApplyPath( [ ID, ...PATH_EDITOR.$ ] )
+		}
 		PATH_ID.value = ID
 	} catch ( er ) {
 		Report( er )
