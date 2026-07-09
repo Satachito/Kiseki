@@ -1,9 +1,9 @@
 //	AI-facing command surface for the live, in-browser model.
 //
-//	Everything here mutates window.app through Application.js so each command is
-//	a single undo step and triggers a redraw. Exposed as window.VE so the in-app
-//	AI panels, the WebSocket bridge ( live-reload.js ), and external agents can
-//	read, validate and edit the document directly.
+//	Everything here mutates window.app through Application.js. A single apply()
+//	batch is one undo step and rolls back entirely on any op failure. Exposed as
+//	window.VE so the in-app AI panels, the WebSocket bridge, and external agents
+//	can read, validate and edit the document directly.
 
 import {
 	FindPath
@@ -14,6 +14,8 @@ import {
 ,	SetViewBox
 ,	SetModel
 ,	VEText
+,	DoTypical
+,	withoutHistory
 }	from './Application.js'
 
 import {
@@ -80,7 +82,7 @@ mustFind		= id => {
 	return path
 }
 
-//	single op → one of the Application mutators ( each its own undo step )
+//	single op → Application mutator ( own undo step when called alone )
 const
 OPS				= {
 	addPath			: a => {
@@ -102,15 +104,23 @@ OPS				= {
 ,	setViewBox		: a => SetViewBox( a.viewBox )
 }
 
-//	apply a list of ops sequentially: [ { op: 'addPath', ... }, ... ]
+//	One apply() = one undo step. Any op failure rolls the whole batch back.
 const
 apply			= async ops => {
 	if	( !Array.isArray( ops ) ) throw new Error( 'apply expects an array of ops' )
-	for	( const o of ops ) {
-		const	fn = OPS[ o.op ]
-		if	( !fn )	throw new Error( `unknown op "${ o.op }"` )
-		await fn( o )
-	}
+	if	( !ops.length ) throw new Error( 'apply expects a non-empty ops array' )
+	await DoTypical(
+		'AI'
+	,	() => withoutHistory(
+			async () => {
+				for	( const o of ops ) {
+					const	fn = OPS[ o.op ]
+					if	( !fn )	throw new Error( `unknown op "${ o.op }"` )
+					await fn( o )
+				}
+			}
+		)
+	)
 	return	validateModel()
 }
 

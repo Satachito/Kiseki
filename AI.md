@@ -73,7 +73,7 @@ app.model = {
 
 ## Programmatic API — `window.VE` ( `Web/ai-api.js` )
 
-Via `Application.js`: **one operation = one undo step**.
+Via `Application.js`: **one `apply([...])` call = one undo step**. If any op fails, the whole batch is rolled back (no partial apply). Individual ops called alone (e.g. `VE.addPath`) remain one undo step each.
 
 ```js
 VE.getModel()		//	clone of { viewBox, paths }

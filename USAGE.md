@@ -219,7 +219,7 @@ Calls `ve_save_file`.
 
 ### `ve_apply` ops
 
-One `ve_apply` call = one undo step per op. See **[AI.md](AI.md)** for the full contract.
+One `ve_apply` call = one undo step for the whole batch; any op failure rolls everything back. See **[AI.md](AI.md)** for the full contract.
 
 ```
 { "op": "addPath",       "id", "d", "attrs"? }

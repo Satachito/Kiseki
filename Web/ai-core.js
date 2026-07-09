@@ -18,7 +18,7 @@ Path    = [ ID, d, attrs ]                d: SVG path data ( any standard syntax
                                           { "fill": "gold", "stroke": "orange", "stroke-width": "4" }.
 Draw order = array order ( later paths on top ).
 
-apply_ops ops ( one op = one undo step ):
+apply_ops ops ( one apply_ops call = one undo step; any op failure rolls the whole batch back ):
   { op:"addPath",       id, d, attrs? }
   { op:"updatePath",    id, d?, attrs?, newId? }   // omitted fields keep their current value
   { op:"translatePath", id, dx, dy }               // move a path without touching its d by hand
@@ -30,7 +30,7 @@ Rules:
 - Keep path IDs stable; use updatePath / translatePath instead of remove + add.
 - attrs values are plain SVG attribute strings ( "stroke-dasharray": "8 4", not arrays ).
 - Never regenerate a long d payload to move or restyle a path — use translatePath or attrs.
-- After applying, the tool returns any validation issues; fix them and call apply_ops again.
+- On failure the document is unchanged and the tool returns an error; fix and call apply_ops again. After a successful apply, the tool may still return validation issues — fix those and call apply_ops again.
 - When the request is done, reply with a one-line summary of what you changed. Do not ask for confirmation before editing.`
 
 //	JSON schema for the single apply_ops tool ( shared by both providers ).
