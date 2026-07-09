@@ -17,6 +17,8 @@ import { ROOT, WEB, PORT as DEFAULT_PORT, isUnderWeb	} from './ve-paths.mjs'
 
 const
 PORT	= Number( process.argv[ 2 ] ) || DEFAULT_PORT
+	//	Loopback only — the unauthenticated RPC/WS bridge must not be reachable on LAN.
+,	HOST	= process.env.VE_HOST || '127.0.0.1'
 
 const
 WS_PATH	= '/__ve/ws'
@@ -368,10 +370,11 @@ server = createServer( ( req, res ) => {
 
 server.on( 'upgrade', acceptWs )
 
-server.listen( PORT, () => {
-	log( `http://localhost:${ PORT }/` )
-	log( `example: http://localhost:${ PORT }/?ve=Samples/Demo.ve` )
-	log( `bridge:  GET http://127.0.0.1:${ PORT }/__ve/status` )
+server.listen( PORT, HOST, () => {
+	log( `http://${ HOST }:${ PORT }/` )
+	log( `example: http://${ HOST }:${ PORT }/?ve=Samples/Demo.ve` )
+	log( `bridge:  GET http://${ HOST }:${ PORT }/__ve/status` )
+	HOST === '127.0.0.1' || log( 'warning: not loopback-only; RPC has no auth — do not expose this port' )
 } )
 
 server.on( 'error', er => {
