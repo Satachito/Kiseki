@@ -233,7 +233,7 @@ One `ve_apply` call = one undo step for the whole batch; any op failure rolls ev
 ### Rules for agents
 
 - **Keep path IDs stable.** Use `updatePath` / `translatePath`, not delete-and-recreate.
-- **Never hand-mangle long `d` payloads** (Tiger, Ikyu, …) — translate whole paths or edit attributes instead.
+- **Never hand-mangle long `d` payloads** (Tiger, …) — translate whole paths or edit attributes instead.
 - **`attrs` values** are strings written verbatim into the file.
 - **Undo:** live MCP edits are undoable in the browser (⌘Z).
 - Only **one browser tab** should connect to `ve-server` at a time (last connection wins).

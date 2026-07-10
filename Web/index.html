@@ -684,7 +684,6 @@ aside select {
 <header class=sample-panel>
 	<div class=sample-list>
 		<button id=SAMPLE_TIGER		>Tiger		</button>
-		<button id=SAMPLE_IKYU		>Ikyu		</button>
 		<button id=SAMPLE_SVGLOGO	>SVGLogo	</button>
 		<button id=SAMPLE_QUATROARC	>QuatroArc	</button>
 		<button id=SAMPLE_TRANSFORM	>Transform	</button>
@@ -925,7 +924,6 @@ ApplyPanel( 'nav-collapsed',	NAV_TOGGLE,		localStorage.getItem( 'nav-collapsed'	
 ApplyPanel( 'aside-collapsed',	ASIDE_TOGGLE,	localStorage.getItem( 'aside-collapsed'	) === '1', '›', '‹' )
 
 SAMPLE_TIGER	.onclick = () => LoadSample( 'Tiger'		).catch( Report )
-SAMPLE_IKYU		.onclick = () => LoadSample( 'Ikyu'			).catch( Report )
 SAMPLE_SVGLOGO	.onclick = () => LoadSample( 'SVGLogo'		).catch( Report )
 SAMPLE_QUATROARC.onclick = () => LoadSample( 'QuatroArc'	).catch( Report )
 SAMPLE_TRANSFORM.onclick = () => LoadSample( 'Transform'	).catch( Report )

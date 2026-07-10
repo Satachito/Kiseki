@@ -55,7 +55,7 @@ app.model = {
 
 1. **Keep path IDs stable.** Move / restyle via `d` and attributes, not by
    delete-and-recreate.
-2. **Never hand-mangle long `d` payloads** ( Tiger, Ikyu, … ) — translate whole
+2. **Never hand-mangle long `d` payloads** ( Tiger, … ) — translate whole
    paths or edit attributes instead.
 3. Attribute values are written into the file verbatim — use valid SVG values
    ( `stroke-dasharray="8 4"`, not JSON arrays ).
