@@ -80,6 +80,13 @@ Open `http://localhost:8282/?ve=Samples/Demo.ve`. Enable the **`kiseki`**
 MCP server in Cursor (**Settings → Tools & MCP**) or use [.mcp.json](.mcp.json).
 See **[USAGE.md](USAGE.md)** for Phase 2 / 3 / 4 workflow and client setup.
 
+## Feedback
+
+Found a bug or have an idea for a vector editing workflow? Please use the
+[feedback form on GitHub](https://github.com/Satachito/Kiseki/issues/new/choose).
+Issue forms are available in English and Japanese. Do not include API keys or
+other secrets.
+
 Tools: `ve_status` · `ve_get_model` · `ve_get_text` · `ve_validate` ·
 `ve_apply` (same ops as `window.VE.apply`) · `ve_load_file` · `ve_save_file` ·
 `ve_read_file`.
