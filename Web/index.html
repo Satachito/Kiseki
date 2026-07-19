@@ -22,9 +22,9 @@
 		s.src = `https://www.googletagmanager.com/gtag/js?id=${ id }`
 		document.head.appendChild( s )
 		window.dataLayer = window.dataLayer || []
-		function gtag(){ dataLayer.push( arguments ) }
-		gtag( 'js', new Date() )
-		gtag( 'config', id )
+		window.gtag = function(){ dataLayer.push( arguments ) }
+		window.gtag( 'js', new Date() )
+		window.gtag( 'config', id )
 	}
 }
 </script>
@@ -871,6 +871,7 @@ import './SAT/ai/ai-assistant.js'
 import { systemWithModel } from './ai-system.js'
 import { loadVeFile, initLiveReload, setWatchPath } from './live-reload.js'
 import { saveVE, saveSVG, copySVG } from './Export.js'
+import { track } from './Analytics.js'
 
 const
 isLocalDev = /^(localhost|127\.0\.0\.1|\[::1\])$/.test( location.hostname )
@@ -899,6 +900,7 @@ const
 LoadSample = async name => {
 	try {
 		await loadVeFile( `Samples/${ name }.ve`, { SyncViewInputs, FILE_NAME } )
+		track( 'sample_open' )
 	} catch ( er ) {
 		throw new Error( `${ er.message || er }` )
 	}
@@ -999,12 +1001,13 @@ initAIPanels = () => {
 	for ( const el of [ AI_PANEL, OAI_PANEL ] ) {
 		el.systemWithModel	= systemWithModel
 		el.applyOps			= ops => window.VE.apply( ops )
+		el.onSend			= () => track( 'ai_send' )
 	}
 }
 initAIPanels()
 
-DOWNLOAD		.onclick = () => saveVE( FILE_NAME.value )
-EXPORT_SVG		.onclick = () => saveSVG( FILE_NAME.value )
+DOWNLOAD		.onclick = () => { saveVE( FILE_NAME.value ); track( 'export_ve' ) }
+EXPORT_SVG		.onclick = () => { saveSVG( FILE_NAME.value ); track( 'export_svg' ) }
 COPY_SVG		.onclick = async () => {
 	const	label = COPY_SVG.querySelector( 'span' )
 	try {
